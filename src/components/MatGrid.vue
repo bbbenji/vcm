@@ -23,6 +23,48 @@ const dragPaintCell = (event: MouseEvent, row: number, col: number, isSecondary 
   if (event.buttons !== 1) return;
   store.updateCell(row, col, isSecondary);
 };
+
+// Touch drawing support
+const isTouchDevice = ref(false);
+if (typeof window !== "undefined") {
+  isTouchDevice.value = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+}
+
+const lastTouchedCell = ref<{ row: number; col: number; isSecondary: boolean } | null>(null);
+
+const handleTouchStart = (e: TouchEvent, row: number, col: number, isSecondary = false) => {
+  store.saveHistory();
+  lastTouchedCell.value = { row, col, isSecondary };
+  store.updateCell(row, col, isSecondary);
+};
+
+const handleTouchMove = (e: TouchEvent) => {
+  if (!lastTouchedCell.value) return;
+  const touch = e.touches[0];
+  if (!touch) return;
+  const element = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (!element) return;
+  
+  const cell = element.closest("[data-row][data-col]") as HTMLElement | null;
+  if (cell) {
+    const row = parseInt(cell.dataset.row || "0", 10);
+    const col = parseInt(cell.dataset.col || "0", 10);
+    const isSecondary = cell.dataset.secondary === "true";
+    
+    if (
+      lastTouchedCell.value.row !== row ||
+      lastTouchedCell.value.col !== col ||
+      lastTouchedCell.value.isSecondary !== isSecondary
+    ) {
+      lastTouchedCell.value = { row, col, isSecondary };
+      store.updateCell(row, col, isSecondary);
+    }
+  }
+};
+
+const handleTouchEnd = () => {
+  lastTouchedCell.value = null;
+};
 </script>
 
 <template>
@@ -62,16 +104,22 @@ const dragPaintCell = (event: MouseEvent, row: number, col: number, isSecondary 
 
         <!-- The Mat -->
         <div
-          class="grid bg-white border-t-2 border-l-2 border-grid-line touch-none"
+          class="grid bg-white border-t-2 border-l-2 border-grid-line touch-none select-none"
           :style="{
             gridTemplateColumns: `repeat(${store.gridSize}, minmax(0, 1fr))`,
             gridTemplateRows: `repeat(${store.gridSize}, minmax(0, 1fr))`,
           }"
+          @touchmove.prevent="handleTouchMove"
+          @touchend="handleTouchEnd"
+          @touchcancel="handleTouchEnd"
         >
           <template v-for="(row, rIndex) in store.gridData" :key="'row-' + rIndex">
             <div
               v-for="(cell, cIndex) in row"
               :key="cell.id"
+              :data-row="rIndex"
+              :data-col="cIndex"
+              :data-secondary="false"
               class="flex justify-center items-center w-6 h-6 md:w-8 lg:w-12 md:h-8 lg:h-12 border-r border-b border-grid-line cursor-crosshair transition-[filter] duration-100 hover:brightness-95"
               :class="{
                 'border-b-2 border-b-grid-sym-line': rIndex === Math.floor(store.gridSize / 2) - 1,
@@ -80,6 +128,7 @@ const dragPaintCell = (event: MouseEvent, row: number, col: number, isSecondary 
               :style="{ backgroundColor: cell.bg || 'transparent' }"
               @mousedown="paintCell(rIndex, cIndex)"
               @mouseenter="dragPaintCell($event, rIndex, cIndex)"
+              @touchstart.passive="handleTouchStart($event, rIndex, cIndex, false)"
             >
               <component
                 v-if="cell.icon"
@@ -136,20 +185,27 @@ const dragPaintCell = (event: MouseEvent, row: number, col: number, isSecondary 
 
         <!-- Secondary Grid Board -->
         <div
-          class="grid bg-white border-t-2 border-l-2 border-grid-line touch-none"
+          class="grid bg-white border-t-2 border-l-2 border-grid-line touch-none select-none"
           :style="{
             gridTemplateColumns: `repeat(${store.gridSize}, minmax(0, 1fr))`,
             gridTemplateRows: `repeat(3, minmax(0, 1fr))`,
           }"
+          @touchmove.prevent="handleTouchMove"
+          @touchend="handleTouchEnd"
+          @touchcancel="handleTouchEnd"
         >
           <template v-for="(row, rIndex) in store.secondaryGridData" :key="'sec-row-' + rIndex">
             <div
               v-for="(cell, cIndex) in row"
               :key="cell.id"
+              :data-row="rIndex"
+              :data-col="cIndex"
+              :data-secondary="true"
               class="flex justify-center items-center w-6 h-6 md:w-8 lg:w-12 md:h-8 lg:h-12 border-r border-b border-grid-line cursor-crosshair transition-[filter] duration-100 hover:brightness-95"
               :style="{ backgroundColor: cell.bg || 'transparent' }"
               @mousedown="paintCell(rIndex, cIndex, true)"
               @mouseenter="dragPaintCell($event, rIndex, cIndex, true)"
+              @touchstart.passive="handleTouchStart($event, rIndex, cIndex, true)"
             >
               <component
                 v-if="cell.icon"
@@ -170,7 +226,7 @@ const dragPaintCell = (event: MouseEvent, row: number, col: number, isSecondary 
 
     <!-- Custom Cursor Overlay -->
     <div
-      v-if="isHoveringGrid"
+      v-if="isHoveringGrid && !isTouchDevice"
       class="fixed pointer-events-none z-50 flex justify-center items-center w-6 h-6 md:w-8 lg:w-12 md:h-8 lg:h-12 opacity-70 drop-shadow-xl"
       :style="{ 
         left: (mousePos.x + 12) + 'px', 

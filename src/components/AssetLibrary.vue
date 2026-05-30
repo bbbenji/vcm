@@ -76,24 +76,24 @@ const selectTool = (type: ToolType, value: string | null) => {
 
 <template>
   <aside
-    class="flex flex-col bg-white border-t md:border-t-0 md:border-l border-slate-200 w-full md:w-[320px] h-[300px] md:h-full overflow-y-auto shrink-0"
+    class="flex flex-col bg-white border-t md:border-t-0 md:border-l border-slate-200 w-full md:w-[320px] h-[220px] md:h-full overflow-y-auto shrink-0"
   >
-    <div class="flex flex-wrap p-2 gap-1 border-b border-slate-200 bg-slate-100">
+    <div class="flex flex-row overflow-x-auto whitespace-nowrap p-2 gap-1 border-b border-slate-200 bg-slate-100 scrollbar-none">
       <button
         v-for="cat in categories"
         :key="cat.id"
-        class="flex flex-col items-center justify-center gap-1 flex-[1_1_30%] p-2 rounded-lg text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800 cursor-pointer"
+        class="flex flex-col items-center justify-center gap-1 p-2 rounded-lg text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800 cursor-pointer shrink-0 min-w-[70px] md:min-w-0 md:flex-1"
         :class="{ 'bg-white text-primary shadow-sm font-semibold': activeTab === cat.id }"
         @click="activeTab = cat.id"
         :title="cat.name"
       >
-        <component :is="getIcon(cat.icon)" :size="20" />
-        <span class="text-[0.7rem] text-center">{{ cat.name }}</span>
+        <component :is="getIcon(cat.icon)" :size="18" class="md:w-5 md:h-5" />
+        <span class="text-[0.65rem] md:text-[0.7rem] text-center">{{ cat.name }}</span>
       </button>
     </div>
 
-    <div class="p-6 flex-1 overflow-y-auto">
-      <div class="grid grid-cols-[repeat(auto-fill,minmax(3rem,1fr))] gap-3">
+    <div class="p-3 md:p-6 flex-1 overflow-y-auto">
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] md:grid-cols-[repeat(auto-fill,minmax(3rem,1fr))] gap-2 md:gap-3">
         <!-- Special eraser button -->
         <button
           class="w-full aspect-square rounded-lg border-2 flex justify-center items-center text-xl font-bold bg-white text-slate-800 transition-all shadow-sm hover:scale-105 hover:shadow-md border-dashed border-slate-400 cursor-pointer"
