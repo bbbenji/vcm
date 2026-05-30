@@ -72,7 +72,7 @@ const categories = [
   { id: "move", name: "Ruch", icon: "Move", toolType: "icon" as ToolType, items: movements },
   { id: "num", name: "Cyfry", icon: "Binary", toolType: "text" as ToolType, items: numbers },
   { id: "abc", name: "Alfabet", icon: "Type", toolType: "text" as ToolType, items: alphabet },
-  { id: "veh", name: "Pojazdy i Zabawki", icon: "Car", toolType: "icon" as ToolType, items: vehicles },
+  { id: "veh", name: "Pojazdy", icon: "Car", toolType: "icon" as ToolType, items: vehicles },
   { id: "ani", name: "Zwierzęta", icon: "Cat", toolType: "icon" as ToolType, items: animals },
   { id: "tasks", name: "Zadania", icon: "BookOpen", toolType: "task" as ToolType, items: [] },
 ];
@@ -146,7 +146,7 @@ const selectTool = (type: ToolType, value: string | null) => {
             <button
               v-for="tpl in templates"
               :key="tpl.id"
-              @click="store.loadTemplate(tpl.size, tpl.main, tpl.secondary, tpl.instructions || null)"
+              @click="store.loadTemplate(tpl.size, tpl.main, tpl.secondary, tpl.instructions || null, tpl.id)"
               class="flex flex-col text-left p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer shadow-sm select-none"
             >
               <div class="flex justify-between items-center w-full">

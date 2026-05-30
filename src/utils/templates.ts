@@ -9,6 +9,8 @@ export interface Template {
   instructions?: string
   main: [number, number, string | null, string | null, string | null][]
   secondary: [number, number, string | null, string | null, string | null][]
+  mainSolution?: [number, number, string | null, string | null, string | null][]
+  secondarySolution?: [number, number, string | null, string | null, string | null][]
 }
 
 export const templates: Template[] = [
@@ -142,7 +144,13 @@ export const templates: Template[] = [
       // Target Puzzle star
       [9, 9, '#eab308', 'Puzzle', null]
     ],
-    secondary: []
+    secondary: [],
+    secondarySolution: [
+      [0, 1, null, 'ArrowDown', null], [0, 2, null, 'Num5Icon', null],
+      [0, 3, null, 'ArrowDown', null], [0, 4, null, 'Num4Icon', null],
+      [0, 5, null, 'ArrowRight', null], [0, 6, null, 'Num5Icon', null],
+      [0, 7, null, 'ArrowRight', null], [0, 8, null, 'Num4Icon', null]
+    ]
   },
   {
     id: 'pirate_maze',
@@ -167,7 +175,17 @@ export const templates: Template[] = [
       [2, 1, '#475569', null, null], [2, 2, '#475569', null, null], [2, 8, '#475569', null, null],
       [1, 4, '#475569', null, null], [1, 5, '#475569', null, null]
     ],
-    secondary: []
+    secondary: [],
+    secondarySolution: [
+      [0, 1, null, 'ArrowUp', null], [0, 2, null, 'Num3Icon', null],
+      [0, 3, null, 'ArrowRight', null], [0, 4, null, 'Num2Icon', null],
+      [0, 5, null, 'ArrowUp', null],
+      [0, 6, null, 'ArrowRight', null], [0, 7, null, 'Num2Icon', null],
+      [0, 8, null, 'ArrowUp', null], [0, 9, null, 'Num3Icon', null],
+      [1, 0, null, 'ArrowRight', null], [1, 1, null, 'Num3Icon', null],
+      [1, 2, null, 'ArrowUp', null], [1, 3, null, 'Num2Icon', null],
+      [1, 4, null, 'ArrowRight', null], [1, 5, null, 'Num2Icon', null]
+    ]
   },
   {
     id: 'coded_heart',
@@ -177,7 +195,24 @@ export const templates: Template[] = [
     type: 'instruction',
     instructions: 'Odkryj obrazek! Pokoloruj kratki na CZERWONO:\n\n- C2, D2, G2, H2\n- B3 do I3 (czyli B3, C3, D3, E3, F3, G3, H3, I3)\n- B4 do I4\n- B5 do I5\n- C6 do H6\n- D7 do G7\n- E8, F8',
     main: [],
-    secondary: []
+    secondary: [],
+    mainSolution: [
+      // Row 1
+      [1, 2, '#ef4444', null, null], [1, 3, '#ef4444', null, null],
+      [1, 6, '#ef4444', null, null], [1, 7, '#ef4444', null, null],
+      // Row 2
+      [2, 1, '#ef4444', null, null], [2, 2, '#ef4444', null, null], [2, 3, '#ef4444', null, null], [2, 4, '#ef4444', null, null], [2, 5, '#ef4444', null, null], [2, 6, '#ef4444', null, null], [2, 7, '#ef4444', null, null], [2, 8, '#ef4444', null, null],
+      // Row 3
+      [3, 1, '#ef4444', null, null], [3, 2, '#ef4444', null, null], [3, 3, '#ef4444', null, null], [3, 4, '#ef4444', null, null], [3, 5, '#ef4444', null, null], [3, 6, '#ef4444', null, null], [3, 7, '#ef4444', null, null], [3, 8, '#ef4444', null, null],
+      // Row 4
+      [4, 1, '#ef4444', null, null], [4, 2, '#ef4444', null, null], [4, 3, '#ef4444', null, null], [4, 4, '#ef4444', null, null], [4, 5, '#ef4444', null, null], [4, 6, '#ef4444', null, null], [4, 7, '#ef4444', null, null], [4, 8, '#ef4444', null, null],
+      // Row 5
+      [5, 2, '#ef4444', null, null], [5, 3, '#ef4444', null, null], [5, 4, '#ef4444', null, null], [5, 5, '#ef4444', null, null], [5, 6, '#ef4444', null, null], [5, 7, '#ef4444', null, null],
+      // Row 6
+      [6, 3, '#ef4444', null, null], [6, 4, '#ef4444', null, null], [6, 5, '#ef4444', null, null], [6, 6, '#ef4444', null, null],
+      // Row 7
+      [7, 4, '#ef4444', null, null], [7, 5, '#ef4444', null, null]
+    ]
   },
   {
     id: 'butterfly_symmetry',
@@ -199,6 +234,30 @@ export const templates: Template[] = [
       [6, 2, '#84cc16', null, null], [6, 3, '#84cc16', null, null],
       [7, 3, '#84cc16', null, null]
     ],
-    secondary: []
+    secondary: [],
+    mainSolution: [
+      // Left center body
+      [2, 4, '#475569', null, null], [3, 4, '#475569', null, null], [4, 4, '#475569', null, null], [5, 4, '#475569', null, null], [6, 4, '#475569', null, null], [7, 4, '#475569', null, null],
+      // Wing pink upper
+      [1, 2, '#ec4899', null, null], [1, 3, '#ec4899', null, null],
+      [2, 1, '#ec4899', null, null], [2, 2, '#0ea5e9', null, null], [2, 3, '#0ea5e9', null, null],
+      [3, 1, '#ec4899', null, null], [3, 2, '#0ea5e9', null, null], [3, 3, '#0ea5e9', null, null],
+      [4, 0, '#ec4899', null, null], [4, 1, '#0ea5e9', null, null], [4, 2, '#eab308', null, null], [4, 3, '#eab308', null, null],
+      // Wing green lower
+      [5, 1, '#84cc16', null, null], [5, 2, '#84cc16', null, null], [5, 3, '#84cc16', null, null],
+      [6, 2, '#84cc16', null, null], [6, 3, '#84cc16', null, null],
+      [7, 3, '#84cc16', null, null],
+      // Right center body (Solution)
+      [2, 5, '#475569', null, null], [3, 5, '#475569', null, null], [4, 5, '#475569', null, null], [5, 5, '#475569', null, null], [6, 5, '#475569', null, null], [7, 5, '#475569', null, null],
+      // Mirrored Pink Wing Upper
+      [1, 7, '#ec4899', null, null], [1, 6, '#ec4899', null, null],
+      [2, 8, '#ec4899', null, null], [2, 7, '#0ea5e9', null, null], [2, 6, '#0ea5e9', null, null],
+      [3, 8, '#ec4899', null, null], [3, 7, '#0ea5e9', null, null], [3, 6, '#0ea5e9', null, null],
+      [4, 9, '#ec4899', null, null], [4, 8, '#0ea5e9', null, null], [4, 7, '#eab308', null, null], [4, 6, '#eab308', null, null],
+      // Mirrored Green Wing Lower
+      [5, 8, '#84cc16', null, null], [5, 7, '#84cc16', null, null], [5, 6, '#84cc16', null, null],
+      [6, 7, '#84cc16', null, null], [6, 6, '#84cc16', null, null],
+      [7, 6, '#84cc16', null, null]
+    ]
   }
 ]

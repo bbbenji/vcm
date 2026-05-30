@@ -43,6 +43,12 @@ const downloadImage = async () => {
     const dataUrl = await toPng(matEl, {
       pixelRatio: 2,
       backgroundColor: '#ffffff',
+      filter: (node) => {
+        if (node instanceof HTMLElement && node.getAttribute('data-html2canvas-ignore') === 'true') {
+          return false
+        }
+        return true
+      }
     })
     const link = document.createElement('a')
     link.download = 'wirtualna-mata.png'
@@ -64,6 +70,12 @@ const downloadPdf = async () => {
     const dataUrl = await toPng(matEl, {
       pixelRatio: 2,
       backgroundColor: '#ffffff',
+      filter: (node) => {
+        if (node instanceof HTMLElement && node.getAttribute('data-html2canvas-ignore') === 'true') {
+          return false
+        }
+        return true
+      }
     })
 
     // A4 size in mm: 210 x 297
