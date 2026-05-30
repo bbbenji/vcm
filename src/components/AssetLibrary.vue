@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { useMatStore } from "../stores/matStore";
 import type { ToolType } from "../stores/matStore";
 import { getIcon } from "../utils/icons";
+import { templates } from "../utils/templates";
 
 const store = useMatStore();
 const toolButtonClass =
@@ -67,12 +68,13 @@ const vehicles = [
 const animals = ["Cat", "Dog", "Bird", "Rabbit", "Snail", "Bug", "Fish", "Turtle"];
 
 const categories = [
-  { id: "bg", name: "Kolory", icon: "Palette", toolType: "background", items: colors },
-  { id: "move", name: "Ruch", icon: "Move", toolType: "icon", items: movements },
-  { id: "num", name: "Cyfry", icon: "Binary", toolType: "text", items: numbers },
-  { id: "abc", name: "Alfabet", icon: "Type", toolType: "text", items: alphabet },
-  { id: "veh", name: "Pojazdy i Zabawki", icon: "Car", toolType: "icon", items: vehicles },
-  { id: "ani", name: "Zwierzęta", icon: "Cat", toolType: "icon", items: animals },
+  { id: "bg", name: "Kolory", icon: "Palette", toolType: "background" as ToolType, items: colors },
+  { id: "move", name: "Ruch", icon: "Move", toolType: "icon" as ToolType, items: movements },
+  { id: "num", name: "Cyfry", icon: "Binary", toolType: "text" as ToolType, items: numbers },
+  { id: "abc", name: "Alfabet", icon: "Type", toolType: "text" as ToolType, items: alphabet },
+  { id: "veh", name: "Pojazdy i Zabawki", icon: "Car", toolType: "icon" as ToolType, items: vehicles },
+  { id: "ani", name: "Zwierzęta", icon: "Cat", toolType: "icon" as ToolType, items: animals },
+  { id: "tasks", name: "Zadania", icon: "BookOpen", toolType: "task" as ToolType, items: [] },
 ];
 
 const activeTab = ref("bg");
@@ -104,6 +106,7 @@ const selectTool = (type: ToolType, value: string | null) => {
       <div class="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] md:grid-cols-[repeat(auto-fill,minmax(3rem,1fr))] gap-2 md:gap-3">
         <!-- Special eraser button -->
         <button
+          v-if="activeTab !== 'tasks'"
           class="w-full aspect-square rounded-lg border-2 flex justify-center items-center text-xl font-bold bg-white text-slate-800 transition-all shadow-sm hover:scale-105 hover:shadow-md border-dashed border-slate-400 cursor-pointer"
           @click="selectTool('eraser', null)"
           :class="{
@@ -135,6 +138,32 @@ const selectTool = (type: ToolType, value: string | null) => {
               <template v-else-if="cat.toolType === 'text'">{{ item }}</template>
             </button>
           </template>
+        </template>
+
+        <!-- Predefined and instructional templates lists -->
+        <template v-if="activeTab === 'tasks'">
+          <div class="flex flex-col gap-3 col-span-full pb-6">
+            <button
+              v-for="tpl in templates"
+              :key="tpl.id"
+              @click="store.loadTemplate(tpl.size, tpl.main, tpl.secondary, tpl.instructions || null)"
+              class="flex flex-col text-left p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer shadow-sm select-none"
+            >
+              <div class="flex justify-between items-center w-full">
+                <span class="font-bold text-slate-800 text-sm">{{ tpl.name }}</span>
+                <span 
+                  class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider select-none shrink-0"
+                  :class="tpl.type === 'premade' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'"
+                >
+                  {{ tpl.type === 'premade' ? 'Wzór' : 'Zadanie' }}
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-1 leading-normal break-words">{{ tpl.description }}</p>
+              <span class="text-[10px] text-primary font-semibold mt-2.5 flex items-center gap-1">
+                Uruchom planszę ({{ tpl.size }}x{{ tpl.size }}) &rarr;
+              </span>
+            </button>
+          </div>
         </template>
       </div>
     </div>

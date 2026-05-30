@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { useMatStore } from "../stores/matStore";
 import { getPlacedIcon } from "../utils/icons";
+import { BookOpen, X } from "lucide-vue-next";
 
 const store = useMatStore();
 
@@ -69,6 +70,22 @@ const handleTouchEnd = () => {
 
 <template>
   <div class="w-full h-full overflow-auto bg-slate-50 relative">
+    <!-- Active Instructions Alert Box -->
+    <div v-if="store.activeInstructions" class="max-w-xl mx-auto mt-4 px-4 select-none">
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 p-4 rounded-r-xl shadow-sm">
+        <div class="flex items-start gap-3">
+          <BookOpen class="text-blue-600 w-5 h-5 shrink-0 mt-0.5" />
+          <div class="flex-1">
+            <h3 class="font-bold text-slate-800 text-sm md:text-base">Zadanie do wykonania:</h3>
+            <p class="text-slate-600 text-xs md:text-sm mt-1 whitespace-pre-wrap leading-relaxed">{{ store.activeInstructions }}</p>
+          </div>
+          <button @click="store.activeInstructions = null" class="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="min-w-full w-max min-h-full h-max flex justify-center items-center p-2 md:p-8">
       <div 
         class="flex flex-col bg-white p-4 rounded-2xl shadow-xl" 

@@ -3,7 +3,7 @@ import { ref } from 'vue'
 
 export const GRID_SIZES = [10, 12, 14, 16, 18, 20] as const
 
-export type ToolType = 'background' | 'icon' | 'text' | 'eraser'
+export type ToolType = 'background' | 'icon' | 'text' | 'eraser' | 'task'
 export type GridSize = (typeof GRID_SIZES)[number]
 
 export interface ActiveTool {
@@ -66,6 +66,7 @@ export const useMatStore = defineStore('mat', () => {
   const gridData = ref<GridCell[][]>([])
   const secondaryGridData = ref<GridCell[][]>([])
   const history = ref<string[]>([])
+  const activeInstructions = ref<string | null>(null)
 
   function getCompactState() {
     const compactMain: CompactCell[] = []
@@ -225,6 +226,7 @@ export const useMatStore = defineStore('mat', () => {
 
   function clearBoard() {
     saveHistory()
+    activeInstructions.value = null
     gridData.value.forEach((row) => {
       row.forEach((cell) => {
         cell.bg = null
@@ -239,6 +241,17 @@ export const useMatStore = defineStore('mat', () => {
         cell.text = null
       })
     })
+    syncToUrl()
+  }
+
+  function loadTemplate(size: GridSize, mainCells: CompactCell[], secCells: CompactCell[], instructions: string | null = null) {
+    saveHistory()
+    activeInstructions.value = instructions
+    initBoard(size, false)
+    applyCompactCells(mainCells, gridData.value)
+    applyCompactCells(secCells, secondaryGridData.value)
+    const startCell = secondaryGridData.value[0]?.[0]
+    if (startCell) startCell.icon = START_ICON
     syncToUrl()
   }
 
@@ -327,5 +340,7 @@ export const useMatStore = defineStore('mat', () => {
     saveHistory,
     undo,
     getCoordinatesText,
+    loadTemplate,
+    activeInstructions,
   }
 })
