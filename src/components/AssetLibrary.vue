@@ -76,7 +76,7 @@ const selectTool = (type: ToolType, value: string | null) => {
 
 <template>
   <aside
-    class="flex flex-col bg-white border-t md:border-t-0 md:border-l border-slate-200 w-full md:w-[320px] h-[220px] md:h-full overflow-y-auto shrink-0"
+    class="flex flex-col bg-white border-t md:border-t-0 md:border-l border-slate-200 w-full md:w-[320px] h-[240px] md:h-full overflow-hidden shrink-0"
   >
     <div class="flex flex-row overflow-x-auto whitespace-nowrap p-2 gap-1 border-b border-slate-200 bg-slate-100 scrollbar-none">
       <button

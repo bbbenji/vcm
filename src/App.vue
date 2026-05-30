@@ -5,7 +5,7 @@ import AssetLibrary from './components/AssetLibrary.vue'
 </script>
 
 <template>
-  <div class="flex flex-col h-screen overflow-hidden">
+  <div class="flex flex-col h-dvh overflow-hidden">
     <HeaderControls />
     <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
       <main class="flex-1 relative overflow-hidden">
