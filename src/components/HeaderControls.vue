@@ -126,7 +126,7 @@ const handleCoordinatesDownload = () => {
       <h1 class="text-base md:text-2xl font-bold text-primary tracking-tight m-0">Wirtualna Mata</h1>
     </div>
 
-    <div class="flex items-center gap-1.5 md:gap-4 overflow-x-auto scrollbar-none py-0.5">
+    <div class="flex items-center gap-1.5 md:gap-4 py-0.5">
       <div class="flex items-center gap-1 md:gap-2 font-medium shrink-0">
         <label for="grid-size" class="hidden sm:inline text-xs md:text-sm">Rozmiar:</label>
         <select

@@ -34,12 +34,20 @@ const colors = [
 const movements = [
   "ArrowUp",
   "ArrowDown",
-  "ArrowLeft",
   "ArrowRight",
-  "RotateCcw",
-  "RotateCw",
-  "CornerUpLeft",
+  "ArrowLeft",
   "CornerUpRight",
+  "CornerUpLeft",
+  "PlayFilled",
+  "StopFilled",
+  "F1Icon",
+  "F2Icon",
+  "LoopPlayIcon",
+  "LoopStopIcon",
+  "Num2Icon",
+  "Num3Icon",
+  "Num4Icon",
+  "Num5Icon",
 ];
 const numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "-", "=", "<", ">"];
 const alphabet = "AĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻ?!.".split("");
@@ -82,13 +90,13 @@ const selectTool = (type: ToolType, value: string | null) => {
       <button
         v-for="cat in categories"
         :key="cat.id"
-        class="flex flex-col items-center justify-center gap-1 p-2 rounded-lg text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800 cursor-pointer shrink-0 min-w-[70px] md:min-w-0 md:flex-1"
+        class="flex flex-col items-center justify-center gap-1 p-1 md:p-2 rounded-lg text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800 cursor-pointer shrink-0 w-[78px] md:w-auto md:flex-1"
         :class="{ 'bg-white text-primary shadow-sm font-semibold': activeTab === cat.id }"
         @click="activeTab = cat.id"
         :title="cat.name"
       >
-        <component :is="getIcon(cat.icon)" :size="18" class="md:w-5 md:h-5" />
-        <span class="text-[0.65rem] md:text-[0.7rem] text-center">{{ cat.name }}</span>
+        <component :is="getIcon(cat.icon)" :size="18" class="md:w-5 md:h-5 shrink-0" />
+        <span class="text-[0.6rem] md:text-[0.7rem] text-center whitespace-normal leading-tight break-words max-w-full font-medium">{{ cat.name }}</span>
       </button>
     </div>
 
