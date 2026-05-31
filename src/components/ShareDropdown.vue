@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useMatStore } from '../stores/matStore'
 import {
   Share2,
@@ -15,6 +15,21 @@ import {
 
 const store = useMatStore()
 const showMenu = ref(false)
+const dropdownRef = ref<HTMLElement | null>(null)
+
+const handleClickOutside = (event: MouseEvent) => {
+  if (showMenu.value && dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
+    showMenu.value = false
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', handleClickOutside)
+})
 
 // Share Link State
 const isCopied = ref(false)
@@ -71,11 +86,20 @@ const importFile = async (event: Event) => {
 const downloadImage = async () => {
   const matEl = document.getElementById('mat-grid-container')
   if (!matEl) return
+  const isDark = document.documentElement.classList.contains('dark')
   try {
+    if (isDark) {
+      document.documentElement.classList.remove('dark')
+    }
+    matEl.classList.add('exporting')
+    
+    // Force synchronous style/layout calculation and wait for repaint
+    void matEl.offsetHeight
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+
     const { toPng } = await import('html-to-image')
     const dataUrl = await toPng(matEl, {
       pixelRatio: 2,
-      backgroundColor: store.isDarkMode ? '#0b0f19' : '#ffffff',
       filter: (node) => {
         if (
           node instanceof HTMLElement &&
@@ -92,20 +116,34 @@ const downloadImage = async () => {
     link.click()
   } catch (error) {
     console.error('Error downloading image', error)
+  } finally {
+    matEl.classList.remove('exporting')
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+    }
   }
 }
 
 const downloadPdf = async () => {
   const matEl = document.getElementById('mat-grid-container')
   if (!matEl) return
+  const isDark = document.documentElement.classList.contains('dark')
   try {
+    if (isDark) {
+      document.documentElement.classList.remove('dark')
+    }
+    matEl.classList.add('exporting')
+    
+    // Force synchronous style/layout calculation and wait for repaint
+    void matEl.offsetHeight
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+
     const [{ toPng }, { default: jsPDF }] = await Promise.all([
       import('html-to-image'),
       import('jspdf'),
     ])
     const dataUrl = await toPng(matEl, {
       pixelRatio: 2,
-      backgroundColor: store.isDarkMode ? '#0b0f19' : '#ffffff',
       filter: (node) => {
         if (
           node instanceof HTMLElement &&
@@ -134,6 +172,11 @@ const downloadPdf = async () => {
     pdf.save(`${store.t.title.toLowerCase().replace(/\s+/g, '-')}.pdf`)
   } catch (error) {
     console.error('Error downloading PDF', error)
+  } finally {
+    matEl.classList.remove('exporting')
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+    }
   }
 }
 
@@ -164,7 +207,7 @@ const handleCoordinatesDownload = () => {
 </script>
 
 <template>
-  <div class="relative shrink-0">
+  <div class="relative shrink-0" ref="dropdownRef">
     <!-- Trigger Button -->
     <button
       @click="showMenu = !showMenu"
@@ -179,9 +222,6 @@ const handleCoordinatesDownload = () => {
         :class="{ 'rotate-180': showMenu }"
       />
     </button>
-
-    <!-- Click Outside Overlay -->
-    <div v-if="showMenu" class="fixed inset-0 z-40" @click="showMenu = false"></div>
 
     <!-- Dropdown Menu -->
     <div

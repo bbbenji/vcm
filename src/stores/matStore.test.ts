@@ -398,3 +398,26 @@ describe('matStore robot and goal simulation', () => {
     expect(store.gridData[2]![0]!.icon).toBe('Car')
   })
 })
+
+describe('matStore layout settings', () => {
+  beforeEach(() => {
+    installBrowserStubs()
+    setActivePinia(createPinia())
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('defaults showSecondaryGrid to true', () => {
+    const store = useMatStore()
+    expect(store.showSecondaryGrid).toBe(true)
+  })
+
+  it('initializes showSecondaryGrid to false if vcm_show_secondary is set to false in localStorage', () => {
+    localStorage.setItem('vcm_show_secondary', 'false')
+    const store = useMatStore()
+    expect(store.showSecondaryGrid).toBe(false)
+  })
+})
+

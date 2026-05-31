@@ -59,13 +59,14 @@ const createSvgIcon = (svgContent: string): Component => ({
   },
 })
 
+
 const createTextIcon = (text: string): Component => ({
   name: 'CustomTextIcon',
   render() {
     return h(
       'span',
       {
-        class: 'text-sm sm:text-base md:text-xl lg:text-2xl font-bold select-none text-slate-800',
+        class: 'text-sm sm:text-base md:text-xl lg:text-2xl font-bold select-none text-slate-800 dark:text-slate-100 flex justify-center items-center w-full h-full leading-none',
       },
       text,
     )

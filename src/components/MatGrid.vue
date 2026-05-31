@@ -270,6 +270,11 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
         @mouseleave="isHoveringGrid = false"
         @mousemove="onMouseMove"
       >
+        <!-- Export Logo (only visible during export) -->
+        <div class="exporting-only justify-center items-center w-full">
+          <img src="/logo.svg" alt="Logo" class="object-contain" />
+        </div>
+
         <!-- Top Axis Headers (Letters) -->
         <div class="flex flex-row font-bold text-slate-500 dark:text-slate-400 select-none">
           <div class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12"></div>
@@ -430,7 +435,7 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                 tabindex="0"
                 role="gridcell"
                 :aria-label="`Cell ${cell.id}`"
-                class="flex justify-center items-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 border-r border-b border-grid-line dark:border-grid-line-dark cursor-crosshair transition-all duration-100 hover:brightness-95 dark:hover:brightness-110 focus-cell focus:z-20"
+                class="flex justify-center items-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 border-r border-b border-grid-line dark:border-grid-line-dark cursor-crosshair transition-all duration-100 hover:brightness-95 dark:hover:brightness-110 hover:bg-slate-100/60 dark:hover:bg-slate-800/40 focus-cell focus:z-20"
                 :class="{
                   'sym-line-horizontal': rIndex === Math.floor(store.gridSize / 2) - 1,
                   'sym-line-vertical': cIndex === Math.floor(store.gridSize / 2) - 1,
@@ -440,7 +445,7 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                     dragOverCell.col === cIndex &&
                     dragOverCell.isSecondary === false,
                 }"
-                :style="{ backgroundColor: cell.bg || 'transparent' }"
+                :style="cell.bg ? { backgroundColor: cell.bg } : {}"
                 @mousedown="paintCell(rIndex, cIndex)"
                 @mouseenter="dragPaintCell($event, rIndex, cIndex)"
                 @keydown="handleKeyDown($event, rIndex, cIndex, false)"
@@ -497,10 +502,10 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
         </div>
 
         <!-- Divider -->
-        <div class="h-4 md:h-8"></div>
+        <div v-if="store.showSecondaryGrid" class="h-4 md:h-8"></div>
 
         <!-- Secondary Grid -->
-        <div class="flex flex-row">
+        <div v-if="store.showSecondaryGrid" class="flex flex-row">
           <!-- Left Spacing to align with main grid -->
           <div class="flex flex-col font-bold text-slate-500 select-none">
             <div
@@ -531,7 +536,7 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                 tabindex="0"
                 role="gridcell"
                 :aria-label="`Instruction cell ${cell.id}`"
-                class="flex justify-center items-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 border-r border-b border-grid-line dark:border-grid-line-dark cursor-crosshair transition-all duration-100 hover:brightness-95 dark:hover:brightness-110 focus-cell focus:z-20 relative text-center"
+                 class="flex justify-center items-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 border-r border-b border-grid-line dark:border-grid-line-dark cursor-crosshair transition-all duration-100 hover:brightness-95 dark:hover:brightness-110 hover:bg-slate-100/60 dark:hover:bg-slate-800/40 focus-cell focus:z-20 relative text-center"
                 :class="{
                   'ring-2 ring-primary ring-offset-1 z-10 shadow-lg shadow-primary/20 scale-105 border-primary dark:border-primary !border-solid rounded-md bg-indigo-50/50 dark:bg-indigo-950/20':
                     cell.id === store.simulationActiveInstructionId,
@@ -541,7 +546,7 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                     dragOverCell.col === cIndex &&
                     dragOverCell.isSecondary === true,
                 }"
-                :style="{ backgroundColor: cell.bg || 'transparent' }"
+                :style="cell.bg ? { backgroundColor: cell.bg } : {}"
                 @mousedown="paintCell(rIndex, cIndex, true)"
                 @mouseenter="dragPaintCell($event, rIndex, cIndex, true)"
                 @keydown="handleKeyDown($event, rIndex, cIndex, true)"

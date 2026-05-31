@@ -113,6 +113,54 @@ body {
     box-shadow 0.2s ease;
 }
 
+#mat-grid-container.exporting {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Force Light Theme on Grid Board, Cells, and Borders during export */
+#mat-grid-container.exporting .grid {
+  border-radius: 0 !important;
+  background: white !important;
+  background-color: white !important;
+  border-top-color: var(--color-grid-line) !important;
+  border-left-color: var(--color-grid-line) !important;
+}
+
+#mat-grid-container.exporting .grid > div {
+  border-right-color: var(--color-grid-line) !important;
+  border-bottom-color: var(--color-grid-line) !important;
+}
+
+/* Force Light Theme text and standard icon colors during export */
+#mat-grid-container.exporting .text-slate-500,
+#mat-grid-container.exporting .dark\:text-slate-400 {
+  color: #64748b !important; /* slate-500 */
+}
+
+#mat-grid-container.exporting .text-slate-800,
+#mat-grid-container.exporting .dark\:text-slate-200,
+#mat-grid-container.exporting .dark\:text-slate-100 {
+  color: #1e293b !important; /* slate-800 */
+}
+
+.exporting-only {
+  display: none !important;
+}
+
+#mat-grid-container.exporting .exporting-only {
+  display: flex !important;
+  margin-bottom: 80px !important; /* Push grid down from the top logo */
+  padding-top: 8px !important;
+}
+
+#mat-grid-container.exporting .exporting-only img {
+  height: 36px !important; /* Premium logo size at top center */
+  width: auto !important;
+}
+
 @keyframes bounceShake {
   0% { transform: scale(1); }
   15% { transform: scale(0.85); }

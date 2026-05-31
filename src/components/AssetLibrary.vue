@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useMatStore } from '../stores/matStore'
 import type { ToolType } from '../stores/matStore'
 import { getIcon } from '../utils/icons'
 import { templates } from '../utils/templates'
-import { ChevronUp, ChevronDown } from 'lucide-vue-next'
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import SimulationControls from './SimulationControls.vue'
 
 const store = useMatStore()
@@ -95,9 +95,42 @@ const handleDragStart = (e: DragEvent, type: ToolType, value: string | null) => 
   }
 }
 
+const tabsContainerRef = ref<HTMLElement | null>(null)
+const showLeftShadow = ref(false)
+const showRightShadow = ref(false)
+
+const updateScrollShadows = () => {
+  const el = tabsContainerRef.value
+  if (!el) return
+  showLeftShadow.value = el.scrollLeft > 2
+  showRightShadow.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 2
+}
+
+const scrollTabs = (direction: 'left' | 'right') => {
+  const el = tabsContainerRef.value
+  if (!el) return
+  const scrollAmount = direction === 'left' ? -125 : 125
+  el.scrollBy({
+    left: scrollAmount,
+    behavior: 'smooth'
+  })
+}
+
+onMounted(() => {
+  updateScrollShadows()
+  window.addEventListener('resize', updateScrollShadows)
+  setTimeout(updateScrollShadows, 100)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateScrollShadows)
+})
+
 const selectTab = (tabId: (typeof categories)[number]['id']) => {
   activeTab.value = tabId
   isCollapsed.value = false
+  // Recalculate shadows when switching tabs since active styling might shift sizing
+  setTimeout(updateScrollShadows, 50)
 }
 
 // Helpers for template localization
@@ -138,28 +171,65 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
     <!-- Simulation Control Panel -->
     <SimulationControls />
 
-    <!-- Category Tabs Selector -->
-    <div
-      class="flex flex-row overflow-x-auto whitespace-nowrap p-2 gap-1 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 scrollbar-none shrink-0"
-    >
+    <!-- Category Tabs Selector Wrapper with Premium Scroll Shadows & Chevrons -->
+    <div class="relative w-full overflow-hidden shrink-0">
+      <!-- Left scroll shadow fade -->
+      <div
+        class="absolute left-0 top-0 bottom-0 w-14 bg-gradient-to-r from-slate-100/90 dark:from-slate-950 via-slate-50/60 dark:via-slate-950/50 to-transparent pointer-events-none z-10 transition-opacity duration-300"
+        :class="showLeftShadow ? 'opacity-100' : 'opacity-0'"
+      ></div>
+
+      <!-- Right scroll shadow fade -->
+      <div
+        class="absolute right-0 top-0 bottom-0 w-14 bg-gradient-to-l from-slate-100/90 dark:from-slate-950 via-slate-50/60 dark:via-slate-950/50 to-transparent pointer-events-none z-10 transition-opacity duration-300"
+        :class="showRightShadow ? 'opacity-100' : 'opacity-0'"
+      ></div>
+
+      <!-- Left scroll indicator chevron button -->
       <button
-        v-for="cat in categories"
-        :key="cat.id"
-        class="flex flex-col items-center justify-center gap-1 p-1 md:p-2 rounded-lg text-slate-500 dark:text-slate-400 transition-colors hover:bg-slate-200/70 dark:hover:bg-slate-800/70 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer shrink-0 w-[74px] md:w-auto md:flex-1"
-        :class="{
-          'bg-white dark:bg-slate-800 text-primary dark:text-primary shadow-sm font-bold border border-slate-100 dark:border-slate-700/30':
-            activeTab === cat.id,
-        }"
-        @click="selectTab(cat.id)"
-        :title="store.t[cat.id as keyof typeof store.t] || cat.id"
+        @click="scrollTabs('left')"
+        class="absolute left-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center h-5 w-5 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-md border border-slate-150 dark:border-slate-700/80 cursor-pointer z-20 transition-all duration-300 hover:scale-105 active:scale-90 hover:bg-slate-50 dark:hover:bg-slate-700"
+        :class="showLeftShadow ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 -translate-x-2 scale-75 pointer-events-none'"
+        title="Scroll Left"
       >
-        <component :is="getIcon(cat.icon)" :size="18" class="md:w-5 md:h-5 shrink-0" />
-        <span
-          class="text-[0.62rem] md:text-[0.7rem] text-center whitespace-normal leading-tight break-words max-w-full font-medium"
-        >
-          {{ store.t[cat.id as keyof typeof store.t] }}
-        </span>
+        <component :is="ChevronLeft" :size="12" class="stroke-[3]" />
       </button>
+
+      <!-- Right scroll indicator chevron button -->
+      <button
+        @click="scrollTabs('right')"
+        class="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center h-5 w-5 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-md border border-slate-150 dark:border-slate-700/80 cursor-pointer z-20 transition-all duration-300 hover:scale-105 active:scale-90 hover:bg-slate-50 dark:hover:bg-slate-700"
+        :class="showRightShadow ? 'opacity-100 translate-x-0 scale-100 animate-pulse' : 'opacity-0 translate-x-2 scale-75 pointer-events-none'"
+        title="Scroll Right"
+      >
+        <component :is="ChevronRight" :size="12" class="stroke-[3]" />
+      </button>
+
+      <!-- Scrollable Category Tabs selector -->
+      <div
+        ref="tabsContainerRef"
+        @scroll="updateScrollShadows"
+        class="flex flex-row overflow-x-auto whitespace-nowrap p-2 gap-1 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 scrollbar-none"
+      >
+        <button
+          v-for="cat in categories"
+          :key="cat.id"
+          class="flex flex-col items-center justify-center gap-1 p-1 md:p-2 rounded-lg text-slate-500 dark:text-slate-400 transition-colors hover:bg-slate-200/70 dark:hover:bg-slate-800/70 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer shrink-0 w-[74px] md:w-auto md:flex-1"
+          :class="{
+            'bg-white dark:bg-slate-800 text-primary dark:text-primary shadow-sm font-bold border border-slate-100 dark:border-slate-700/30':
+              activeTab === cat.id,
+          }"
+          @click="selectTab(cat.id)"
+          :title="store.t[cat.id as keyof typeof store.t] || cat.id"
+        >
+          <component :is="getIcon(cat.icon)" :size="18" class="md:w-5 md:h-5 shrink-0" />
+          <span
+            class="text-[0.62rem] md:text-[0.7rem] text-center whitespace-normal leading-tight break-words max-w-full font-medium"
+          >
+            {{ store.t[cat.id as keyof typeof store.t] }}
+          </span>
+        </button>
+      </div>
     </div>
 
     <!-- Assets / Tasks Drawer Panels -->
@@ -208,8 +278,14 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
               @click="selectTool(cat.toolType as ToolType, item)"
               :title="item"
             >
+              <span
+                v-if="cat.toolType === 'icon' && ['Num2Icon', 'Num3Icon', 'Num4Icon', 'Num5Icon'].includes(item)"
+                class="text-xl font-bold select-none text-slate-800 dark:text-slate-100 flex justify-center items-center w-full h-full"
+              >
+                {{ item.replace('Num', '').replace('Icon', '') }}
+              </span>
               <component
-                v-if="cat.toolType === 'icon'"
+                v-else-if="cat.toolType === 'icon'"
                 :is="getIcon(item)"
                 class="w-5 h-5 md:w-6 md:h-6"
                 :class="

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { templates } from '../utils/templates'
 import { playDraw, playStep, playSuccess, playCollision } from '../utils/audio'
 import { translations } from '../utils/i18n'
@@ -233,6 +233,11 @@ export const useMatStore = defineStore('mat', () => {
   const lang = ref<Language>((localStorage.getItem('vcm_lang') as Language) || 'pl')
   const isDarkMode = ref<boolean>(localStorage.getItem('vcm_theme') === 'dark')
   const soundEnabled = ref<boolean>(localStorage.getItem('vcm_sound') === 'true')
+  const showSecondaryGrid = ref<boolean>(localStorage.getItem('vcm_show_secondary') !== 'false')
+
+  watch(showSecondaryGrid, (val) => {
+    localStorage.setItem('vcm_show_secondary', val ? 'true' : 'false')
+  })
 
   const t = computed(() => translations[lang.value])
 
@@ -1048,6 +1053,7 @@ export const useMatStore = defineStore('mat', () => {
     lang,
     isDarkMode,
     soundEnabled,
+    showSecondaryGrid,
     t,
     toggleLanguage,
     toggleTheme,
