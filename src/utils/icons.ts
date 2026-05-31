@@ -35,6 +35,9 @@ import {
   TrainFront,
   Turtle,
   Type,
+  PartyPopper,
+  Zap,
+  Compass,
 } from 'lucide-vue-next'
 import { h } from 'vue'
 import type { Component } from 'vue'
@@ -127,6 +130,9 @@ const icons = {
   TrainFront,
   Turtle,
   Type,
+  PartyPopper,
+  Zap,
+  Compass,
   PlayFilled: Play,
   StopFilled: Square,
   F1Icon,

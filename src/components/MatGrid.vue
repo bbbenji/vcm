@@ -228,8 +228,15 @@ const handleDragEnter = (row: number, col: number, isSecondary: boolean) => {
   dragOverCell.value = { row, col, isSecondary };
 };
 
-const handleDragLeave = () => {
-  dragOverCell.value = null;
+const handleDragLeave = (row: number, col: number, isSecondary: boolean) => {
+  if (
+    dragOverCell.value &&
+    dragOverCell.value.row === row &&
+    dragOverCell.value.col === col &&
+    dragOverCell.value.isSecondary === isSecondary
+  ) {
+    dragOverCell.value = null;
+  }
 };
 
 const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false) => {
@@ -451,7 +458,7 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                 @keydown="handleKeyDown($event, rIndex, cIndex, false)"
                 @touchstart.passive="handleTouchStart($event, rIndex, cIndex, false)"
                 @dragenter.prevent="handleDragEnter(rIndex, cIndex, false)"
-                @dragleave="handleDragLeave"
+                @dragleave="handleDragLeave(rIndex, cIndex, false)"
                 @dragover.prevent
                 @drop="handleDrop($event, rIndex, cIndex, false)"
               >
@@ -552,7 +559,7 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                 @keydown="handleKeyDown($event, rIndex, cIndex, true)"
                 @touchstart.passive="handleTouchStart($event, rIndex, cIndex, true)"
                 @dragenter.prevent="handleDragEnter(rIndex, cIndex, true)"
-                @dragleave="handleDragLeave"
+                @dragleave="handleDragLeave(rIndex, cIndex, true)"
                 @dragover.prevent
                 @drop="handleDrop($event, rIndex, cIndex, true)"
               >

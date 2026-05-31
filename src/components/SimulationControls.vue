@@ -43,7 +43,7 @@ const store = useMatStore();
         >
           {{ store.t.simulator }}
         </span>
-        <span class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate leading-none">
+        <span class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate leading-none flex items-center gap-1 select-none">
           <template v-if="store.simulationStatus === 'ready' && !store.isSimulating">{{
             store.t.simReady
           }}</template>
@@ -55,15 +55,24 @@ const store = useMatStore();
               store.simulationSteps.length
             }}</template
           >
-          <template v-else-if="store.simulationStatus === 'success'">{{
-            store.t.simSuccess
-          }}</template>
-          <template v-else-if="store.simulationStatus === 'collision'">{{
-            store.t.simCollision
-          }}</template>
-          <template v-else-if="store.simulationStatus === 'out_of_bounds'">{{
-            store.t.simOutOfBounds
-          }}</template>
+          <template v-else-if="store.simulationStatus === 'success'">
+            <span class="flex items-center gap-1">
+              {{ store.t.simSuccess }}
+              <component :is="getIcon('PartyPopper')" :size="13" class="text-emerald-500 animate-bounce" />
+            </span>
+          </template>
+          <template v-else-if="store.simulationStatus === 'collision'">
+            <span class="flex items-center gap-1">
+              {{ store.t.simCollision }}
+              <component :is="getIcon('Zap')" :size="13" class="text-rose-500 animate-pulse" />
+            </span>
+          </template>
+          <template v-else-if="store.simulationStatus === 'out_of_bounds'">
+            <span class="flex items-center gap-1">
+              {{ store.t.simOutOfBounds }}
+              <component :is="getIcon('Compass')" :size="13" class="text-rose-500" />
+            </span>
+          </template>
           <template v-else-if="store.simulationStatus === 'ready' && store.isSimulating">{{
             store.t.simEnd
           }}</template>
