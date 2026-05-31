@@ -1,154 +1,154 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useMatStore } from '../stores/matStore'
-import type { ToolType } from '../stores/matStore'
-import { getIcon } from '../utils/icons'
-import { templates } from '../utils/templates'
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-vue-next'
-import SimulationControls from './SimulationControls.vue'
+import { ref, onMounted, onUnmounted } from "vue";
+import { useMatStore } from "../stores/matStore";
+import type { ToolType } from "../stores/matStore";
+import { getIcon } from "../utils/icons";
+import { templates } from "../utils/templates";
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-vue-next";
+import SimulationControls from "./SimulationControls.vue";
 
-const store = useMatStore()
+const store = useMatStore();
 const toolButtonClass =
-  'w-full aspect-square rounded-lg border-2 flex justify-center items-center text-xl font-bold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 transition-all shadow-sm hover:scale-105 hover:shadow-md border-slate-200 dark:border-slate-700/80 cursor-pointer'
+  "w-full aspect-square rounded-lg border-2 flex justify-center items-center text-xl font-bold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 transition-all shadow-sm hover:scale-105 hover:shadow-md border-slate-200 dark:border-slate-700/80 cursor-pointer";
 const selectedToolClass =
-  '!border-primary dark:!border-primary scale-110 shadow-[0_0_0_3px_rgba(99,102,241,0.35)] dark:shadow-[0_0_0_3px_rgba(99,102,241,0.5)]'
+  "!border-primary dark:!border-primary scale-110 shadow-[0_0_0_3px_rgba(99,102,241,0.35)] dark:shadow-[0_0_0_3px_rgba(99,102,241,0.5)]";
 
 const colors = [
-  '#ef4444',
-  '#f97316',
-  '#f59e0b',
-  '#eab308',
-  '#84cc16',
-  '#22c55e',
-  '#10b981',
-  '#14b8a6',
-  '#06b6d4',
-  '#0ea5e9',
-  '#3b82f6',
-  '#6366f1',
-  '#8b5cf6',
-  '#a855f7',
-  '#d946ef',
-  '#ec4899',
-  '#f43f5e',
-  '#000000',
-  '#475569',
-]
+  "#ef4444",
+  "#f97316",
+  "#f59e0b",
+  "#eab308",
+  "#84cc16",
+  "#22c55e",
+  "#10b981",
+  "#14b8a6",
+  "#06b6d4",
+  "#0ea5e9",
+  "#3b82f6",
+  "#6366f1",
+  "#8b5cf6",
+  "#a855f7",
+  "#d946ef",
+  "#ec4899",
+  "#f43f5e",
+  "#000000",
+  "#475569",
+];
 const movements = [
-  'Bot',
-  'BatteryCharging',
-  'ArrowUp',
-  'ArrowDown',
-  'ArrowRight',
-  'ArrowLeft',
-  'CornerUpRight',
-  'CornerUpLeft',
-  'PlayFilled',
-  'StopFilled',
-  'F1Icon',
-  'F2Icon',
-  'LoopPlayIcon',
-  'LoopStopIcon',
-  'Num2Icon',
-  'Num3Icon',
-  'Num4Icon',
-  'Num5Icon',
-]
-const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '=', '<', '>']
-const alphabet = 'AĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻ?!.'.split('')
+  "Bot",
+  "EvCharger",
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowRight",
+  "ArrowLeft",
+  "CornerUpRight",
+  "CornerUpLeft",
+  "PlayFilled",
+  "StopFilled",
+  "F1Icon",
+  "F2Icon",
+  "LoopPlayIcon",
+  "LoopStopIcon",
+  "Num2Icon",
+  "Num3Icon",
+  "Num4Icon",
+  "Num5Icon",
+];
+const numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "-", "=", "<", ">"];
+const alphabet = "AĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻ?!.".split("");
 const vehicles = [
-  'Car',
-  'Rocket',
-  'TrainFront',
-  'Ship',
-  'Plane',
-  'Tractor',
-  'Bus',
-  'Bike',
-  'Gamepad2',
-  'Puzzle',
-  'Bot',
-]
-const animals = ['Cat', 'Dog', 'Bird', 'Rabbit', 'Snail', 'Bug', 'Fish', 'Turtle']
+  "Car",
+  "Rocket",
+  "TrainFront",
+  "Ship",
+  "Plane",
+  "Tractor",
+  "Bus",
+  "Bike",
+  "Gamepad2",
+  "Puzzle",
+  "Bot",
+];
+const animals = ["Cat", "Dog", "Bird", "Rabbit", "Snail", "Bug", "Fish", "Turtle"];
 
 const categories = [
-  { id: 'bg' as const, icon: 'Palette', toolType: 'background' as ToolType, items: colors },
-  { id: 'move' as const, icon: 'Move', toolType: 'icon' as ToolType, items: movements },
-  { id: 'num' as const, icon: 'Binary', toolType: 'text' as ToolType, items: numbers },
-  { id: 'abc' as const, icon: 'Type', toolType: 'text' as ToolType, items: alphabet },
-  { id: 'veh' as const, icon: 'Car', toolType: 'icon' as ToolType, items: vehicles },
-  { id: 'ani' as const, icon: 'Cat', toolType: 'icon' as ToolType, items: animals },
-  { id: 'tasks' as const, icon: 'BookOpen', toolType: 'task' as ToolType, items: [] as string[] },
-]
+  { id: "bg" as const, icon: "Palette", toolType: "background" as ToolType, items: colors },
+  { id: "move" as const, icon: "Move", toolType: "icon" as ToolType, items: movements },
+  { id: "num" as const, icon: "Binary", toolType: "text" as ToolType, items: numbers },
+  { id: "abc" as const, icon: "Type", toolType: "text" as ToolType, items: alphabet },
+  { id: "veh" as const, icon: "Car", toolType: "icon" as ToolType, items: vehicles },
+  { id: "ani" as const, icon: "Cat", toolType: "icon" as ToolType, items: animals },
+  { id: "tasks" as const, icon: "BookOpen", toolType: "task" as ToolType, items: [] as string[] },
+];
 
 const taskCategories = [
-  { id: 'pixel_art' as const, titleKey: 'cat_pixel_art' as const, icon: 'Palette' },
-  { id: 'algorithm' as const, titleKey: 'cat_algorithm' as const, icon: 'Move' },
-  { id: 'math_symmetry' as const, titleKey: 'cat_math_symmetry' as const, icon: 'Binary' },
-]
+  { id: "pixel_art" as const, titleKey: "cat_pixel_art" as const, icon: "Palette" },
+  { id: "algorithm" as const, titleKey: "cat_algorithm" as const, icon: "Move" },
+  { id: "math_symmetry" as const, titleKey: "cat_math_symmetry" as const, icon: "Binary" },
+];
 
-const activeTab = ref<(typeof categories)[number]['id']>('bg')
-const isCollapsed = ref(false)
+const activeTab = ref<(typeof categories)[number]["id"]>("bg");
+const isCollapsed = ref(false);
 
 const selectTool = (type: ToolType, value: string | null) => {
-  store.activeTool = { type, value }
-}
+  store.activeTool = { type, value };
+};
 
 const handleDragStart = (e: DragEvent, type: ToolType, value: string | null) => {
   if (e.dataTransfer) {
-    e.dataTransfer.setData('application/json', JSON.stringify({ type, value }))
-    store.activeTool = { type, value }
+    e.dataTransfer.setData("application/json", JSON.stringify({ type, value }));
+    store.activeTool = { type, value };
   }
-}
+};
 
-const tabsContainerRef = ref<HTMLElement | null>(null)
-const showLeftShadow = ref(false)
-const showRightShadow = ref(false)
+const tabsContainerRef = ref<HTMLElement | null>(null);
+const showLeftShadow = ref(false);
+const showRightShadow = ref(false);
 
 const updateScrollShadows = () => {
-  const el = tabsContainerRef.value
-  if (!el) return
-  showLeftShadow.value = el.scrollLeft > 2
-  showRightShadow.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 2
-}
+  const el = tabsContainerRef.value;
+  if (!el) return;
+  showLeftShadow.value = el.scrollLeft > 2;
+  showRightShadow.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 2;
+};
 
-const scrollTabs = (direction: 'left' | 'right') => {
-  const el = tabsContainerRef.value
-  if (!el) return
-  const scrollAmount = direction === 'left' ? -125 : 125
+const scrollTabs = (direction: "left" | "right") => {
+  const el = tabsContainerRef.value;
+  if (!el) return;
+  const scrollAmount = direction === "left" ? -125 : 125;
   el.scrollBy({
     left: scrollAmount,
-    behavior: 'smooth'
-  })
-}
+    behavior: "smooth",
+  });
+};
 
 onMounted(() => {
-  updateScrollShadows()
-  window.addEventListener('resize', updateScrollShadows)
-  setTimeout(updateScrollShadows, 100)
-})
+  updateScrollShadows();
+  window.addEventListener("resize", updateScrollShadows);
+  setTimeout(updateScrollShadows, 100);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('resize', updateScrollShadows)
-})
+  window.removeEventListener("resize", updateScrollShadows);
+});
 
-const selectTab = (tabId: (typeof categories)[number]['id']) => {
-  activeTab.value = tabId
-  isCollapsed.value = false
+const selectTab = (tabId: (typeof categories)[number]["id"]) => {
+  activeTab.value = tabId;
+  isCollapsed.value = false;
   // Recalculate shadows when switching tabs since active styling might shift sizing
-  setTimeout(updateScrollShadows, 50)
-}
+  setTimeout(updateScrollShadows, 50);
+};
 
 // Helpers for template localization
 const getTemplateName = (tpl: (typeof templates)[number]) => {
-  const key = `tpl_${tpl.id}_name` as keyof typeof store.t
-  return (store.t[key] as string) || tpl.name
-}
+  const key = `tpl_${tpl.id}_name` as keyof typeof store.t;
+  return (store.t[key] as string) || tpl.name;
+};
 
 const getTemplateDesc = (tpl: (typeof templates)[number]) => {
-  const key = `tpl_${tpl.id}_desc` as keyof typeof store.t
-  return (store.t[key] as string) || tpl.description
-}
+  const key = `tpl_${tpl.id}_desc` as keyof typeof store.t;
+  return (store.t[key] as string) || tpl.description;
+};
 </script>
 
 <template>
@@ -195,7 +195,11 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
       <button
         @click="scrollTabs('left')"
         class="absolute left-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center h-5 w-5 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-md border border-slate-150 dark:border-slate-700/80 cursor-pointer z-20 transition-all duration-300 hover:scale-105 active:scale-90 hover:bg-slate-50 dark:hover:bg-slate-700"
-        :class="showLeftShadow ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 -translate-x-2 scale-75 pointer-events-none'"
+        :class="
+          showLeftShadow
+            ? 'opacity-100 translate-x-0 scale-100'
+            : 'opacity-0 -translate-x-2 scale-75 pointer-events-none'
+        "
         title="Scroll Left"
       >
         <component :is="ChevronLeft" :size="12" class="stroke-[3]" />
@@ -205,7 +209,11 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
       <button
         @click="scrollTabs('right')"
         class="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center h-5 w-5 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-md border border-slate-150 dark:border-slate-700/80 cursor-pointer z-20 transition-all duration-300 hover:scale-105 active:scale-90 hover:bg-slate-50 dark:hover:bg-slate-700"
-        :class="showRightShadow ? 'opacity-100 translate-x-0 scale-100 animate-pulse' : 'opacity-0 translate-x-2 scale-75 pointer-events-none'"
+        :class="
+          showRightShadow
+            ? 'opacity-100 translate-x-0 scale-100 animate-pulse'
+            : 'opacity-0 translate-x-2 scale-75 pointer-events-none'
+        "
         title="Scroll Right"
       >
         <component :is="ChevronRight" :size="12" class="stroke-[3]" />
@@ -285,10 +293,13 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
               :title="item"
             >
               <span
-                v-if="cat.toolType === 'icon' && ['Num2Icon', 'Num3Icon', 'Num4Icon', 'Num5Icon'].includes(item)"
+                v-if="
+                  cat.toolType === 'icon' &&
+                  ['Num2Icon', 'Num3Icon', 'Num4Icon', 'Num5Icon'].includes(item)
+                "
                 class="text-xl font-bold select-none text-slate-800 dark:text-slate-100 flex justify-center items-center w-full h-full"
               >
-                {{ item.replace('Num', '').replace('Icon', '') }}
+                {{ item.replace("Num", "").replace("Icon", "") }}
               </span>
               <component
                 v-else-if="cat.toolType === 'icon'"
@@ -297,9 +308,9 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
                 :class="
                   item === 'Bot'
                     ? 'text-emerald-500 dark:text-emerald-400'
-                    : item === 'BatteryCharging'
-                    ? 'text-amber-500 dark:text-amber-400'
-                    : ''
+                    : item === 'EvCharger'
+                      ? 'text-amber-500 dark:text-amber-400'
+                      : ''
                 "
               />
               <template v-else-if="cat.toolType === 'text'">{{ item }}</template>
@@ -310,13 +321,11 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
         <!-- Predefined and instructional templates lists grouped by Category -->
         <template v-if="activeTab === 'tasks'">
           <div class="flex flex-col gap-5 col-span-full pb-6">
-            <div
-              v-for="cat in taskCategories"
-              :key="cat.id"
-              class="flex flex-col gap-2.5"
-            >
+            <div v-for="cat in taskCategories" :key="cat.id" class="flex flex-col gap-2.5">
               <!-- Category Header -->
-              <div class="flex items-center gap-2 px-1 border-b border-slate-100 dark:border-slate-800/60 pb-1.5 mt-3 select-none">
+              <div
+                class="flex items-center gap-2 px-1 border-b border-slate-100 dark:border-slate-800/60 pb-1.5 mt-3 select-none"
+              >
                 <component
                   :is="getIcon(cat.icon)"
                   :size="13"
@@ -330,14 +339,14 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
                 <span
                   class="text-[8px] font-bold px-1.5 py-0.25 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 ml-auto"
                 >
-                  {{ templates.filter(t => t.category === cat.id).length }}
+                  {{ templates.filter((t) => t.category === cat.id).length }}
                 </span>
               </div>
 
               <!-- List of Templates in Category -->
               <div class="flex flex-col gap-3">
                 <button
-                  v-for="tpl in templates.filter(t => t.category === cat.id)"
+                  v-for="tpl in templates.filter((t) => t.category === cat.id)"
                   :key="tpl.id"
                   @click="
                     store.loadTemplate(
@@ -364,7 +373,7 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
                           : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
                       "
                     >
-                      {{ tpl.type === 'premade' ? store.t.pattern : store.t.task }}
+                      {{ tpl.type === "premade" ? store.t.pattern : store.t.task }}
                     </span>
                   </div>
                   <p

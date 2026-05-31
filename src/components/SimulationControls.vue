@@ -43,7 +43,9 @@ const store = useMatStore();
         >
           {{ store.t.simulator }}
         </span>
-        <span class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate leading-none flex items-center gap-1 select-none">
+        <span
+          class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate leading-none flex items-center gap-1 select-none"
+        >
           <template v-if="store.simulationStatus === 'ready' && !store.isSimulating">{{
             store.t.simReady
           }}</template>
@@ -58,7 +60,11 @@ const store = useMatStore();
           <template v-else-if="store.simulationStatus === 'success'">
             <span class="flex items-center gap-1">
               {{ store.t.simSuccess }}
-              <component :is="getIcon('PartyPopper')" :size="13" class="text-emerald-500 animate-bounce" />
+              <component
+                :is="getIcon('PartyPopper')"
+                :size="13"
+                class="text-emerald-500 animate-bounce"
+              />
             </span>
           </template>
           <template v-else-if="store.simulationStatus === 'collision'">
@@ -193,7 +199,7 @@ const store = useMatStore();
             :class="
               item.value === 'Bot'
                 ? 'text-emerald-500 dark:text-emerald-400'
-                : item.value === 'BatteryCharging'
+                : item.value === 'EvCharger'
                   ? 'text-amber-500 dark:text-amber-400'
                   : ''
             "

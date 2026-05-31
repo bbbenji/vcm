@@ -469,7 +469,7 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                   :class="
                     cell.icon === 'Bot'
                       ? 'text-emerald-500 dark:text-emerald-400'
-                      : cell.icon === 'BatteryCharging'
+                      : cell.icon === 'EvCharger'
                         ? 'text-amber-500 dark:text-amber-400'
                         : 'text-slate-800 dark:text-slate-200'
                   "
@@ -543,7 +543,7 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                 tabindex="0"
                 role="gridcell"
                 :aria-label="`Instruction cell ${cell.id}`"
-                 class="flex justify-center items-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 border-r border-b border-grid-line dark:border-grid-line-dark cursor-crosshair transition-all duration-100 hover:brightness-95 dark:hover:brightness-110 hover:bg-slate-100/60 dark:hover:bg-slate-800/40 focus-cell focus:z-20 relative text-center"
+                class="flex justify-center items-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 border-r border-b border-grid-line dark:border-grid-line-dark cursor-crosshair transition-all duration-100 hover:brightness-95 dark:hover:brightness-110 hover:bg-slate-100/60 dark:hover:bg-slate-800/40 focus-cell focus:z-20 relative text-center"
                 :class="{
                   'ring-2 ring-primary ring-offset-1 z-10 shadow-lg shadow-primary/20 scale-105 border-primary dark:border-primary !border-solid rounded-md bg-indigo-50/50 dark:bg-indigo-950/20':
                     cell.id === store.simulationActiveInstructionId,
@@ -607,7 +607,7 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
         :class="
           store.activeTool.value === 'Bot'
             ? 'text-emerald-500 dark:text-emerald-400'
-            : store.activeTool.value === 'BatteryCharging'
+            : store.activeTool.value === 'EvCharger'
               ? 'text-amber-500 dark:text-amber-400'
               : 'text-slate-800 dark:text-slate-200'
         "

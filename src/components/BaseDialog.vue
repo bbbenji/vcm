@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, nextTick } from 'vue'
-import { getPlacedIcon } from '../utils/icons'
-import confetti from 'canvas-confetti'
+import { ref, watch, onMounted, nextTick } from "vue";
+import { getPlacedIcon } from "../utils/icons";
+import confetti from "canvas-confetti";
 
 const props = withDefaults(
   defineProps<{
-    isOpen: boolean
-    title?: string
-    description?: string
-    confirmText?: string
-    cancelText?: string
-    confirmVariant?: 'rose' | 'emerald' | 'primary'
-    iconType?: 'clear' | 'win' | 'lose'
+    isOpen: boolean;
+    title?: string;
+    description?: string;
+    confirmText?: string;
+    cancelText?: string;
+    confirmVariant?: "rose" | "emerald" | "primary";
+    iconType?: "clear" | "win" | "lose";
   }>(),
   {
-    confirmVariant: 'primary',
-  }
-)
+    confirmVariant: "primary",
+  },
+);
 
-const emit = defineEmits(['confirm', 'cancel', 'close'])
-const dialogRef = ref<HTMLDialogElement | null>(null)
-const confettiCanvasRef = ref<HTMLCanvasElement | null>(null)
-let localConfetti: ReturnType<typeof confetti.create> | null = null
+const emit = defineEmits(["confirm", "cancel", "close"]);
+const dialogRef = ref<HTMLDialogElement | null>(null);
+const confettiCanvasRef = ref<HTMLCanvasElement | null>(null);
+let localConfetti: ReturnType<typeof confetti.create> | null = null;
 
 const triggerConfetti = () => {
   nextTick(() => {
@@ -29,87 +29,87 @@ const triggerConfetti = () => {
       localConfetti = confetti.create(confettiCanvasRef.value, {
         resize: true,
         useWorker: true,
-      })
-      
+      });
+
       if (localConfetti) {
         // Primary center blast
         localConfetti({
           particleCount: 120,
           spread: 80,
           origin: { y: 0.6 },
-        })
+        });
 
         // Staggered side cannons for a spectacular victory celebration!
-        const end = Date.now() + 2 * 1000 // 2 seconds duration
+        const end = Date.now() + 2 * 1000; // 2 seconds duration
         const frame = () => {
-          if (!props.isOpen || !localConfetti) return
+          if (!props.isOpen || !localConfetti) return;
           localConfetti({
             particleCount: 2,
             angle: 60,
             spread: 55,
             origin: { x: 0, y: 0.8 },
-          })
+          });
           localConfetti({
             particleCount: 2,
             angle: 120,
             spread: 55,
             origin: { x: 1, y: 0.8 },
-          })
+          });
 
           if (Date.now() < end) {
-            requestAnimationFrame(frame)
+            requestAnimationFrame(frame);
           }
-        }
-        frame()
+        };
+        frame();
       }
     }
-  })
-}
+  });
+};
 
 watch(
   () => props.isOpen,
   (val) => {
     if (val) {
       if (!dialogRef.value?.open) {
-        dialogRef.value?.showModal()
+        dialogRef.value?.showModal();
       }
-      if (props.iconType === 'win') {
-        triggerConfetti()
+      if (props.iconType === "win") {
+        triggerConfetti();
       }
     } else {
       if (dialogRef.value?.open) {
-        dialogRef.value?.close()
+        dialogRef.value?.close();
       }
-      localConfetti = null
+      localConfetti = null;
     }
-  }
-)
+  },
+);
 
 const handleCancel = () => {
-  emit('cancel')
-  emit('close')
-}
+  emit("cancel");
+  emit("close");
+};
 
 const handleConfirm = () => {
-  emit('confirm')
-  emit('close')
-}
+  emit("confirm");
+  emit("close");
+};
 
 // Handle native ESC key closure
 const handleCloseEvent = () => {
   if (props.isOpen) {
-    emit('close')
+    emit("close");
   }
-}
+};
 
 onMounted(() => {
   if (props.isOpen && !dialogRef.value?.open) {
-    dialogRef.value?.showModal()
-    if (props.iconType === 'win') {
-      triggerConfetti()
+    dialogRef.value?.showModal();
+    if (props.iconType === "win") {
+      triggerConfetti();
     }
   }
-})
+});
 </script>
 
 <template>
@@ -136,13 +136,16 @@ onMounted(() => {
             v-if="iconType"
             class="h-14 w-14 rounded-full flex items-center justify-center mb-4 shadow-md border"
             :class="{
-              'bg-rose-50 dark:bg-rose-950/30 text-rose-500 border-rose-100 dark:border-rose-900/40': iconType === 'clear',
-              'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500 border-emerald-100 dark:border-emerald-900/40': iconType === 'win',
-              'bg-rose-50 dark:bg-rose-950/30 text-rose-500 border-rose-100 dark:border-rose-900/40 animate-bounce': iconType === 'lose',
+              'bg-rose-50 dark:bg-rose-950/30 text-rose-500 border-rose-100 dark:border-rose-900/40':
+                iconType === 'clear',
+              'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500 border-emerald-100 dark:border-emerald-900/40':
+                iconType === 'win',
+              'bg-rose-50 dark:bg-rose-950/30 text-rose-500 border-rose-100 dark:border-rose-900/40 animate-bounce':
+                iconType === 'lose',
             }"
           >
             <component
-              :is="iconType === 'win' ? getPlacedIcon('BatteryCharging') : getPlacedIcon('Bot')"
+              :is="iconType === 'win' ? getPlacedIcon('EvCharger') : getPlacedIcon('Bot')"
               class="w-7 h-7"
               :class="{
                 'text-rose-500 dark:text-rose-400': iconType === 'clear' || iconType === 'lose',
@@ -151,11 +154,17 @@ onMounted(() => {
             />
           </div>
 
-          <h3 v-if="title" class="text-xl font-bold font-heading mb-2 text-slate-800 dark:text-slate-100">
+          <h3
+            v-if="title"
+            class="text-xl font-bold font-heading mb-2 text-slate-800 dark:text-slate-100"
+          >
             {{ title }}
           </h3>
-          
-          <p v-if="description" class="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+
+          <p
+            v-if="description"
+            class="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed"
+          >
             {{ description }}
           </p>
 
@@ -168,7 +177,7 @@ onMounted(() => {
             >
               {{ cancelText }}
             </button>
-            
+
             <!-- Confirm button -->
             <button
               @click="handleConfirm"
@@ -179,7 +188,7 @@ onMounted(() => {
                 'bg-primary hover:bg-primary-hover': confirmVariant === 'primary',
               }"
             >
-              {{ confirmText || 'OK' }}
+              {{ confirmText || "OK" }}
             </button>
           </div>
         </div>
