@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useMatStore } from "../stores/matStore";
 import { getPlacedIcon } from "../utils/icons";
 import { BookOpen, X } from "lucide-vue-next";
@@ -14,6 +14,17 @@ const mousePos = ref({ x: 0, y: 0 });
 const onMouseMove = (e: MouseEvent) => {
   mousePos.value = { x: e.clientX, y: e.clientY };
 };
+
+const trailPathD = computed(() => {
+  if (store.simulationPathHistory.length < 2) return "";
+  return store.simulationPathHistory
+    .map((pos, idx) => {
+      const x = ((pos.c + 0.5) / store.gridSize) * 100;
+      const y = ((pos.r + 0.5) / store.gridSize) * 100;
+      return `${idx === 0 ? "M" : "L"} ${x} ${y}`;
+    })
+    .join(" ");
+});
 
 const paintCell = (row: number, col: number, isSecondary = false) => {
   store.saveHistory();
@@ -130,6 +141,46 @@ const handleTouchEnd = () => {
           @touchend="handleTouchEnd"
           @touchcancel="handleTouchEnd"
         >
+          <!-- SVG Trail Path Overlay -->
+          <svg 
+            v-if="store.isSimulating && trailPathD"
+            class="absolute inset-0 w-full h-full pointer-events-none z-10"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+          >
+            <!-- Glowing background neon aura -->
+            <path 
+              :d="trailPathD" 
+              fill="none" 
+              stroke="#60a5fa" 
+              stroke-width="1.6" 
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="opacity-30 blur-[1px] transition-all duration-300 ease-in-out"
+            />
+            <!-- Dashed trace line -->
+            <path 
+              :d="trailPathD" 
+              fill="none" 
+              stroke="#3b82f6" 
+              stroke-width="0.8" 
+              stroke-dasharray="1.5,1.5" 
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="opacity-80 transition-all duration-300 ease-in-out"
+            />
+            <!-- Visited cell markers -->
+            <circle
+              v-for="(pos, idx) in store.simulationPathHistory"
+              :key="'dot-' + idx"
+              :cx="((pos.c + 0.5) / store.gridSize) * 100"
+              :cy="((pos.r + 0.5) / store.gridSize) * 100"
+              r="0.6"
+              fill="#2563eb"
+              class="opacity-75"
+            />
+          </svg>
+
           <!-- Animated Active Robot Layer during Simulation -->
           <div
             v-if="store.isSimulating && store.simulationRobot"

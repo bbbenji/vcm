@@ -101,9 +101,10 @@ export const useMatStore = defineStore('mat', () => {
   const simulationStep = ref(0)
   const simulationRobot = ref<{ r: number; c: number; dir: 'UP' | 'RIGHT' | 'DOWN' | 'LEFT'; icon: string } | null>(null)
   const simulationStatus = ref<'ready' | 'running' | 'success' | 'collision' | 'out_of_bounds' | 'paused'>('ready')
-  const simulationSpeed = ref(1000) // ms per step
+  const simulationSpeed = ref(800) // ms per step
   const simulationSteps = ref<ExecStep[]>([])
   const simulationActiveInstructionId = ref<string | null>(null)
+  const simulationPathHistory = ref<{ r: number; c: number }[]>([])
 
   let simulationTimer: ReturnType<typeof setInterval> | null = null
 
@@ -532,6 +533,7 @@ export const useMatStore = defineStore('mat', () => {
     simulationStep.value = 0
     simulationStatus.value = 'running'
     simulationActiveInstructionId.value = null
+    simulationPathHistory.value = [{ r: startChar.r, c: startChar.c }]
 
     // 4. Begin execution loop
     startTimer()
@@ -571,6 +573,7 @@ export const useMatStore = defineStore('mat', () => {
     simulationRobot.value = null
     simulationActiveInstructionId.value = null
     simulationSteps.value = []
+    simulationPathHistory.value = []
   }
 
   function changeSpeed(ms: number) {
@@ -658,6 +661,7 @@ export const useMatStore = defineStore('mat', () => {
 
       robot.r = nextR
       robot.c = nextC
+      simulationPathHistory.value.push({ r: nextR, c: nextC })
     }
 
     // Increment step counter
@@ -724,5 +728,6 @@ export const useMatStore = defineStore('mat', () => {
     changeSpeed,
     nextSimulationStep,
     getDirectionAngle,
+    simulationPathHistory,
   }
 })

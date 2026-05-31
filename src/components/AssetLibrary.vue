@@ -4,7 +4,7 @@ import { useMatStore } from "../stores/matStore";
 import type { ToolType } from "../stores/matStore";
 import { getIcon } from "../utils/icons";
 import { templates } from "../utils/templates";
-import { Play, Pause, RotateCcw, Lightbulb, Turtle, Gauge, Zap } from "lucide-vue-next";
+import { Play, Pause, RotateCcw, Lightbulb, Turtle, Gauge, Zap, ChevronUp, ChevronDown } from "lucide-vue-next";
 
 const store = useMatStore();
 const toolButtonClass =
@@ -79,16 +79,33 @@ const categories = [
 ];
 
 const activeTab = ref("bg");
+const isCollapsed = ref(false);
 
 const selectTool = (type: ToolType, value: string | null) => {
   store.activeTool = { type, value };
+};
+
+const selectTab = (tabId: string) => {
+  activeTab.value = tabId;
+  isCollapsed.value = false;
 };
 </script>
 
 <template>
   <aside
-    class="flex flex-col bg-white border-t md:border-t-0 md:border-l border-slate-200 w-full md:w-[320px] h-[240px] md:h-full overflow-hidden shrink-0"
+    class="flex flex-col bg-white border-t md:border-t-0 md:border-l border-slate-200 w-full md:w-[320px] md:h-full overflow-hidden shrink-0 transition-all duration-300 ease-in-out"
+    :class="isCollapsed ? 'h-7' : 'h-[300px]'"
   >
+    <!-- Drag/Collapse Handle for Mobile -->
+    <div
+      class="md:hidden h-7 w-full flex items-center justify-center bg-slate-50 border-b border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer select-none shrink-0"
+      @click="isCollapsed = !isCollapsed"
+    >
+      <div class="flex items-center gap-1.5 text-slate-500 font-medium text-[10px] tracking-wider uppercase">
+        <component :is="isCollapsed ? ChevronUp : ChevronDown" :size="14" class="text-slate-400" />
+        <span>{{ isCollapsed ? 'Rozwiń menu' : 'Zwiń menu' }}</span>
+      </div>
+    </div>
     <!-- Simulation Control Panel inside Sidebar -->
     <div 
       v-if="store.instructionsExist" 
@@ -214,7 +231,7 @@ const selectTool = (type: ToolType, value: string | null) => {
         :key="cat.id"
         class="flex flex-col items-center justify-center gap-1 p-1 md:p-2 rounded-lg text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800 cursor-pointer shrink-0 w-[78px] md:w-auto md:flex-1"
         :class="{ 'bg-white text-primary shadow-sm font-semibold': activeTab === cat.id }"
-        @click="activeTab = cat.id"
+        @click="selectTab(cat.id)"
         :title="cat.name"
       >
         <component :is="getIcon(cat.icon)" :size="18" class="md:w-5 md:h-5 shrink-0" />
@@ -222,7 +239,7 @@ const selectTool = (type: ToolType, value: string | null) => {
       </button>
     </div>
 
-    <div class="p-3 md:p-6 flex-1 overflow-y-auto">
+    <div class="py-2.5 px-3 md:p-6 flex-1 overflow-y-auto">
       <div class="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] md:grid-cols-[repeat(auto-fill,minmax(3rem,1fr))] gap-2 md:gap-3">
         <!-- Special eraser button -->
         <button
