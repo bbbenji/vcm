@@ -54,6 +54,11 @@ export const translations = {
     menuExpand: 'Rozwiń menu',
     menuCollapse: 'Zwiń menu',
 
+    // Category Translations
+    cat_pixel_art: 'Rysunki i Pixel Art',
+    cat_algorithm: 'Ruch i Algorytmy',
+    cat_math_symmetry: 'Matematyka i Symetria',
+
     // Template Translations
     tpl_heart_name: 'Serduszko',
     tpl_heart_desc: 'Gotowy kolorowy wzór czerwonego serduszka.',
@@ -89,6 +94,27 @@ export const translations = {
       'Narysuj drugą połówkę motylka! Dokończ rysunek symetrycznie względem pionowej linii.',
     tpl_butterfly_symmetry_instr:
       'Kolorowy motyl zgubił wzory na prawym skrzydle!\n\n1. Odbij lewą stronę rysunku symetrycznie (jak w lustrze) na prawą stronę.\n2. Oś symetrii przebiega pionowo na środku maty (między kolumnami E a F).\n3. Zachowaj te same kolory na odpowiadających sobie polach!',
+
+    tpl_castle_name: 'Zamek Rycerski',
+    tpl_castle_desc: 'Wspaniała brama zamku z basztami i powiewającymi flagami na matrycy 12x12.',
+
+    tpl_island_maze_name: 'Wyspa Skarbów',
+    tpl_island_maze_desc: 'Doprowadź robota przez rafy koralowe na planszy 12x12, zbierając nagrody!',
+    tpl_island_maze_instr:
+      'Pomóż robotowi zebrać skarby i dopłynąć do stacji ładowania na L12!\n\n1. Startujesz w lewym górnym rogu (A1).\n2. Zbierz po drodze konsolę i zębatkę.\n3. Omijaj ciemne rafy koralowe.\n4. Cel: ładowarka na L12!',
+
+    tpl_shield_symmetry_name: 'Tarcza Rycerza',
+    tpl_shield_symmetry_desc: 'Dokończ rysowanie symetrycznej królewskiej tarczy rycerskiej na planszy 12x12.',
+    tpl_shield_symmetry_instr:
+      'Tarcza rycerska straciła swoją prawą połówkę!\n\n1. Odbij lewą stronę rysunku symetrycznie względem środkowej linii (między F a G).\n2. Zachowaj królewskie barwy (złoty, szafirowy, błękitny)!',
+
+    tpl_digital_robot_name: 'Cyfrowy Robot',
+    tpl_digital_robot_desc: 'Zaawansowany pixel art cyber-robota na dużej planszy 20x20.',
+
+    tpl_space_labyrinth_name: 'Galaktyczny Labirynt',
+    tpl_space_labyrinth_desc: 'Wielki labirynt 20x20. Zaprogramuj długą misję kosmiczną i zbierz wszystkie akumulatory!',
+    tpl_space_labyrinth_instr:
+      'Poprowadź robota przez gigantyczny labirynt 20x20!\n\n1. Startujesz na A1.\n2. Cel to stacja ładowania na T20 (prawy dolny róg).\n3. Omijaj kosmiczne barierki.\n4. Zbierz rozrzucone urządzenia po drodze!',
   },
   en: {
     title: 'Virtual Coding Mat',
@@ -143,6 +169,11 @@ export const translations = {
     menuExpand: 'Expand Menu',
     menuCollapse: 'Collapse Menu',
 
+    // Category Translations
+    cat_pixel_art: 'Pixel Art & Patterns',
+    cat_algorithm: 'Movement & Algorithms',
+    cat_math_symmetry: 'Symmetry & Math',
+
     // Template Translations
     tpl_heart_name: 'Little Heart',
     tpl_heart_desc: 'A ready-made colorful red heart pattern.',
@@ -178,5 +209,26 @@ export const translations = {
       'Draw the other half of the butterfly! Complete the drawing symmetrically across the center vertical line.',
     tpl_butterfly_symmetry_instr:
       'A colorful butterfly lost the pattern on its right wing!\n\n1. Mirror the left side of the drawing symmetrically to the right side.\n2. The line of symmetry runs vertically down the middle (between columns E and F).\n3. Keep the matching colors on the corresponding cells!',
+
+    tpl_castle_name: 'Knightly Castle',
+    tpl_castle_desc: 'A grand castle gate with stone towers and waving flags on a 12x12 grid.',
+
+    tpl_island_maze_name: 'Treasure Island',
+    tpl_island_maze_desc: 'Guide the robot through coral reefs on a large 12x12 grid, collecting treasure!',
+    tpl_island_maze_instr:
+      'Help the robot collect treasure and reach the charger at L12!\n\n1. You start in the top-left corner (A1).\n2. Gather the gamepad and puzzle gear along the way.\n3. Avoid the dark reefs.\n4. Goal: charger at L12!',
+
+    tpl_shield_symmetry_name: 'Knight Shield',
+    tpl_shield_symmetry_desc: 'Complete the drawing of a symmetrical royal knight\'s shield on a 12x12 grid.',
+    tpl_shield_symmetry_instr:
+      'The knight\'s shield is missing its right half!\n\n1. Mirror the left side of the shield symmetrically across the center line (between F and G).\n2. Retain the royal colors (gold, sapphire, cyan)!',
+
+    tpl_digital_robot_name: 'Digital Robot',
+    tpl_digital_robot_desc: 'An intricate pixel art cyber-robot head on a large 20x20 board.',
+
+    tpl_space_labyrinth_name: 'Galactic Labyrinth',
+    tpl_space_labyrinth_desc: 'An epic 20x20 labyrinth. Program a long-range space journey and retrieve energy devices!',
+    tpl_space_labyrinth_instr:
+      'Guide the robot through the giant 20x20 maze!\n\n1. Start at A1.\n2. Reach the hyper-charger at T20 (bottom-right corner).\n3. Dodge cosmic asteroid blockades.\n4. Collect all the scattered devices along the route!',
   },
 } as const

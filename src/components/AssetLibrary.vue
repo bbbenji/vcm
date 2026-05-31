@@ -81,6 +81,12 @@ const categories = [
   { id: 'tasks' as const, icon: 'BookOpen', toolType: 'task' as ToolType, items: [] as string[] },
 ]
 
+const taskCategories = [
+  { id: 'pixel_art' as const, titleKey: 'cat_pixel_art' as const, icon: 'Palette' },
+  { id: 'algorithm' as const, titleKey: 'cat_algorithm' as const, icon: 'Move' },
+  { id: 'math_symmetry' as const, titleKey: 'cat_math_symmetry' as const, icon: 'Binary' },
+]
+
 const activeTab = ref<(typeof categories)[number]['id']>('bg')
 const isCollapsed = ref(false)
 
@@ -301,51 +307,79 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
           </template>
         </template>
 
-        <!-- Predefined and instructional templates lists -->
+        <!-- Predefined and instructional templates lists grouped by Category -->
         <template v-if="activeTab === 'tasks'">
-          <div class="flex flex-col gap-3.5 col-span-full pb-6">
-            <button
-              v-for="tpl in templates"
-              :key="tpl.id"
-              @click="
-                store.loadTemplate(
-                  tpl.size,
-                  tpl.main,
-                  tpl.secondary,
-                  tpl.instructions || null,
-                  tpl.id,
-                )
-              "
-              class="flex flex-col text-left p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 hover:bg-slate-100 dark:hover:bg-slate-950/90 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer shadow-sm select-none"
+          <div class="flex flex-col gap-5 col-span-full pb-6">
+            <div
+              v-for="cat in taskCategories"
+              :key="cat.id"
+              class="flex flex-col gap-2.5"
             >
-              <div class="flex justify-between items-center w-full">
+              <!-- Category Header -->
+              <div class="flex items-center gap-2 px-1 border-b border-slate-100 dark:border-slate-800/60 pb-1.5 mt-3 select-none">
+                <component
+                  :is="getIcon(cat.icon)"
+                  :size="13"
+                  class="text-slate-400 dark:text-slate-500 shrink-0"
+                />
                 <span
-                  class="font-bold text-slate-800 dark:text-slate-100 text-xs md:text-sm tracking-tight leading-tight"
+                  class="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500"
                 >
-                  {{ getTemplateName(tpl) }}
+                  {{ store.t[cat.titleKey as keyof typeof store.t] }}
                 </span>
                 <span
-                  class="text-[8px] md:text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider select-none shrink-0"
-                  :class="
-                    tpl.type === 'premade'
-                      ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
-                      : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
-                  "
+                  class="text-[8px] font-bold px-1.5 py-0.25 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 ml-auto"
                 >
-                  {{ tpl.type === 'premade' ? store.t.pattern : store.t.task }}
+                  {{ templates.filter(t => t.category === cat.id).length }}
                 </span>
               </div>
-              <p
-                class="text-[10px] md:text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-normal break-words"
-              >
-                {{ getTemplateDesc(tpl) }}
-              </p>
-              <span
-                class="text-[10px] text-primary font-bold mt-3 flex items-center gap-1.5 hover:translate-x-1 transition-transform"
-              >
-                {{ store.t.loadBoard }} ({{ tpl.size }}x{{ tpl.size }}) &rarr;
-              </span>
-            </button>
+
+              <!-- List of Templates in Category -->
+              <div class="flex flex-col gap-3">
+                <button
+                  v-for="tpl in templates.filter(t => t.category === cat.id)"
+                  :key="tpl.id"
+                  @click="
+                    store.loadTemplate(
+                      tpl.size,
+                      tpl.main,
+                      tpl.secondary,
+                      tpl.instructions || null,
+                      tpl.id,
+                    )
+                  "
+                  class="flex flex-col text-left p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 hover:bg-slate-100 dark:hover:bg-slate-950/90 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer shadow-sm select-none"
+                >
+                  <div class="flex justify-between items-center w-full">
+                    <span
+                      class="font-bold text-slate-800 dark:text-slate-100 text-xs md:text-sm tracking-tight leading-tight"
+                    >
+                      {{ getTemplateName(tpl) }}
+                    </span>
+                    <span
+                      class="text-[8px] md:text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider select-none shrink-0"
+                      :class="
+                        tpl.type === 'premade'
+                          ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
+                          : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                      "
+                    >
+                      {{ tpl.type === 'premade' ? store.t.pattern : store.t.task }}
+                    </span>
+                  </div>
+                  <p
+                    class="text-[10px] md:text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-normal break-words"
+                  >
+                    {{ getTemplateDesc(tpl) }}
+                  </p>
+                  <span
+                    class="text-[10px] text-primary font-bold mt-3 flex items-center gap-1.5 hover:translate-x-1 transition-transform animate-pulse"
+                  >
+                    {{ store.t.loadBoard }} ({{ tpl.size }}x{{ tpl.size }}) &rarr;
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
         </template>
       </div>
