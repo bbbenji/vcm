@@ -20,7 +20,7 @@ bun run dev
 bun run check
 ```
 
-`bun run check` runs linting, Vue/TypeScript type-checking, and a production Vite build.
+`bun run check` runs linting, Vue/TypeScript type-checking, unit tests, and a production Vite build.
 
 ## GitHub Pages
 

@@ -30,6 +30,14 @@ interface CompactState {
   sec: CompactCell[]
 }
 
+interface HistorySnapshot {
+  size: GridSize
+  main: GridCell[][]
+  secondary: GridCell[][]
+  activeInstructions: string | null
+  currentTemplateId: string | null
+}
+
 const DEFAULT_GRID_SIZE: GridSize = 10
 const SECONDARY_ROWS = 3
 const MAX_HISTORY = 50
@@ -245,7 +253,7 @@ export const useMatStore = defineStore('mat', () => {
 
         if (!isCompactState(state)) return false
 
-        initBoard(state.s, false)
+        initBoard(state.s, false, false)
         applyCompactCells(state.m, gridData.value)
         applyCompactCells(state.sec, secondaryGridData.value)
 
@@ -265,11 +273,27 @@ export const useMatStore = defineStore('mat', () => {
       size: gridSize.value,
       main: gridData.value,
       secondary: secondaryGridData.value,
+      activeInstructions: activeInstructions.value,
+      currentTemplateId: currentTemplateId.value,
     })
     history.value.push(snapshot)
     if (history.value.length > MAX_HISTORY) {
       history.value.shift()
     }
+  }
+
+  function restoreHistory(snapshot: string) {
+    const parsed = JSON.parse(snapshot) as Partial<HistorySnapshot>
+
+    gridSize.value = normalizeGridSize(Number(parsed.size))
+    if (Array.isArray(parsed.main)) {
+      gridData.value = parsed.main
+    }
+    if (Array.isArray(parsed.secondary)) {
+      secondaryGridData.value = parsed.secondary
+    }
+    activeInstructions.value = asNullableString(parsed.activeInstructions)
+    currentTemplateId.value = asNullableString(parsed.currentTemplateId)
   }
 
   function undo() {
@@ -279,19 +303,16 @@ export const useMatStore = defineStore('mat', () => {
     if (history.value.length === 0) return
     const lastSnapshot = history.value.pop()
     if (lastSnapshot) {
-      const parsed = JSON.parse(lastSnapshot)
-      gridSize.value = parsed.size
-      gridData.value = parsed.main
-      secondaryGridData.value = parsed.secondary
+      restoreHistory(lastSnapshot)
       syncToUrl()
     }
   }
 
-  function initBoard(size: number, sync = true) {
+  function initBoard(size: number, sync = true, recordHistory = true) {
     if (isSimulating.value) {
       resetSimulation()
     }
-    if (gridData.value.length > 0) {
+    if (recordHistory && gridData.value.length > 0) {
       saveHistory()
     }
     gridSize.value = normalizeGridSize(size)
@@ -368,7 +389,7 @@ export const useMatStore = defineStore('mat', () => {
       activeInstructions.value = instructions
     }
 
-    initBoard(size, false)
+    initBoard(size, false, false)
     applyCompactCells(mainCells, gridData.value)
     applyCompactCells(secCells, secondaryGridData.value)
     const startCell = secondaryGridData.value[0]?.[0]
@@ -770,7 +791,7 @@ export const useMatStore = defineStore('mat', () => {
 
   // Initialize on store creation
   if (!loadFromUrl()) {
-    initBoard(gridSize.value, false)
+    initBoard(gridSize.value, false, false)
   }
 
   // Clear initial history state added by initBoard on load

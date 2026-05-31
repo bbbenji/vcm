@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
-    "check": "run-s lint:check type-check build-only",
+    "check": "run-s lint:check type-check test:unit build-only",
+    "test": "bun run test:unit",
+    "test:unit": "vitest run",
     "lint": "run-s lint:oxlint lint:eslint",
     "lint:check": "run-s lint:oxlint:check lint:eslint:check",
     "lint:oxlint": "oxlint . --fix",
@@ -45,6 +47,7 @@
     "typescript": "~6.0.0",
     "vite": "^8.0.8",
     "vite-plugin-vue-devtools": "^8.1.1",
+    "vitest": "^4.1.7",
     "vue-tsc": "^3.2.6"
   },
   "engines": {
