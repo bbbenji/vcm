@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -7,10 +7,10 @@
   --color-primary-hover: #4f46e5;
   --color-grid-line: #e2e8f0;
   --color-grid-line-dark: #334155;
-  --color-grid-sym-line: #f43f5e;
-  
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-heading: 'Outfit', 'Inter', sans-serif;
+  --color-grid-sym-line: #a5253b;
+
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-heading: "Outfit", "Inter", sans-serif;
 }
 
 /* Global Transitions and Font smoothing */
@@ -37,11 +37,15 @@ body {
 
 /* Symmetry Line Glow */
 .sym-line-horizontal {
-  @apply border-b-2 border-dashed border-red-400 dark:border-rose-500 shadow-[0_1px_3px_rgba(244,63,94,0.3)];
+  @apply border-b-2;
+  border-bottom-style: dashed;
+  border-bottom-color: var(--color-grid-sym-line);
 }
 
 .sym-line-vertical {
-  @apply border-r-2 border-dashed border-red-400 dark:border-rose-500 shadow-[1px_0_3px_rgba(244,63,94,0.3)];
+  @apply border-r-2;
+  border-right-style: dashed;
+  border-right-color: var(--color-grid-sym-line);
 }
 
 /* Sleek Scrollbars */
@@ -69,13 +73,24 @@ body {
 
 /* Keyframes & Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes pulseGlow {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.65; }
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.65;
+  }
 }
 
 .animate-fade-in {
@@ -93,5 +108,7 @@ body {
 
 /* Mat Container Export Target adjustment */
 #mat-grid-container {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }

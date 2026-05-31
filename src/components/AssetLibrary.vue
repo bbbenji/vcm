@@ -115,7 +115,7 @@ const getTemplateDesc = (tpl: typeof templates[number]) => {
     >
       <div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-bold text-[10px] tracking-wider uppercase">
         <component :is="isCollapsed ? ChevronUp : ChevronDown" :size="14" class="text-slate-400 dark:text-slate-500" />
-        <span>{{ isCollapsed ? store.t.simResume : store.t.simPause }} Menu</span>
+        <span>{{ isCollapsed ? store.t.menuExpand : store.t.menuCollapse }}</span>
       </div>
     </button>
 

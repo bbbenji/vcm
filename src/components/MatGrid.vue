@@ -137,7 +137,9 @@ const handleTouchEnd = () => {
 </script>
 
 <template>
-  <div class="w-full h-full overflow-auto bg-slate-50 dark:bg-[#0b0f19] relative transition-colors duration-300">
+  <div
+    class="w-full h-full overflow-auto bg-slate-50 dark:bg-[#0b0f19] relative transition-colors duration-300"
+  >
     <div
       class="min-w-full w-max min-h-full h-max flex flex-col justify-center items-center p-4 md:p-8 gap-4"
     >
@@ -152,8 +154,12 @@ const handleTouchEnd = () => {
           <div class="flex items-start gap-3">
             <BookOpen class="text-primary w-5 h-5 shrink-0 mt-0.5" />
             <div class="flex-1">
-              <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm md:text-base">{{ store.t.taskToPerform }}</h3>
-              <p class="text-slate-600 dark:text-slate-300 text-xs md:text-sm mt-1 whitespace-pre-wrap leading-relaxed">
+              <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm md:text-base">
+                {{ store.t.taskToPerform }}
+              </h3>
+              <p
+                class="text-slate-600 dark:text-slate-300 text-xs md:text-sm mt-1 whitespace-pre-wrap leading-relaxed"
+              >
                 {{ store.activeInstructions }}
               </p>
             </div>
@@ -266,20 +272,26 @@ const handleTouchEnd = () => {
               <div
                 class="absolute inset-0.5 rounded-lg border-2 opacity-85 transition-colors duration-300"
                 :class="{
-                  'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-500 animate-pulse': store.simulationStatus === 'running',
+                  'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-500 animate-pulse':
+                    store.simulationStatus === 'running',
                   'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]':
                     store.simulationStatus === 'success',
                   'bg-rose-50 dark:bg-rose-950/40 border-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.4)] animate-bounce':
                     ['collision', 'out_of_bounds'].includes(store.simulationStatus),
-                  'bg-amber-50 dark:bg-amber-950/40 border-amber-500': store.simulationStatus === 'paused',
-                  'bg-slate-50 dark:bg-slate-800/40 border-slate-400': store.simulationStatus === 'ready',
+                  'bg-amber-50 dark:bg-amber-950/40 border-amber-500':
+                    store.simulationStatus === 'paused',
+                  'bg-slate-50 dark:bg-slate-800/40 border-slate-400':
+                    store.simulationStatus === 'ready',
                 }"
               ></div>
               <!-- Character Avatar with SMOOTH elastic headings rotations -->
               <component
                 :is="getPlacedIcon(store.simulationRobot.icon)"
                 class="w-[65%] h-[65%] text-slate-800 dark:text-slate-100 z-10 drop-shadow-[0_2px_4px_rgba(255,255,255,0.85)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] transition-transform duration-300 ease-out"
-                :style="{ transform: 'rotate(' + store.getDirectionAngle(store.simulationRobot.dir) + 'deg)' }"
+                :style="{
+                  transform:
+                    'rotate(' + store.getDirectionAngle(store.simulationRobot.dir) + 'deg)',
+                }"
               />
             </div>
 
@@ -296,10 +308,8 @@ const handleTouchEnd = () => {
                 :aria-label="`Cell ${cell.id}`"
                 class="flex justify-center items-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 border-r border-b border-grid-line dark:border-grid-line-dark cursor-crosshair transition-all duration-100 hover:brightness-95 dark:hover:brightness-110 focus-cell focus:z-20"
                 :class="{
-                  'sym-line-horizontal':
-                    rIndex === Math.floor(store.gridSize / 2) - 1,
-                  'sym-line-vertical':
-                    cIndex === Math.floor(store.gridSize / 2) - 1,
+                  'sym-line-horizontal': rIndex === Math.floor(store.gridSize / 2) - 1,
+                  'sym-line-vertical': cIndex === Math.floor(store.gridSize / 2) - 1,
                 }"
                 :style="{ backgroundColor: cell.bg || 'transparent' }"
                 @mousedown="paintCell(rIndex, cIndex)"

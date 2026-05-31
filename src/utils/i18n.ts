@@ -44,6 +44,8 @@ export const translations = {
     task: 'Zadanie',
     soundToggle: 'Dźwięki',
     themeToggle: 'Motyw',
+    menuExpand: 'Rozwiń menu',
+    menuCollapse: 'Zwiń menu',
     
     // Template Translations
     tpl_heart_name: 'Serduszko',
@@ -117,6 +119,8 @@ export const translations = {
     task: 'Task',
     soundToggle: 'Sounds',
     themeToggle: 'Theme',
+    menuExpand: 'Expand Menu',
+    menuCollapse: 'Collapse Menu',
     
     // Template Translations
     tpl_heart_name: 'Little Heart',
