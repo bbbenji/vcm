@@ -1,16 +1,8 @@
 <script setup lang="ts">
-import { useMatStore } from "../stores/matStore";
-import {
-  Play,
-  Pause,
-  RotateCcw,
-  Lightbulb,
-  Turtle,
-  Gauge,
-  Zap,
-} from "lucide-vue-next";
+import { useMatStore } from '../stores/matStore'
+import { Play, Pause, RotateCcw, Lightbulb, Turtle, Gauge, Zap } from 'lucide-vue-next'
 
-const store = useMatStore();
+const store = useMatStore()
 </script>
 
 <template>
@@ -86,16 +78,14 @@ const store = useMatStore();
         <button
           v-if="store.simulationStatus === 'paused' || store.simulationStatus === 'ready'"
           @click="
-            store.simulationStatus === 'paused'
-              ? store.resumeSimulation()
-              : store.startSimulation()
+            store.simulationStatus === 'paused' ? store.resumeSimulation() : store.startSimulation()
           "
           class="flex items-center justify-center h-8 px-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0 shadow-sm shadow-emerald-500/10"
           :title="store.simulationStatus === 'paused' ? store.t.simResume : store.t.simStart"
         >
           <Play :size="12" class="fill-current mr-1" />
           <span>{{
-            store.simulationStatus === "paused" ? store.t.simResume : store.t.simStart
+            store.simulationStatus === 'paused' ? store.t.simResume : store.t.simStart
           }}</span>
         </button>
 

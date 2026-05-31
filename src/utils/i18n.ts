@@ -10,10 +10,14 @@ export const translations = {
     cancel: 'Anuluj',
     share: 'Udostępnij',
     copied: 'Skopiowano',
+    shareExport: 'Udostępnij / Pobierz',
     download: 'Pobierz',
     downloadPng: 'Obrazek (PNG)',
     downloadPdf: 'Dokument (PDF)',
     downloadTxt: 'Koordynaty (TXT)',
+    importTxt: 'Import TXT',
+    importSuccess: 'Zaimportowano',
+    importFailed: 'Błąd importu',
     eraser: 'Gumka',
     taskToPerform: 'Zadanie do wykonania:',
     emptyBoardAlert: 'Plansza jest pusta.',
@@ -48,35 +52,42 @@ export const translations = {
     themeToggle: 'Motyw',
     menuExpand: 'Rozwiń menu',
     menuCollapse: 'Zwiń menu',
-    
+
     // Template Translations
     tpl_heart_name: 'Serduszko',
     tpl_heart_desc: 'Gotowy kolorowy wzór czerwonego serduszka.',
-    
+
     tpl_rocket_name: 'Rakieta',
     tpl_rocket_desc: 'Kosmiczny pixel art gotowej rakiety.',
-    
+
     tpl_flower_name: 'Wesoły Kwiatek',
     tpl_flower_desc: 'Kolorowy, wiosenny pixel art kwiatka w doniczce.',
-    
+
     tpl_house_name: 'Domek w Ogrodzie',
     tpl_house_desc: 'Klasyczny pixel art domku z ogródkiem i słońcem.',
-    
+
     tpl_maze1_name: 'Labirynt Robota',
     tpl_maze1_desc: 'Doprowadź robota z A1 do złotej gwiazdy na J10, omijając szare ściany!',
-    tpl_maze1_instr: '1. Znajdź robota (Bot) w lewym górnym rogu (A1).\n2. Zaprogramuj trasę na dolnej planszy za pomocą strzałek.\n3. Omijaj szare ściany (przeszkody).\n4. Cel: Złota gwiazdka na J10!',
-    
+    tpl_maze1_instr:
+      '1. Znajdź robota (Bot) w lewym górnym rogu (A1).\n2. Zaprogramuj trasę na dolnej planszy za pomocą strzałek.\n3. Omijaj szare ściany (przeszkody).\n4. Cel: Złota gwiazdka na J10!',
+
     tpl_pirate_maze_name: 'Skarb Piratów',
-    tpl_pirate_maze_desc: 'Poprowadź statek piracki z wyspy A10 do skarbu na J1, omijając rafy koralowe!',
-    tpl_pirate_maze_instr: 'Ahoj! Pomóż piratom dopłynąć do skarbu:\n\n1. Twój statek (Ship) startuje w lewym dolnym rogu (A10).\n2. Unikaj niebezpiecznych wysp i raf oznaczonych kolorem szarym.\n3. Ułóż instrukcję ruchu na dolnej planszy za pomocą strzałek.\n4. Cel: Dopłyń do skrzyni ze skarbem (gwiazdka na żółtym tle na J1)!',
-    
+    tpl_pirate_maze_desc:
+      'Poprowadź statek piracki z wyspy A10 do skarbu na J1, omijając rafy koralowe!',
+    tpl_pirate_maze_instr:
+      'Ahoj! Pomóż piratom dopłynąć do skarbu:\n\n1. Twój statek (Ship) startuje w lewym dolnym rogu (A10).\n2. Unikaj niebezpiecznych wysp i raf oznaczonych kolorem szarym.\n3. Ułóż instrukcję ruchu na dolnej planszy za pomocą strzałek.\n4. Cel: Dopłyń do skrzyni ze skarbem (gwiazdka na żółtym tle na J1)!',
+
     tpl_coded_heart_name: 'Zakodowane Serduszko',
-    tpl_coded_heart_desc: 'Plansza jest pusta! Odkryj rysunek, kolorując kratki według podanej instrukcji współrzędnych.',
-    tpl_coded_heart_instr: 'Odkryj obrazek! Pokoloruj kratki na CZERWONO:\n\n- C2, D2, G2, H2\n- B3 do I3 (czyli B3, C3, D3, E3, F3, G3, H3, I3)\n- B4 do I4\n- B5 do I5\n- C6 do H6\n- D7 do G7\n- E8, F8',
-    
+    tpl_coded_heart_desc:
+      'Plansza jest pusta! Odkryj rysunek, kolorując kratki według podanej instrukcji współrzędnych.',
+    tpl_coded_heart_instr:
+      'Odkryj obrazek! Pokoloruj kratki na CZERWONO:\n\n- C2, D2, G2, H2\n- B3 do I3 (czyli B3, C3, D3, E3, F3, G3, H3, I3)\n- B4 do I4\n- B5 do I5\n- C6 do H6\n- D7 do G7\n- E8, F8',
+
     tpl_butterfly_symmetry_name: 'Symetryczny Motylek',
-    tpl_butterfly_symmetry_desc: 'Narysuj drugą połówkę motylka! Dokończ rysunek symetrycznie względem pionowej linii.',
-    tpl_butterfly_symmetry_instr: 'Kolorowy motyl zgubił wzory na prawym skrzydle!\n\n1. Odbij lewą stronę rysunku symetrycznie (jak w lustrze) na prawą stronę.\n2. Oś symetrii przebiega pionowo na środku maty (między kolumnami E a F).\n3. Zachowaj te same kolory na odpowiadających sobie polach!',
+    tpl_butterfly_symmetry_desc:
+      'Narysuj drugą połówkę motylka! Dokończ rysunek symetrycznie względem pionowej linii.',
+    tpl_butterfly_symmetry_instr:
+      'Kolorowy motyl zgubił wzory na prawym skrzydle!\n\n1. Odbij lewą stronę rysunku symetrycznie (jak w lustrze) na prawą stronę.\n2. Oś symetrii przebiega pionowo na środku maty (między kolumnami E a F).\n3. Zachowaj te same kolory na odpowiadających sobie polach!',
   },
   en: {
     title: 'Virtual Coding Mat',
@@ -87,10 +98,14 @@ export const translations = {
     cancel: 'Cancel',
     share: 'Share',
     copied: 'Copied',
+    shareExport: 'Share / Export',
     download: 'Download',
     downloadPng: 'Image (PNG)',
     downloadPdf: 'Document (PDF)',
     downloadTxt: 'Coordinates (TXT)',
+    importTxt: 'Import TXT',
+    importSuccess: 'Imported',
+    importFailed: 'Import failed',
     eraser: 'Eraser',
     taskToPerform: 'Task to complete:',
     emptyBoardAlert: 'The board is empty.',
@@ -125,34 +140,41 @@ export const translations = {
     themeToggle: 'Theme',
     menuExpand: 'Expand Menu',
     menuCollapse: 'Collapse Menu',
-    
+
     // Template Translations
     tpl_heart_name: 'Little Heart',
     tpl_heart_desc: 'A ready-made colorful red heart pattern.',
-    
+
     tpl_rocket_name: 'Rocket',
     tpl_rocket_desc: 'A space themed pixel art of a rocket ship.',
-    
+
     tpl_flower_name: 'Cheerful Flower',
     tpl_flower_desc: 'A colorful, spring pixel art of a flower in a pot.',
-    
+
     tpl_house_name: 'Garden House',
     tpl_house_desc: 'A classic pixel art house with a yard and the sun.',
-    
+
     tpl_maze1_name: 'Robot Maze',
     tpl_maze1_desc: 'Guide the robot from A1 to the golden star at J10, avoiding the grey walls!',
-    tpl_maze1_instr: '1. Locate the robot (Bot) in the top-left corner (A1).\n2. Program the path on the bottom panel using arrows.\n3. Avoid the grey walls (obstacles).\n4. Goal: Reach the golden star at J10!',
-    
+    tpl_maze1_instr:
+      '1. Locate the robot (Bot) in the top-left corner (A1).\n2. Program the path on the bottom panel using arrows.\n3. Avoid the grey walls (obstacles).\n4. Goal: Reach the golden star at J10!',
+
     tpl_pirate_maze_name: 'Pirates Treasure',
-    tpl_pirate_maze_desc: 'Guide the pirate ship from island A10 to the treasure at J1, avoiding coral reefs!',
-    tpl_pirate_maze_instr: 'Ahoy! Help the pirates reach the treasure chest:\n\n1. Your ship starts in the bottom-left corner (A10).\n2. Avoid dangerous islands and reefs marked in grey.\n3. Program your movements on the bottom panel using arrows.\n4. Goal: Reach the treasure chest (star on yellow background at J1)!',
-    
+    tpl_pirate_maze_desc:
+      'Guide the pirate ship from island A10 to the treasure at J1, avoiding coral reefs!',
+    tpl_pirate_maze_instr:
+      'Ahoy! Help the pirates reach the treasure chest:\n\n1. Your ship starts in the bottom-left corner (A10).\n2. Avoid dangerous islands and reefs marked in grey.\n3. Program your movements on the bottom panel using arrows.\n4. Goal: Reach the treasure chest (star on yellow background at J1)!',
+
     tpl_coded_heart_name: 'Coded Heart',
-    tpl_coded_heart_desc: 'The board is empty! Discover the drawing by coloring the cells according to the coordinate clues.',
-    tpl_coded_heart_instr: 'Reveal the image! Color the following cells in RED:\n\n- C2, D2, G2, H2\n- B3 to I3 (which means B3, C3, D3, E3, F3, G3, H3, I3)\n- B4 to I4\n- B5 to I5\n- C6 to H6\n- D7 to G7\n- E8, F8',
-    
+    tpl_coded_heart_desc:
+      'The board is empty! Discover the drawing by coloring the cells according to the coordinate clues.',
+    tpl_coded_heart_instr:
+      'Reveal the image! Color the following cells in RED:\n\n- C2, D2, G2, H2\n- B3 to I3 (which means B3, C3, D3, E3, F3, G3, H3, I3)\n- B4 to I4\n- B5 to I5\n- C6 to H6\n- D7 to G7\n- E8, F8',
+
     tpl_butterfly_symmetry_name: 'Symmetry Butterfly',
-    tpl_butterfly_symmetry_desc: 'Draw the other half of the butterfly! Complete the drawing symmetrically across the center vertical line.',
-    tpl_butterfly_symmetry_instr: 'A colorful butterfly lost the pattern on its right wing!\n\n1. Mirror the left side of the drawing symmetrically to the right side.\n2. The line of symmetry runs vertically down the middle (between columns E and F).\n3. Keep the matching colors on the corresponding cells!',
+    tpl_butterfly_symmetry_desc:
+      'Draw the other half of the butterfly! Complete the drawing symmetrically across the center vertical line.',
+    tpl_butterfly_symmetry_instr:
+      'A colorful butterfly lost the pattern on its right wing!\n\n1. Mirror the left side of the drawing symmetrically to the right side.\n2. The line of symmetry runs vertically down the middle (between columns E and F).\n3. Keep the matching colors on the corresponding cells!',
   },
 } as const

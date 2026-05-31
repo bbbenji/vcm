@@ -8,9 +8,9 @@ const store = useMatStore()
 </script>
 
 <template>
-  <div 
+  <div
     class="flex flex-col h-dvh overflow-hidden bg-slate-50 dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 transition-colors duration-300 font-sans"
-    :class="{ 'dark': store.isDarkMode }"
+    :class="{ dark: store.isDarkMode }"
   >
     <HeaderControls />
     <div class="flex flex-col md:flex-row flex-1 overflow-hidden">

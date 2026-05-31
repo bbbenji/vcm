@@ -1,29 +1,29 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { useMatStore } from "../stores/matStore";
+import { ref } from 'vue'
+import { useMatStore } from '../stores/matStore'
 
-const store = useMatStore();
-const dialogRef = ref<HTMLDialogElement | null>(null);
+const store = useMatStore()
+const dialogRef = ref<HTMLDialogElement | null>(null)
 
-const emit = defineEmits(["confirm"]);
+const emit = defineEmits(['confirm'])
 
 const showModal = () => {
-  dialogRef.value?.showModal();
-};
+  dialogRef.value?.showModal()
+}
 
 const close = () => {
-  dialogRef.value?.close();
-};
+  dialogRef.value?.close()
+}
 
 const confirm = () => {
-  emit("confirm");
-  close();
-};
+  emit('confirm')
+  close()
+}
 
 defineExpose({
   showModal,
   close,
-});
+})
 </script>
 
 <template>

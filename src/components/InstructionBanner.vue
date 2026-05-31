@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useMatStore } from "../stores/matStore";
-import { BookOpen, X } from "lucide-vue-next";
+import { useMatStore } from '../stores/matStore'
+import { BookOpen, X } from 'lucide-vue-next'
 
-const store = useMatStore();
+const store = useMatStore()
 </script>
 
 <template>

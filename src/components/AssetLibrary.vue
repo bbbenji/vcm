@@ -1,109 +1,106 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { useMatStore } from "../stores/matStore";
-import type { ToolType } from "../stores/matStore";
-import { getIcon } from "../utils/icons";
-import { templates } from "../utils/templates";
-import {
-  ChevronUp,
-  ChevronDown,
-} from "lucide-vue-next";
-import SimulationControls from "./SimulationControls.vue";
+import { ref } from 'vue'
+import { useMatStore } from '../stores/matStore'
+import type { ToolType } from '../stores/matStore'
+import { getIcon } from '../utils/icons'
+import { templates } from '../utils/templates'
+import { ChevronUp, ChevronDown } from 'lucide-vue-next'
+import SimulationControls from './SimulationControls.vue'
 
-const store = useMatStore();
+const store = useMatStore()
 const toolButtonClass =
-  "w-full aspect-square rounded-lg border-2 flex justify-center items-center text-xl font-bold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 transition-all shadow-sm hover:scale-105 hover:shadow-md border-slate-200 dark:border-slate-700/80 cursor-pointer";
+  'w-full aspect-square rounded-lg border-2 flex justify-center items-center text-xl font-bold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 transition-all shadow-sm hover:scale-105 hover:shadow-md border-slate-200 dark:border-slate-700/80 cursor-pointer'
 const selectedToolClass =
-  "!border-primary dark:!border-primary scale-110 shadow-[0_0_0_3px_rgba(99,102,241,0.35)] dark:shadow-[0_0_0_3px_rgba(99,102,241,0.5)]";
+  '!border-primary dark:!border-primary scale-110 shadow-[0_0_0_3px_rgba(99,102,241,0.35)] dark:shadow-[0_0_0_3px_rgba(99,102,241,0.5)]'
 
 const colors = [
-  "#ef4444",
-  "#f97316",
-  "#f59e0b",
-  "#eab308",
-  "#84cc16",
-  "#22c55e",
-  "#10b981",
-  "#14b8a6",
-  "#06b6d4",
-  "#0ea5e9",
-  "#3b82f6",
-  "#6366f1",
-  "#8b5cf6",
-  "#a855f7",
-  "#d946ef",
-  "#ec4899",
-  "#f43f5e",
-  "#000000",
-  "#475569",
-];
+  '#ef4444',
+  '#f97316',
+  '#f59e0b',
+  '#eab308',
+  '#84cc16',
+  '#22c55e',
+  '#10b981',
+  '#14b8a6',
+  '#06b6d4',
+  '#0ea5e9',
+  '#3b82f6',
+  '#6366f1',
+  '#8b5cf6',
+  '#a855f7',
+  '#d946ef',
+  '#ec4899',
+  '#f43f5e',
+  '#000000',
+  '#475569',
+]
 const movements = [
-  "ArrowUp",
-  "ArrowDown",
-  "ArrowRight",
-  "ArrowLeft",
-  "CornerUpRight",
-  "CornerUpLeft",
-  "PlayFilled",
-  "StopFilled",
-  "F1Icon",
-  "F2Icon",
-  "LoopPlayIcon",
-  "LoopStopIcon",
-  "Num2Icon",
-  "Num3Icon",
-  "Num4Icon",
-  "Num5Icon",
-];
-const numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "-", "=", "<", ">"];
-const alphabet = "AĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻ?!.".split("");
+  'ArrowUp',
+  'ArrowDown',
+  'ArrowRight',
+  'ArrowLeft',
+  'CornerUpRight',
+  'CornerUpLeft',
+  'PlayFilled',
+  'StopFilled',
+  'F1Icon',
+  'F2Icon',
+  'LoopPlayIcon',
+  'LoopStopIcon',
+  'Num2Icon',
+  'Num3Icon',
+  'Num4Icon',
+  'Num5Icon',
+]
+const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '=', '<', '>']
+const alphabet = 'AĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻ?!.'.split('')
 const vehicles = [
-  "Car",
-  "Rocket",
-  "TrainFront",
-  "Ship",
-  "Plane",
-  "Tractor",
-  "Bus",
-  "Bike",
-  "Gamepad2",
-  "Puzzle",
-  "Bot",
-];
-const animals = ["Cat", "Dog", "Bird", "Rabbit", "Snail", "Bug", "Fish", "Turtle"];
+  'Car',
+  'Rocket',
+  'TrainFront',
+  'Ship',
+  'Plane',
+  'Tractor',
+  'Bus',
+  'Bike',
+  'Gamepad2',
+  'Puzzle',
+  'Bot',
+]
+const animals = ['Cat', 'Dog', 'Bird', 'Rabbit', 'Snail', 'Bug', 'Fish', 'Turtle']
 
 const categories = [
-  { id: "bg" as const, icon: "Palette", toolType: "background" as ToolType, items: colors },
-  { id: "move" as const, icon: "Move", toolType: "icon" as ToolType, items: movements },
-  { id: "num" as const, icon: "Binary", toolType: "text" as ToolType, items: numbers },
-  { id: "abc" as const, icon: "Type", toolType: "text" as ToolType, items: alphabet },
-  { id: "veh" as const, icon: "Car", toolType: "icon" as ToolType, items: vehicles },
-  { id: "ani" as const, icon: "Cat", toolType: "icon" as ToolType, items: animals },
-  { id: "tasks" as const, icon: "BookOpen", toolType: "task" as ToolType, items: [] as string[] },
-];
+  { id: 'bg' as const, icon: 'Palette', toolType: 'background' as ToolType, items: colors },
+  { id: 'move' as const, icon: 'Move', toolType: 'icon' as ToolType, items: movements },
+  { id: 'num' as const, icon: 'Binary', toolType: 'text' as ToolType, items: numbers },
+  { id: 'abc' as const, icon: 'Type', toolType: 'text' as ToolType, items: alphabet },
+  { id: 'veh' as const, icon: 'Car', toolType: 'icon' as ToolType, items: vehicles },
+  { id: 'ani' as const, icon: 'Cat', toolType: 'icon' as ToolType, items: animals },
+  { id: 'tasks' as const, icon: 'BookOpen', toolType: 'task' as ToolType, items: [] as string[] },
+]
 
-const activeTab = ref<(typeof categories)[number]["id"]>("bg");
-const isCollapsed = ref(false);
+const activeTab = ref<(typeof categories)[number]['id']>('bg')
+const isCollapsed = ref(false)
 
 const selectTool = (type: ToolType, value: string | null) => {
-  store.activeTool = { type, value };
-};
+  store.activeTool = { type, value }
+}
 
-const selectTab = (tabId: (typeof categories)[number]["id"]) => {
-  activeTab.value = tabId;
-  isCollapsed.value = false;
-};
+const selectTab = (tabId: (typeof categories)[number]['id']) => {
+  activeTab.value = tabId
+  isCollapsed.value = false
+}
 
 // Helpers for template localization
 const getTemplateName = (tpl: (typeof templates)[number]) => {
-  const key = `tpl_${tpl.id}_name` as keyof typeof store.t;
-  return (store.t[key] as string) || tpl.name;
-};
+  const key = `tpl_${tpl.id}_name` as keyof typeof store.t
+  return (store.t[key] as string) || tpl.name
+}
 
 const getTemplateDesc = (tpl: (typeof templates)[number]) => {
-  const key = `tpl_${tpl.id}_desc` as keyof typeof store.t;
-  return (store.t[key] as string) || tpl.description;
-};
+  const key = `tpl_${tpl.id}_desc` as keyof typeof store.t
+  return (store.t[key] as string) || tpl.description
+}
 </script>
 
 <template>
@@ -239,7 +236,7 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
                       : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
                   "
                 >
-                  {{ tpl.type === "premade" ? store.t.pattern : store.t.task }}
+                  {{ tpl.type === 'premade' ? store.t.pattern : store.t.task }}
                 </span>
               </div>
               <p

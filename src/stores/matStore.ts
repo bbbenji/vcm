@@ -38,9 +38,24 @@ interface HistorySnapshot {
   currentTemplateId: string | null
 }
 
+type CoordinateImportKind = 'bg' | 'icon' | 'text'
+
+interface CoordinateImportTarget {
+  row: number
+  col: number
+  isSecondary: boolean
+}
+
+interface ParsedCoordinateImport {
+  size: GridSize
+  main: CompactCell[]
+  secondary: CompactCell[]
+}
+
 const DEFAULT_GRID_SIZE: GridSize = 10
 const SECONDARY_ROWS = 3
 const MAX_HISTORY = 50
+const MAX_GRID_SIZE = 20
 const START_ICON = 'Play'
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
@@ -50,6 +65,10 @@ function isGridSize(value: unknown): value is GridSize {
 
 function normalizeGridSize(size: number): GridSize {
   return isGridSize(size) ? size : DEFAULT_GRID_SIZE
+}
+
+function inferGridSize(requiredSize: number): GridSize | null {
+  return GRID_SIZES.find((size) => size >= requiredSize) ?? null
 }
 
 function asNullableString(value: unknown) {
@@ -70,6 +89,130 @@ function isCompactCell(value: unknown): value is CompactCell {
     Number.isInteger(value[0]) &&
     Number.isInteger(value[1])
   )
+}
+
+function getCoordinateImportHeading(line: string) {
+  const separatorIndex = line.indexOf(':')
+  if (separatorIndex === -1) return null
+
+  const label = line.slice(0, separatorIndex).trim().toLocaleLowerCase()
+  const value = line.slice(separatorIndex + 1).trim()
+  if (!value) return null
+
+  if (label === 'tło' || label === 'background') {
+    return { kind: 'bg' as const, value }
+  }
+  if (label === 'ikona' || label === 'icon') {
+    return { kind: 'icon' as const, value }
+  }
+  if (label === 'tekst' || label === 'text') {
+    return { kind: 'text' as const, value }
+  }
+
+  return null
+}
+
+function getCoordinateImportSize(line: string): GridSize | null {
+  const match = line
+    .trim()
+    .toLocaleLowerCase()
+    .match(/^(?:rozmiar|size):\s*(\d{1,2})(?:\s*x\s*\d{1,2})?$/)
+  if (!match) return null
+
+  const size = Number(match[1])
+  return isGridSize(size) ? size : null
+}
+
+function parseCoordinateToken(token: string): CoordinateImportTarget | null {
+  const normalized = token.trim().toUpperCase()
+  const secondaryMatch = normalized.match(/^S([1-3])-([1-9]\d?)$/)
+  if (secondaryMatch) {
+    const row = Number(secondaryMatch[1]) - 1
+    const col = Number(secondaryMatch[2]) - 1
+    if (row < 0 || row >= SECONDARY_ROWS || col < 0 || col >= MAX_GRID_SIZE) return null
+    return { row, col, isSecondary: true }
+  }
+
+  const mainMatch = normalized.match(/^([A-Z])([1-9]\d?)$/)
+  if (!mainMatch) return null
+
+  const letter = mainMatch[1]
+  if (!letter) return null
+
+  const col = alphabet.indexOf(letter)
+  const row = Number(mainMatch[2]) - 1
+  if (row < 0 || row >= MAX_GRID_SIZE || col < 0 || col >= MAX_GRID_SIZE) return null
+
+  return { row, col, isSecondary: false }
+}
+
+function parseCoordinateImport(text: string): ParsedCoordinateImport | null {
+  const main = new Map<string, CompactCell>()
+  const secondary = new Map<string, CompactCell>()
+  let activeKind: CoordinateImportKind | null = null
+  let activeValue: string | null = null
+  let importedCells = 0
+  let requiredSize: number = DEFAULT_GRID_SIZE
+  let declaredSize: GridSize | null = null
+
+  const mergeCell = (target: CoordinateImportTarget, kind: CoordinateImportKind, value: string) => {
+    const cells = target.isSecondary ? secondary : main
+    const key = `${target.row}:${target.col}`
+    const compactCell = cells.get(key) ?? [target.row, target.col, null, null, null]
+
+    if (kind === 'bg') {
+      compactCell[2] = value
+    } else if (kind === 'icon') {
+      compactCell[3] = value
+      compactCell[4] = null
+    } else {
+      compactCell[3] = null
+      compactCell[4] = value
+    }
+
+    cells.set(key, compactCell)
+  }
+
+  for (const line of text.split(/\r?\n/)) {
+    const trimmed = line.trim()
+    if (!trimmed) continue
+
+    const importedSize = getCoordinateImportSize(trimmed)
+    if (importedSize) {
+      declaredSize = importedSize
+      continue
+    }
+
+    const heading = getCoordinateImportHeading(trimmed)
+    if (heading) {
+      activeKind = heading.kind
+      activeValue = heading.value
+      continue
+    }
+
+    if (!trimmed.startsWith('=>') || !activeKind || !activeValue) continue
+
+    const tokens = trimmed.slice(2).split(',')
+    for (const token of tokens) {
+      const target = parseCoordinateToken(token)
+      if (!target) continue
+
+      mergeCell(target, activeKind, activeValue)
+      if (!target.isSecondary) {
+        requiredSize = Math.max(requiredSize, target.row + 1)
+      }
+      requiredSize = Math.max(requiredSize, target.col + 1)
+      importedCells += 1
+    }
+  }
+
+  if (importedCells === 0) return null
+
+  const size =
+    declaredSize && declaredSize >= requiredSize ? declaredSize : inferGridSize(requiredSize)
+  if (!size) return null
+
+  return { size, main: Array.from(main.values()), secondary: Array.from(secondary.values()) }
 }
 
 function debounce<T extends (...args: never[]) => void>(fn: T, delay: number): T {
@@ -125,8 +268,15 @@ export const useMatStore = defineStore('mat', () => {
   // Simulation State
   const isSimulating = ref(false)
   const simulationStep = ref(0)
-  const simulationRobot = ref<{ r: number; c: number; dir: 'UP' | 'RIGHT' | 'DOWN' | 'LEFT'; icon: string } | null>(null)
-  const simulationStatus = ref<'ready' | 'running' | 'success' | 'collision' | 'out_of_bounds' | 'paused'>('ready')
+  const simulationRobot = ref<{
+    r: number
+    c: number
+    dir: 'UP' | 'RIGHT' | 'DOWN' | 'LEFT'
+    icon: string
+  } | null>(null)
+  const simulationStatus = ref<
+    'ready' | 'running' | 'success' | 'collision' | 'out_of_bounds' | 'paused'
+  >('ready')
   const simulationSpeed = ref(800) // ms per step
   const simulationSteps = ref<ExecStep[]>([])
   const simulationActiveInstructionId = ref<string | null>(null)
@@ -138,10 +288,10 @@ export const useMatStore = defineStore('mat', () => {
   function toggleLanguage() {
     lang.value = lang.value === 'pl' ? 'en' : 'pl'
     localStorage.setItem('vcm_lang', lang.value)
-    
+
     // If active instructions are currently loaded from a template, update them dynamically
     if (currentTemplateId.value) {
-      const tpl = templates.find(t => t.id === currentTemplateId.value)
+      const tpl = templates.find((t) => t.id === currentTemplateId.value)
       if (tpl) {
         if (tpl.instructions) {
           // If template key exists, map to i18n instructions key
@@ -377,10 +527,16 @@ export const useMatStore = defineStore('mat', () => {
     syncToUrl()
   }
 
-  function loadTemplate(size: GridSize, mainCells: CompactCell[], secCells: CompactCell[], instructions: string | null = null, id: string | null = null) {
+  function loadTemplate(
+    size: GridSize,
+    mainCells: CompactCell[],
+    secCells: CompactCell[],
+    instructions: string | null = null,
+    id: string | null = null,
+  ) {
     saveHistory()
     currentTemplateId.value = id
-    
+
     // Map instructions dynamically using translation key if translation available
     if (id) {
       const key = `tpl_${id}_instr` as keyof typeof t.value
@@ -485,23 +641,52 @@ export const useMatStore = defineStore('mat', () => {
       return t.value.emptyBoardAlert
     }
 
-    let result = `${t.value.exportTitle}\n==============================\n\n`
+    let result = `${t.value.exportTitle}\n==============================\n${t.value.size} ${gridSize.value}x${gridSize.value}\n\n`
     for (const [key, values] of Object.entries(coords)) {
       result += `${key}\n=> ${values.join(', ')}\n\n`
     }
     return result
   }
 
+  function importCoordinatesText(text: string) {
+    const parsed = parseCoordinateImport(text)
+    if (!parsed) return false
+
+    if (isSimulating.value) {
+      resetSimulation()
+    }
+
+    saveHistory()
+    activeInstructions.value = null
+    currentTemplateId.value = null
+    initBoard(parsed.size, false, false)
+    applyCompactCells(parsed.main, gridData.value)
+    applyCompactCells(parsed.secondary, secondaryGridData.value)
+
+    const startCell = secondaryGridData.value[0]?.[0]
+    if (startCell) startCell.icon = START_ICON
+
+    syncToUrl()
+    return true
+  }
+
   function getDirectionAngle(dir: 'UP' | 'RIGHT' | 'DOWN' | 'LEFT'): number {
     switch (dir) {
-      case 'UP': return 0
-      case 'RIGHT': return 90
-      case 'DOWN': return 180
-      case 'LEFT': return 270
+      case 'UP':
+        return 0
+      case 'RIGHT':
+        return 90
+      case 'DOWN':
+        return 180
+      case 'LEFT':
+        return 270
     }
   }
 
-  function nextDirection(current: 'UP' | 'RIGHT' | 'DOWN' | 'LEFT', rotation: 1 | -1): 'UP' | 'RIGHT' | 'DOWN' | 'LEFT' {
+  function nextDirection(
+    current: 'UP' | 'RIGHT' | 'DOWN' | 'LEFT',
+    rotation: 1 | -1,
+  ): 'UP' | 'RIGHT' | 'DOWN' | 'LEFT' {
     const dirs: ('UP' | 'RIGHT' | 'DOWN' | 'LEFT')[] = ['UP', 'RIGHT', 'DOWN', 'LEFT']
     const idx = dirs.indexOf(current)
     const nextIdx = (idx + rotation + 4) % 4
@@ -510,7 +695,7 @@ export const useMatStore = defineStore('mat', () => {
 
   function parseSimulationSteps() {
     const rawList: { r: number; c: number; icon: string | null; text: string | null }[] = []
-    
+
     // Read secondary grid: row by row, from left to right. Skip (0, 0) which is Play.
     for (let r = 0; r < SECONDARY_ROWS; r++) {
       const row = secondaryGridData.value[r]
@@ -525,11 +710,25 @@ export const useMatStore = defineStore('mat', () => {
     }
 
     const steps: ExecStep[] = []
-    let lastAction: 'MOVE_UP' | 'MOVE_DOWN' | 'MOVE_RIGHT' | 'MOVE_LEFT' | 'TURN_RIGHT' | 'TURN_LEFT' | null = null
+    let lastAction:
+      | 'MOVE_UP'
+      | 'MOVE_DOWN'
+      | 'MOVE_RIGHT'
+      | 'MOVE_LEFT'
+      | 'TURN_RIGHT'
+      | 'TURN_LEFT'
+      | null = null
     let lastSourceCell: { r: number; c: number } | null = null
 
     for (const item of rawList) {
-      let action: 'MOVE_UP' | 'MOVE_DOWN' | 'MOVE_RIGHT' | 'MOVE_LEFT' | 'TURN_RIGHT' | 'TURN_LEFT' | null = null
+      let action:
+        | 'MOVE_UP'
+        | 'MOVE_DOWN'
+        | 'MOVE_RIGHT'
+        | 'MOVE_LEFT'
+        | 'TURN_RIGHT'
+        | 'TURN_LEFT'
+        | null = null
 
       if (item.icon) {
         if (item.icon === 'ArrowUp') action = 'MOVE_UP'
@@ -569,8 +768,22 @@ export const useMatStore = defineStore('mat', () => {
 
   function findStartingCharacter() {
     const characterIcons = [
-      'Bot', 'Ship', 'Car', 'TrainFront', 'Plane', 'Tractor', 'Bus', 'Bike',
-      'Cat', 'Dog', 'Bird', 'Rabbit', 'Snail', 'Bug', 'Fish', 'Turtle'
+      'Bot',
+      'Ship',
+      'Car',
+      'TrainFront',
+      'Plane',
+      'Tractor',
+      'Bus',
+      'Bike',
+      'Cat',
+      'Dog',
+      'Bird',
+      'Rabbit',
+      'Snail',
+      'Bug',
+      'Fish',
+      'Turtle',
     ]
 
     for (let r = 0; r < gridSize.value; r++) {
@@ -594,13 +807,13 @@ export const useMatStore = defineStore('mat', () => {
 
     // 1. Find starting robot / character
     let startChar = findStartingCharacter()
-    
+
     // If no character found, try to locate a sensible default
     if (!startChar) {
       // Check templates default starting points
       const hasGoalJ10 = gridData.value[9]?.[9]?.icon === 'Puzzle'
       const hasGoalJ1 = gridData.value[0]?.[9]?.icon === 'Puzzle'
-      
+
       if (hasGoalJ1) {
         // Pirate maze starting position is A10 (9, 0)
         startChar = { r: 9, c: 0, icon: 'Ship' }
@@ -621,7 +834,7 @@ export const useMatStore = defineStore('mat', () => {
       r: startChar.r,
       c: startChar.c,
       dir: 'UP',
-      icon: startChar.icon
+      icon: startChar.icon,
     }
     isSimulating.value = true
     simulationStep.value = 0
@@ -819,6 +1032,7 @@ export const useMatStore = defineStore('mat', () => {
     saveHistory,
     undo,
     getCoordinatesText,
+    importCoordinatesText,
     loadTemplate,
     activeInstructions,
     currentTemplateId,

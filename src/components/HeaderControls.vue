@@ -1,47 +1,29 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { GRID_SIZES, useMatStore } from "../stores/matStore";
-import {
-  Trash2,
-  Undo2,
-  Link2,
-  Check,
-} from "lucide-vue-next";
-import DownloadDropdown from "./DownloadDropdown.vue";
-import SettingsDropdown from "./SettingsDropdown.vue";
-import ClearConfirmDialog from "./ClearConfirmDialog.vue";
+import { ref } from 'vue'
+import { GRID_SIZES, useMatStore } from '../stores/matStore'
+import { Trash2, Undo2 } from 'lucide-vue-next'
+import ShareDropdown from './ShareDropdown.vue'
+import SettingsDropdown from './SettingsDropdown.vue'
+import ClearConfirmDialog from './ClearConfirmDialog.vue'
 
-const store = useMatStore();
-const gridSizes = GRID_SIZES;
-const isCopied = ref(false);
-const clearDialogRef = ref<InstanceType<typeof ClearConfirmDialog> | null>(null);
-
-const copyUrl = async () => {
-  try {
-    await navigator.clipboard.writeText(window.location.href);
-    isCopied.value = true;
-    setTimeout(() => {
-      isCopied.value = false;
-    }, 2000);
-  } catch (err) {
-    console.error("Failed to copy", err);
-  }
-};
+const store = useMatStore()
+const gridSizes = GRID_SIZES
+const clearDialogRef = ref<InstanceType<typeof ClearConfirmDialog> | null>(null)
 
 const onSizeChange = (e: Event) => {
-  const target = e.target as HTMLSelectElement;
-  store.initBoard(Number(target.value));
-};
+  const target = e.target as HTMLSelectElement
+  store.initBoard(Number(target.value))
+}
 
 const confirmClear = () => {
   if (clearDialogRef.value) {
-    clearDialogRef.value.showModal();
+    clearDialogRef.value.showModal()
   }
-};
+}
 
 const executeClear = () => {
-  store.clearBoard();
-};
+  store.clearBoard()
+}
 </script>
 
 <template>
@@ -102,20 +84,8 @@ const executeClear = () => {
         <span class="hidden sm:inline">{{ store.t.clear }}</span>
       </button>
 
-      <!-- Share Action -->
-      <button
-        @click="copyUrl"
-        :title="store.t.share"
-        class="flex items-center gap-1 px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-lg font-bold text-xs md:text-sm transition-all bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-950/60 active:scale-95 cursor-pointer shrink-0"
-      >
-        <Check v-if="isCopied" :size="16" class="md:w-[18px] md:h-[18px] text-emerald-500" />
-        <Link2 v-else :size="16" class="md:w-[18px] md:h-[18px]" />
-        <span class="hidden sm:inline">{{ isCopied ? store.t.copied : store.t.share }}</span>
-        <span v-if="isCopied" class="sm:hidden text-emerald-500 font-bold">✓</span>
-      </button>
-
-      <!-- Download Action -->
-      <DownloadDropdown />
+      <!-- Share & Export Actions -->
+      <ShareDropdown />
 
       <!-- Divider -->
       <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 shrink-0"></div>

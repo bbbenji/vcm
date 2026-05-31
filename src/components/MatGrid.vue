@@ -1,139 +1,139 @@
 <script setup lang="ts">
-import { ref, computed, nextTick } from "vue";
-import { useMatStore } from "../stores/matStore";
-import { getPlacedIcon } from "../utils/icons";
-import InstructionBanner from "./InstructionBanner.vue";
+import { ref, computed, nextTick } from 'vue'
+import { useMatStore } from '../stores/matStore'
+import { getPlacedIcon } from '../utils/icons'
+import InstructionBanner from './InstructionBanner.vue'
 
-const store = useMatStore();
-const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const store = useMatStore()
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
-const isHoveringGrid = ref(false);
-const customCursorRef = ref<HTMLElement | null>(null);
+const isHoveringGrid = ref(false)
+const customCursorRef = ref<HTMLElement | null>(null)
 
 const onMouseMove = (e: MouseEvent) => {
   if (customCursorRef.value) {
-    const x = e.clientX + 12;
-    const y = e.clientY + 12;
-    customCursorRef.value.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    const x = e.clientX + 12
+    const y = e.clientY + 12
+    customCursorRef.value.style.transform = `translate3d(${x}px, ${y}px, 0)`
   }
-};
+}
 
 const trailPathD = computed(() => {
-  if (store.simulationPathHistory.length < 2) return "";
+  if (store.simulationPathHistory.length < 2) return ''
   return store.simulationPathHistory
     .map((pos, idx) => {
-      const x = ((pos.c + 0.5) / store.gridSize) * 100;
-      const y = ((pos.r + 0.5) / store.gridSize) * 100;
-      return `${idx === 0 ? "M" : "L"} ${x} ${y}`;
+      const x = ((pos.c + 0.5) / store.gridSize) * 100
+      const y = ((pos.r + 0.5) / store.gridSize) * 100
+      return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`
     })
-    .join(" ");
-});
+    .join(' ')
+})
 
 const paintCell = (row: number, col: number, isSecondary = false) => {
-  store.saveHistory();
-  store.updateCell(row, col, isSecondary);
-};
+  store.saveHistory()
+  store.updateCell(row, col, isSecondary)
+}
 
 const dragPaintCell = (event: MouseEvent, row: number, col: number, isSecondary = false) => {
-  if (event.buttons !== 1) return;
-  store.updateCell(row, col, isSecondary);
-};
+  if (event.buttons !== 1) return
+  store.updateCell(row, col, isSecondary)
+}
 
 // Keyboard Draw Navigation Handler
 const handleKeyDown = (e: KeyboardEvent, row: number, col: number, isSecondary = false) => {
-  let nextR = row;
-  let nextC = col;
-  const maxRows = isSecondary ? 3 : store.gridSize;
-  const maxCols = store.gridSize;
+  let nextR = row
+  let nextC = col
+  const maxRows = isSecondary ? 3 : store.gridSize
+  const maxCols = store.gridSize
 
   switch (e.key) {
-    case "ArrowUp":
-      nextR = Math.max(0, row - 1);
-      e.preventDefault();
-      break;
-    case "ArrowDown":
-      nextR = Math.min(maxRows - 1, row + 1);
-      e.preventDefault();
-      break;
-    case "ArrowLeft":
-      nextC = Math.max(0, col - 1);
-      e.preventDefault();
-      break;
-    case "ArrowRight":
-      nextC = Math.min(maxCols - 1, col + 1);
-      e.preventDefault();
-      break;
-    case " ":
-    case "Enter":
-      paintCell(row, col, isSecondary);
-      e.preventDefault();
-      return;
-    case "Escape":
-    case "Backspace":
-    case "Delete":
-      store.saveHistory();
+    case 'ArrowUp':
+      nextR = Math.max(0, row - 1)
+      e.preventDefault()
+      break
+    case 'ArrowDown':
+      nextR = Math.min(maxRows - 1, row + 1)
+      e.preventDefault()
+      break
+    case 'ArrowLeft':
+      nextC = Math.max(0, col - 1)
+      e.preventDefault()
+      break
+    case 'ArrowRight':
+      nextC = Math.min(maxCols - 1, col + 1)
+      e.preventDefault()
+      break
+    case ' ':
+    case 'Enter':
+      paintCell(row, col, isSecondary)
+      e.preventDefault()
+      return
+    case 'Escape':
+    case 'Backspace':
+    case 'Delete':
+      store.saveHistory()
       // Emulate eraser tool
-      const cell = isSecondary ? store.secondaryGridData[row]?.[col] : store.gridData[row]?.[col];
+      const cell = isSecondary ? store.secondaryGridData[row]?.[col] : store.gridData[row]?.[col]
       if (cell) {
-        cell.bg = null;
-        cell.icon = null;
-        cell.text = null;
+        cell.bg = null
+        cell.icon = null
+        cell.text = null
       }
-      e.preventDefault();
-      return;
+      e.preventDefault()
+      return
     default:
-      return;
+      return
   }
 
   // Focus next cell
   nextTick(() => {
-    const selector = `[data-row="${nextR}"][data-col="${nextC}"][data-secondary="${isSecondary}"]`;
-    const nextEl = document.querySelector(selector) as HTMLElement | null;
-    nextEl?.focus();
-  });
-};
-
-// Touch drawing support
-const isTouchDevice = ref(false);
-if (typeof window !== "undefined") {
-  isTouchDevice.value = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+    const selector = `[data-row="${nextR}"][data-col="${nextC}"][data-secondary="${isSecondary}"]`
+    const nextEl = document.querySelector(selector) as HTMLElement | null
+    nextEl?.focus()
+  })
 }
 
-const lastTouchedCell = ref<{ row: number; col: number; isSecondary: boolean } | null>(null);
+// Touch drawing support
+const isTouchDevice = ref(false)
+if (typeof window !== 'undefined') {
+  isTouchDevice.value = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+}
+
+const lastTouchedCell = ref<{ row: number; col: number; isSecondary: boolean } | null>(null)
 
 const handleTouchStart = (e: TouchEvent, row: number, col: number, isSecondary = false) => {
-  store.saveHistory();
-  lastTouchedCell.value = { row, col, isSecondary };
-  store.updateCell(row, col, isSecondary);
-};
+  store.saveHistory()
+  lastTouchedCell.value = { row, col, isSecondary }
+  store.updateCell(row, col, isSecondary)
+}
 
 const handleTouchMove = (e: TouchEvent) => {
-  if (!lastTouchedCell.value) return;
-  const touch = e.touches[0];
-  if (!touch) return;
-  const element = document.elementFromPoint(touch.clientX, touch.clientY);
-  if (!element) return;
+  if (!lastTouchedCell.value) return
+  const touch = e.touches[0]
+  if (!touch) return
+  const element = document.elementFromPoint(touch.clientX, touch.clientY)
+  if (!element) return
 
-  const cell = element.closest("[data-row][data-col]") as HTMLElement | null;
+  const cell = element.closest('[data-row][data-col]') as HTMLElement | null
   if (cell) {
-    const row = parseInt(cell.dataset.row || "0", 10);
-    const col = parseInt(cell.dataset.col || "0", 10);
-    const isSecondary = cell.dataset.secondary === "true";
+    const row = parseInt(cell.dataset.row || '0', 10)
+    const col = parseInt(cell.dataset.col || '0', 10)
+    const isSecondary = cell.dataset.secondary === 'true'
 
     if (
       lastTouchedCell.value.row !== row ||
       lastTouchedCell.value.col !== col ||
       lastTouchedCell.value.isSecondary !== isSecondary
     ) {
-      lastTouchedCell.value = { row, col, isSecondary };
-      store.updateCell(row, col, isSecondary);
+      lastTouchedCell.value = { row, col, isSecondary }
+      store.updateCell(row, col, isSecondary)
     }
   }
-};
+}
 
 const handleTouchEnd = () => {
-  lastTouchedCell.value = null;
-};
+  lastTouchedCell.value = null
+}
 </script>
 
 <template>
