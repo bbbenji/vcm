@@ -88,6 +88,13 @@ const selectTool = (type: ToolType, value: string | null) => {
   store.activeTool = { type, value }
 }
 
+const handleDragStart = (e: DragEvent, type: ToolType, value: string | null) => {
+  if (e.dataTransfer) {
+    e.dataTransfer.setData('application/json', JSON.stringify({ type, value }))
+    store.activeTool = { type, value }
+  }
+}
+
 const selectTab = (tabId: (typeof categories)[number]['id']) => {
   activeTab.value = tabId
   isCollapsed.value = false
@@ -165,6 +172,8 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
         <!-- Special eraser button (available in all item lists) -->
         <button
           v-if="activeTab !== 'tasks'"
+          draggable="true"
+          @dragstart="handleDragStart($event, 'eraser', null)"
           class="w-full aspect-square rounded-lg border-2 flex justify-center items-center text-xl font-bold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 transition-all shadow-sm hover:scale-105 hover:shadow-md border-dashed border-slate-400 dark:border-slate-600 cursor-pointer"
           @click="selectTool('eraser', null)"
           :class="{
@@ -184,6 +193,8 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
             <button
               v-for="item in cat.items"
               :key="item"
+              draggable="true"
+              @dragstart="handleDragStart($event, cat.toolType as ToolType, item)"
               :class="[
                 cat.toolType === 'background'
                   ? 'w-full aspect-square rounded-lg border flex justify-center items-center text-xl font-bold bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 transition-all shadow-sm hover:scale-105 hover:shadow-md border-black/10 dark:border-white/10 cursor-pointer'

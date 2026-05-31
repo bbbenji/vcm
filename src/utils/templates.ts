@@ -219,11 +219,11 @@ export const templates: Template[] = [
   {
     id: 'maze1',
     name: 'Labirynt Robota',
-    description: 'Doprowadź robota z A1 do złotej gwiazdy na J10, omijając szare ściany!',
+    description: 'Doprowadź robota z A1 do baterii na J10, omijając szare ściany!',
     size: 10,
     type: 'instruction',
     instructions:
-      '1. Znajdź robota (Bot) w lewym górnym rogu (A1).\n2. Zaprogramuj trasę na dolnej planszy za pomocą strzałek.\n3. Omijaj szare ściany (przeszkody).\n4. Cel: Złota gwiazdka na J10!',
+      '1. Znajdź robota (Bot) w lewym górnym rogu (A1).\n2. Zaprogramuj trasę na dolnej planszy za pomocą strzałek.\n3. Omijaj szare ściany (przeszkody).\n4. Cel: Ładowarka baterii na J10!',
     main: [
       // Obstacles
       [1, 1, '#475569', null, null],
@@ -254,8 +254,8 @@ export const templates: Template[] = [
       [8, 5, '#475569', null, null],
       // Starting Bot
       [0, 0, null, 'Bot', null],
-      // Target BatteryCharging star
-      [9, 9, '#eab308', 'BatteryCharging', null],
+      // Target BatteryCharging star (no background color under it!)
+      [9, 9, null, 'BatteryCharging', null],
     ],
     secondary: [],
     secondarySolution: [
@@ -271,17 +271,17 @@ export const templates: Template[] = [
   },
   {
     id: 'pirate_maze',
-    name: 'Skarb Piratów',
-    description: 'Poprowadź statek piracki z wyspy A10 do skarbu na J1, omijając rafy koralowe!',
+    name: 'Kosmiczna Misja',
+    description: 'Poprowadź robota z bazy A10 do ładowarki na J1, omijając kosmiczne przeszkody!',
     size: 10,
     type: 'instruction',
     instructions:
-      'Ahoj! Pomóż piratom dopłynąć do skarbu:\n\n1. Twój statek (Ship) startuje w lewym dolnym rogu (A10).\n2. Unikaj niebezpiecznych wysp i raf oznaczonych kolorem szarym.\n3. Ułóż instrukcję ruchu na dolnej planszy za pomocą strzałek.\n4. Cel: Dopłyń do skrzyni ze skarbem (gwiazdka na żółtym tle na J1)!',
+      'Pomóż robotowi dotrzeć do ładowarki:\n\n1. Twój robot (Bot) startuje w lewym dolnym rogu (A10).\n2. Unikaj niebezpiecznych przeszkód oznaczonych kolorem szarym.\n3. Ułóż instrukcję ruchu na dolnej planszy za pomocą strzałek.\n4. Cel: Doprowadź robota do ładowarki (baterii na J1)!',
     main: [
       // Start ship
-      [9, 0, null, 'Ship', null],
-      // Target treasure
-      [0, 9, '#eab308', 'BatteryCharging', null],
+      [9, 0, null, 'Bot', null],
+      // Target treasure (no background color under it!)
+      [0, 9, null, 'BatteryCharging', null],
       // Islands / Reefs
       [9, 1, '#475569', null, null],
       [9, 2, '#475569', null, null],

@@ -97,8 +97,8 @@ const customCursorRef = ref<HTMLElement | null>(null);
 
 const onMouseMove = (e: MouseEvent) => {
   if (customCursorRef.value) {
-    const x = e.clientX + 12;
-    const y = e.clientY + 12;
+    const x = e.clientX + 6;
+    const y = e.clientY + 6;
     customCursorRef.value.style.transform = `translate3d(${x}px, ${y}px, 0)`;
   }
 };
@@ -218,6 +218,37 @@ const handleTouchMove = (e: TouchEvent) => {
 
 const handleTouchEnd = () => {
   lastTouchedCell.value = null;
+};
+
+// HTML5 Drag and Drop handlers
+import type { ToolType } from "../stores/matStore";
+const dragOverCell = ref<{ row: number; col: number; isSecondary: boolean } | null>(null);
+
+const handleDragEnter = (row: number, col: number, isSecondary: boolean) => {
+  dragOverCell.value = { row, col, isSecondary };
+};
+
+const handleDragLeave = () => {
+  dragOverCell.value = null;
+};
+
+const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false) => {
+  e.preventDefault();
+  dragOverCell.value = null;
+  if (e.dataTransfer) {
+    const dataStr = e.dataTransfer.getData("application/json");
+    if (dataStr) {
+      try {
+        const { type, value } = JSON.parse(dataStr) as { type: ToolType; value: string | null };
+        store.activeTool = { type, value };
+
+        store.saveHistory();
+        store.updateCell(row, col, isSecondary);
+      } catch (err) {
+        console.error("Failed to parse drop data", err);
+      }
+    }
+  }
 };
 </script>
 
@@ -403,12 +434,21 @@ const handleTouchEnd = () => {
                 :class="{
                   'sym-line-horizontal': rIndex === Math.floor(store.gridSize / 2) - 1,
                   'sym-line-vertical': cIndex === Math.floor(store.gridSize / 2) - 1,
+                  'ring-2 ring-primary/60 border-primary/50 scale-105 z-10 shadow-md bg-indigo-50/20 dark:bg-indigo-950/10':
+                    dragOverCell &&
+                    dragOverCell.row === rIndex &&
+                    dragOverCell.col === cIndex &&
+                    dragOverCell.isSecondary === false,
                 }"
                 :style="{ backgroundColor: cell.bg || 'transparent' }"
                 @mousedown="paintCell(rIndex, cIndex)"
                 @mouseenter="dragPaintCell($event, rIndex, cIndex)"
                 @keydown="handleKeyDown($event, rIndex, cIndex, false)"
                 @touchstart.passive="handleTouchStart($event, rIndex, cIndex, false)"
+                @dragenter.prevent="handleDragEnter(rIndex, cIndex, false)"
+                @dragleave="handleDragLeave"
+                @dragover.prevent
+                @drop="handleDrop($event, rIndex, cIndex, false)"
               >
                 <component
                   v-if="cell.icon"
@@ -495,12 +535,21 @@ const handleTouchEnd = () => {
                 :class="{
                   'ring-2 ring-primary ring-offset-1 z-10 shadow-lg shadow-primary/20 scale-105 border-primary dark:border-primary !border-solid rounded-md bg-indigo-50/50 dark:bg-indigo-950/20':
                     cell.id === store.simulationActiveInstructionId,
+                  'ring-2 ring-primary/60 border-primary/50 scale-105 z-10 shadow-md bg-indigo-50/20 dark:bg-indigo-950/10':
+                    dragOverCell &&
+                    dragOverCell.row === rIndex &&
+                    dragOverCell.col === cIndex &&
+                    dragOverCell.isSecondary === true,
                 }"
                 :style="{ backgroundColor: cell.bg || 'transparent' }"
                 @mousedown="paintCell(rIndex, cIndex, true)"
                 @mouseenter="dragPaintCell($event, rIndex, cIndex, true)"
                 @keydown="handleKeyDown($event, rIndex, cIndex, true)"
                 @touchstart.passive="handleTouchStart($event, rIndex, cIndex, true)"
+                @dragenter.prevent="handleDragEnter(rIndex, cIndex, true)"
+                @dragleave="handleDragLeave"
+                @dragover.prevent
+                @drop="handleDrop($event, rIndex, cIndex, true)"
               >
                 <component
                   v-if="cell.icon"
@@ -532,7 +581,7 @@ const handleTouchEnd = () => {
     <div
       v-if="isHoveringGrid && !isTouchDevice"
       ref="customCursorRef"
-      class="fixed top-0 left-0 pointer-events-none z-50 flex justify-center items-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 opacity-75 drop-shadow-xl transform-gpu transition-all duration-75"
+      class="fixed top-0 left-0 pointer-events-none z-50 flex justify-center items-center w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 opacity-75 drop-shadow-md transform-gpu will-change-transform"
     >
       <div
         v-if="store.activeTool.type === 'background'"
@@ -553,7 +602,7 @@ const handleTouchEnd = () => {
       />
       <span
         v-else-if="store.activeTool.type === 'text' && store.activeTool.value"
-        class="text-sm sm:text-base md:text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100 drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)]"
+        class="text-xs sm:text-sm md:text-base font-bold text-slate-800 dark:text-slate-100 drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)] select-none"
         >{{ store.activeTool.value }}</span
       >
     </div>

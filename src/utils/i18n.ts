@@ -68,15 +68,15 @@ export const translations = {
     tpl_house_desc: 'Klasyczny pixel art domku z ogródkiem i słońcem.',
 
     tpl_maze1_name: 'Labirynt Robota',
-    tpl_maze1_desc: 'Doprowadź robota z A1 do złotej gwiazdy na J10, omijając szare ściany!',
+    tpl_maze1_desc: 'Doprowadź robota z A1 do baterii na J10, omijając szare ściany!',
     tpl_maze1_instr:
-      '1. Znajdź robota (Bot) w lewym górnym rogu (A1).\n2. Zaprogramuj trasę na dolnej planszy za pomocą strzałek.\n3. Omijaj szare ściany (przeszkody).\n4. Cel: Złota gwiazdka na J10!',
+      '1. Znajdź robota (Bot) w lewym górnym rogu (A1).\n2. Zaprogramuj trasę na dolnej planszy za pomocą strzałek.\n3. Omijaj szare ściany (przeszkody).\n4. Cel: Ładowarka baterii na J10!',
 
-    tpl_pirate_maze_name: 'Skarb Piratów',
+    tpl_pirate_maze_name: 'Kosmiczna Misja',
     tpl_pirate_maze_desc:
-      'Poprowadź statek piracki z wyspy A10 do skarbu na J1, omijając rafy koralowe!',
+      'Poprowadź robota z bazy A10 do ładowarki na J1, omijając kosmiczne przeszkody!',
     tpl_pirate_maze_instr:
-      'Ahoj! Pomóż piratom dopłynąć do skarbu:\n\n1. Twój statek (Ship) startuje w lewym dolnym rogu (A10).\n2. Unikaj niebezpiecznych wysp i raf oznaczonych kolorem szarym.\n3. Ułóż instrukcję ruchu na dolnej planszy za pomocą strzałek.\n4. Cel: Dopłyń do skrzyni ze skarbem (gwiazdka na żółtym tle na J1)!',
+      'Pomóż robotowi dotrzeć do ładowarki:\n\n1. Twój robot (Bot) startuje w lewym dolnym rogu (A10).\n2. Unikaj niebezpiecznych przeszkód oznaczonych kolorem szarym.\n3. Ułóż instrukcję ruchu na dolnej planszy za pomocą strzałek.\n4. Cel: Doprowadź robota do ładowarki (baterii na J1)!',
 
     tpl_coded_heart_name: 'Zakodowane Serduszko',
     tpl_coded_heart_desc:
@@ -157,15 +157,15 @@ export const translations = {
     tpl_house_desc: 'A classic pixel art house with a yard and the sun.',
 
     tpl_maze1_name: 'Robot Maze',
-    tpl_maze1_desc: 'Guide the robot from A1 to the golden star at J10, avoiding the grey walls!',
+    tpl_maze1_desc: 'Guide the robot from A1 to the battery at J10, avoiding the grey walls!',
     tpl_maze1_instr:
-      '1. Locate the robot (Bot) in the top-left corner (A1).\n2. Program the path on the bottom panel using arrows.\n3. Avoid the grey walls (obstacles).\n4. Goal: Reach the golden star at J10!',
+      '1. Locate the robot (Bot) in the top-left corner (A1).\n2. Program the path on the bottom panel using arrows.\n3. Avoid the grey walls (obstacles).\n4. Goal: Reach the battery at J10!',
 
-    tpl_pirate_maze_name: 'Pirates Treasure',
+    tpl_pirate_maze_name: 'Space Mission',
     tpl_pirate_maze_desc:
-      'Guide the pirate ship from island A10 to the treasure at J1, avoiding coral reefs!',
+      'Guide the robot from base A10 to the charger at J1, avoiding space obstacles!',
     tpl_pirate_maze_instr:
-      'Ahoy! Help the pirates reach the treasure chest:\n\n1. Your ship starts in the bottom-left corner (A10).\n2. Avoid dangerous islands and reefs marked in grey.\n3. Program your movements on the bottom panel using arrows.\n4. Goal: Reach the treasure chest (star on yellow background at J1)!',
+      'Help the robot reach the charger:\n\n1. Your robot (Bot) starts in the bottom-left corner (A10).\n2. Avoid dangerous space obstacles marked in grey.\n3. Program your movements on the bottom panel using arrows.\n4. Goal: Reach the charger (battery at J1)!',
 
     tpl_coded_heart_name: 'Coded Heart',
     tpl_coded_heart_desc:
