@@ -35,6 +35,8 @@ const colors = [
   '#475569',
 ]
 const movements = [
+  'Bot',
+  'BatteryCharging',
   'ArrowUp',
   'ArrowDown',
   'ArrowRight',
@@ -199,6 +201,13 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
                 v-if="cat.toolType === 'icon'"
                 :is="getIcon(item)"
                 class="w-5 h-5 md:w-6 md:h-6"
+                :class="
+                  item === 'Bot'
+                    ? 'text-emerald-500 dark:text-emerald-400'
+                    : item === 'BatteryCharging'
+                    ? 'text-amber-500 dark:text-amber-400'
+                    : ''
+                "
               />
               <template v-else-if="cat.toolType === 'text'">{{ item }}</template>
             </button>

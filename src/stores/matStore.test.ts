@@ -269,3 +269,132 @@ Text: Z
     expect(store.gridSize).toBe(10)
   })
 })
+
+describe('matStore robot and goal simulation', () => {
+  beforeEach(() => {
+    installBrowserStubs()
+    setActivePinia(createPinia())
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('enforces single-placement of Bot and BatteryCharging on the top grid', () => {
+    const store = useMatStore()
+
+    // Set active tool to Bot icon
+    store.activeTool = { type: 'icon', value: 'Bot' }
+
+    // Place Bot at A1 (0, 0)
+    store.updateCell(0, 0, false)
+    expect(store.gridData[0]?.[0]?.icon).toBe('Bot')
+
+    // Place Bot at B2 (1, 1)
+    store.updateCell(1, 1, false)
+    expect(store.gridData[1]?.[1]?.icon).toBe('Bot')
+    // Old Bot should be cleared
+    expect(store.gridData[0]?.[0]?.icon).toBeNull()
+
+    // Place BatteryCharging (goal) at C3 (2, 2)
+    store.activeTool = { type: 'icon', value: 'BatteryCharging' }
+    store.updateCell(2, 2, false)
+    expect(store.gridData[2]?.[2]?.icon).toBe('BatteryCharging')
+
+    // Place BatteryCharging (goal) at D4 (3, 3)
+    store.updateCell(3, 3, false)
+    expect(store.gridData[3]?.[3]?.icon).toBe('BatteryCharging')
+    // Old BatteryCharging should be cleared
+    expect(store.gridData[2]?.[2]?.icon).toBeNull()
+  })
+
+  it('collides with colored backgrounds, but succeeds on success cells', () => {
+    const store = useMatStore()
+
+    // Place robot at (0, 0)
+    store.activeTool = { type: 'icon', value: 'Bot' }
+    store.updateCell(0, 0, false)
+
+    // Place red background cell at (1, 0)
+    store.activeTool = { type: 'background', value: '#ef4444' }
+    store.updateCell(1, 0, false)
+
+    // Program ArrowDown instruction at S1-2
+    store.secondaryGridData[0]![1]!.icon = 'ArrowDown'
+
+    // Start simulation
+    store.startSimulation()
+    expect(store.isSimulating).toBe(true)
+    expect(store.simulationRobot?.r).toBe(0)
+    expect(store.simulationRobot?.c).toBe(0)
+
+    // Execute the step (Move Down into the red wall)
+    store.nextSimulationStep()
+    expect(store.simulationStatus).toBe('collision')
+    // Verify it did not actually pass (stays in last valid position)
+    expect(store.simulationRobot?.r).toBe(0)
+
+    // Reset simulation
+    store.resetSimulation()
+    expect(store.simulationStatus).toBe('ready')
+
+    // Now make (1, 0) a success cell (BatteryCharging) and test success
+    store.gridData[1]![0]!.bg = null
+    store.gridData[1]![0]!.icon = 'BatteryCharging'
+
+    store.startSimulation()
+    store.nextSimulationStep()
+    expect(store.simulationStatus).toBe('success')
+  })
+
+  it('picks up other symbols while traveling and restores them upon reset', () => {
+    const store = useMatStore()
+
+    // Place robot at (0, 0)
+    store.activeTool = { type: 'icon', value: 'Bot' }
+    store.updateCell(0, 0, false)
+
+    // Place a pickup symbol at (1, 0) (e.g. letter 'A')
+    store.activeTool = { type: 'text', value: 'A' }
+    store.updateCell(1, 0, false)
+
+    // Place another pickup symbol at (2, 0) (e.g. icon 'Car')
+    store.activeTool = { type: 'icon', value: 'Car' }
+    store.updateCell(2, 0, false)
+
+    // Program instructions: S1-2 ArrowDown, S1-3 ArrowDown
+    store.secondaryGridData[0]![1]!.icon = 'ArrowDown'
+    store.secondaryGridData[0]![2]!.icon = 'ArrowDown'
+
+    // Verify symbols are on the board before simulation
+    expect(store.gridData[1]![0]!.text).toBe('A')
+    expect(store.gridData[2]![0]!.icon).toBe('Car')
+    expect(store.simulationInventory).toHaveLength(0)
+
+    // Start simulation
+    store.startSimulation()
+    expect(store.simulationInventory).toHaveLength(0)
+
+    // Step 1: moves to (1, 0). It should pick up the 'A'
+    store.nextSimulationStep()
+    expect(store.simulationRobot?.r).toBe(1)
+    expect(store.gridData[1]![0]!.text).toBeNull() // Picked up!
+    expect(store.simulationInventory).toHaveLength(1)
+    expect(store.simulationInventory[0]).toEqual({ type: 'text', value: 'A' })
+
+    // Step 2: moves to (2, 0). It should pick up the 'Car'
+    store.nextSimulationStep()
+    expect(store.simulationRobot?.r).toBe(2)
+    expect(store.gridData[2]![0]!.icon).toBeNull() // Picked up!
+    expect(store.simulationInventory).toHaveLength(2)
+    expect(store.simulationInventory[1]).toEqual({ type: 'icon', value: 'Car' })
+
+    // Reset simulation
+    store.resetSimulation()
+    expect(store.simulationInventory).toHaveLength(0)
+
+    // Verify symbols are fully restored!
+    expect(store.gridData[1]![0]!.text).toBe('A')
+    expect(store.gridData[2]![0]!.icon).toBe('Car')
+  })
+})

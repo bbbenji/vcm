@@ -233,7 +233,10 @@ const handleTouchEnd = () => {
             <!-- Animated Active Robot Layer during Simulation -->
             <div
               v-if="store.isSimulating && store.simulationRobot"
-              class="absolute pointer-events-none z-10 flex justify-center items-center transition-all duration-300 ease-in-out"
+              class="absolute pointer-events-none z-30 flex justify-center items-center transition-all duration-300 ease-in-out"
+              :class="{
+                'animate-bounce-shake': ['collision', 'out_of_bounds'].includes(store.simulationStatus),
+              }"
               :style="{
                 left: (store.simulationRobot.c / store.gridSize) * 100 + '%',
                 top: (store.simulationRobot.r / store.gridSize) * 100 + '%',
@@ -249,7 +252,7 @@ const handleTouchEnd = () => {
                     store.simulationStatus === 'running',
                   'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]':
                     store.simulationStatus === 'success',
-                  'bg-rose-50 dark:bg-rose-950/40 border-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.4)] animate-bounce':
+                  'bg-rose-50 dark:bg-rose-950/40 border-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.4)]':
                     ['collision', 'out_of_bounds'].includes(store.simulationStatus),
                   'bg-amber-50 dark:bg-amber-950/40 border-amber-500':
                     store.simulationStatus === 'paused',
@@ -260,7 +263,12 @@ const handleTouchEnd = () => {
               <!-- Character Avatar with SMOOTH elastic headings rotations -->
               <component
                 :is="getPlacedIcon(store.simulationRobot.icon)"
-                class="w-[65%] h-[65%] text-slate-800 dark:text-slate-100 z-10 drop-shadow-[0_2px_4px_rgba(255,255,255,0.85)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] transition-transform duration-300 ease-out"
+                class="w-[65%] h-[65%] z-10 drop-shadow-[0_2px_4px_rgba(255,255,255,0.85)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] transition-transform duration-300 ease-out"
+                :class="
+                  store.simulationRobot.icon === 'Bot'
+                    ? 'text-emerald-500 dark:text-emerald-400'
+                    : 'text-slate-800 dark:text-slate-100'
+                "
                 :style="{
                   transform:
                     'rotate(' + store.getDirectionAngle(store.simulationRobot.dir) + 'deg)',
@@ -293,7 +301,14 @@ const handleTouchEnd = () => {
                 <component
                   v-if="cell.icon"
                   :is="getPlacedIcon(cell.icon)"
-                  class="w-[65%] h-[65%] text-slate-800 dark:text-slate-200 pointer-events-none"
+                  class="w-[65%] h-[65%] pointer-events-none"
+                  :class="
+                    cell.icon === 'Bot'
+                      ? 'text-emerald-500 dark:text-emerald-400'
+                      : cell.icon === 'BatteryCharging'
+                      ? 'text-amber-500 dark:text-amber-400'
+                      : 'text-slate-800 dark:text-slate-200'
+                  "
                 />
                 <span
                   v-else-if="cell.text"
@@ -415,7 +430,14 @@ const handleTouchEnd = () => {
       <component
         v-else-if="store.activeTool.type === 'icon' && store.activeTool.value"
         :is="getPlacedIcon(store.activeTool.value)"
-        class="w-[65%] h-[65%] text-slate-800 dark:text-slate-200 drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)]"
+        class="w-[65%] h-[65%] drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)]"
+        :class="
+          store.activeTool.value === 'Bot'
+            ? 'text-emerald-500 dark:text-emerald-400'
+            : store.activeTool.value === 'BatteryCharging'
+            ? 'text-amber-500 dark:text-amber-400'
+            : 'text-slate-800 dark:text-slate-200'
+        "
       />
       <span
         v-else-if="store.activeTool.type === 'text' && store.activeTool.value"

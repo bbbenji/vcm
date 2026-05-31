@@ -281,6 +281,8 @@ export const useMatStore = defineStore('mat', () => {
   const simulationSteps = ref<ExecStep[]>([])
   const simulationActiveInstructionId = ref<string | null>(null)
   const simulationPathHistory = ref<{ r: number; c: number }[]>([])
+  const preSimGridData = ref<GridCell[][] | null>(null)
+  const simulationInventory = ref<{ type: 'icon' | 'text'; value: string }[]>([])
 
   let simulationTimer: ReturnType<typeof setInterval> | null = null
 
@@ -596,6 +598,20 @@ export const useMatStore = defineStore('mat', () => {
     } else if (tool.type === 'background') {
       cell.bg = tool.value
     } else if (tool.type === 'icon') {
+      // Enforce single-placement of Robot ('Bot') and Goal ('BatteryCharging') on the top grid
+      if (!isSecondary && (tool.value === 'Bot' || tool.value === 'BatteryCharging')) {
+        for (let r = 0; r < gridSize.value; r++) {
+          const gridRow = gridData.value[r]
+          if (gridRow) {
+            for (let c = 0; c < gridSize.value; c++) {
+              const gridCell = gridRow[c]
+              if (gridCell && gridCell.icon === tool.value) {
+                gridCell.icon = null
+              }
+            }
+          }
+        }
+      }
       cell.icon = tool.value
       cell.text = null
     } else if (tool.type === 'text') {
@@ -805,14 +821,18 @@ export const useMatStore = defineStore('mat', () => {
     // Stop any existing simulation
     stopTimer()
 
+    // Save pre-simulation grid state snapshot
+    preSimGridData.value = JSON.parse(JSON.stringify(gridData.value))
+    simulationInventory.value = []
+
     // 1. Find starting robot / character
     let startChar = findStartingCharacter()
 
     // If no character found, try to locate a sensible default
     if (!startChar) {
       // Check templates default starting points
-      const hasGoalJ10 = gridData.value[9]?.[9]?.icon === 'Puzzle'
-      const hasGoalJ1 = gridData.value[0]?.[9]?.icon === 'Puzzle'
+      const hasGoalJ10 = gridData.value[9]?.[9]?.icon === 'BatteryCharging'
+      const hasGoalJ1 = gridData.value[0]?.[9]?.icon === 'BatteryCharging'
 
       if (hasGoalJ1) {
         // Pirate maze starting position is A10 (9, 0)
@@ -874,6 +894,11 @@ export const useMatStore = defineStore('mat', () => {
 
   function resetSimulation() {
     stopTimer()
+    if (preSimGridData.value) {
+      gridData.value = preSimGridData.value
+      preSimGridData.value = null
+    }
+    simulationInventory.value = []
     isSimulating.value = false
     simulationStep.value = 0
     simulationStatus.value = 'ready'
@@ -893,13 +918,14 @@ export const useMatStore = defineStore('mat', () => {
   function isSuccessCell(r: number, c: number): boolean {
     const cell = gridData.value[r]?.[c]
     if (!cell) return false
-    return cell.icon === 'Puzzle' || cell.bg === '#eab308'
+    return cell.icon === 'BatteryCharging' || cell.bg === '#eab308'
   }
 
   function isObstacleCell(r: number, c: number): boolean {
     const cell = gridData.value[r]?.[c]
     if (!cell) return false
-    return cell.bg === '#475569'
+    if (isSuccessCell(r, c)) return false
+    return cell.bg !== null
   }
 
   function nextSimulationStep() {
@@ -938,22 +964,16 @@ export const useMatStore = defineStore('mat', () => {
 
       if (step.action === 'MOVE_UP') {
         nextR -= 1
-        robot.dir = 'UP'
       } else if (step.action === 'MOVE_DOWN') {
         nextR += 1
-        robot.dir = 'DOWN'
       } else if (step.action === 'MOVE_RIGHT') {
         nextC += 1
-        robot.dir = 'RIGHT'
       } else if (step.action === 'MOVE_LEFT') {
         nextC -= 1
-        robot.dir = 'LEFT'
       }
 
       // Verify out of bounds
       if (nextR < 0 || nextR >= gridSize.value || nextC < 0 || nextC >= gridSize.value) {
-        robot.r = nextR
-        robot.c = nextC
         simulationStatus.value = 'out_of_bounds'
         stopTimer()
         simulationActiveInstructionId.value = null
@@ -963,8 +983,6 @@ export const useMatStore = defineStore('mat', () => {
 
       // Verify collision
       if (isObstacleCell(nextR, nextC)) {
-        robot.r = nextR
-        robot.c = nextC
         simulationStatus.value = 'collision'
         stopTimer()
         simulationActiveInstructionId.value = null
@@ -975,6 +993,19 @@ export const useMatStore = defineStore('mat', () => {
       robot.r = nextR
       robot.c = nextC
       simulationPathHistory.value.push({ r: nextR, c: nextC })
+
+      // Pick up symbol on cell (except success/goal and robot's own start icon)
+      const nextCell = gridData.value[nextR]?.[nextC]
+      if (nextCell && !isSuccessCell(nextR, nextC)) {
+        if (nextCell.icon && nextCell.icon !== robot.icon) {
+          simulationInventory.value.push({ type: 'icon', value: nextCell.icon })
+          nextCell.icon = null
+        }
+        if (nextCell.text) {
+          simulationInventory.value.push({ type: 'text', value: nextCell.text })
+          nextCell.text = null
+        }
+      }
     }
 
     // Increment step counter
@@ -1055,5 +1086,6 @@ export const useMatStore = defineStore('mat', () => {
     nextSimulationStep,
     getDirectionAngle,
     simulationPathHistory,
+    simulationInventory,
   }
 })

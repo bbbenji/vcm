@@ -112,3 +112,18 @@ body {
     transform 0.2s ease,
     box-shadow 0.2s ease;
 }
+
+@keyframes bounceShake {
+  0% { transform: scale(1); }
+  15% { transform: scale(0.85); }
+  30% { transform: scale(1.15) translate(-3px, -3px); }
+  45% { transform: translate(2px, 2px) rotate(-4deg); }
+  60% { transform: translate(-2px, 1px) rotate(4deg); }
+  75% { transform: translate(1.5px, -1px) rotate(-2deg); }
+  90% { transform: translate(-0.5px, 0.5px) rotate(1deg); }
+  100% { transform: scale(1) translate(0, 0) rotate(0deg); }
+}
+
+.animate-bounce-shake {
+  animation: bounceShake 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}

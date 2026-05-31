@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { useMatStore } from '../stores/matStore'
-import { Play, Pause, RotateCcw, Lightbulb, Turtle, Gauge, Zap } from 'lucide-vue-next'
+import { useMatStore } from "../stores/matStore";
+import { Play, Pause, RotateCcw, Lightbulb, Turtle, Gauge, Zap } from "lucide-vue-next";
+import { getIcon } from "../utils/icons";
 
-const store = useMatStore()
+const store = useMatStore();
 </script>
 
 <template>
@@ -85,7 +86,7 @@ const store = useMatStore()
         >
           <Play :size="12" class="fill-current mr-1" />
           <span>{{
-            store.simulationStatus === 'paused' ? store.t.simResume : store.t.simStart
+            store.simulationStatus === "paused" ? store.t.simResume : store.t.simStart
           }}</span>
         </button>
 
@@ -157,6 +158,41 @@ const store = useMatStore()
         >
           <Zap :size="13" />
         </button>
+      </div>
+    </div>
+
+    <!-- Inventory Section -->
+    <div
+      v-if="store.isSimulating && store.simulationInventory.length > 0"
+      class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-1.5 animate-fade-in"
+    >
+      <span
+        class="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider select-none leading-none"
+      >
+        {{ store.t.inventory }}
+      </span>
+      <div class="flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto pr-1 py-1">
+        <div
+          v-for="(item, idx) in store.simulationInventory"
+          :key="idx"
+          class="flex items-center justify-center h-7 w-7 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800"
+        >
+          <component
+            v-if="item.type === 'icon'"
+            :is="getIcon(item.value)"
+            class="w-4.5 h-4.5 text-slate-700 dark:text-slate-300"
+            :class="
+              item.value === 'Bot'
+                ? 'text-emerald-500 dark:text-emerald-400'
+                : item.value === 'BatteryCharging'
+                  ? 'text-amber-500 dark:text-amber-400'
+                  : ''
+            "
+          />
+          <span v-else class="text-xs font-bold text-slate-700 dark:text-slate-350 select-none">{{
+            item.value
+          }}</span>
+        </div>
       </div>
     </div>
   </div>

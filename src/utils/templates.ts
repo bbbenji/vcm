@@ -254,8 +254,8 @@ export const templates: Template[] = [
       [8, 5, '#475569', null, null],
       // Starting Bot
       [0, 0, null, 'Bot', null],
-      // Target Puzzle star
-      [9, 9, '#eab308', 'Puzzle', null],
+      // Target BatteryCharging star
+      [9, 9, '#eab308', 'BatteryCharging', null],
     ],
     secondary: [],
     secondarySolution: [
@@ -281,7 +281,7 @@ export const templates: Template[] = [
       // Start ship
       [9, 0, null, 'Ship', null],
       // Target treasure
-      [0, 9, '#eab308', 'Puzzle', null],
+      [0, 9, '#eab308', 'BatteryCharging', null],
       // Islands / Reefs
       [9, 1, '#475569', null, null],
       [9, 2, '#475569', null, null],
