@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { templates } from '../utils/templates'
+import { playDraw, playStep, playSuccess, playCollision } from '../utils/audio'
+import { translations } from '../utils/i18n'
+import type { Language } from '../utils/i18n'
 
 export const GRID_SIZES = [10, 12, 14, 16, 18, 20] as const
 
@@ -61,12 +64,27 @@ function isCompactCell(value: unknown): value is CompactCell {
   )
 }
 
+function debounce<T extends (...args: never[]) => void>(fn: T, delay: number): T {
+  let timer: ReturnType<typeof setTimeout> | null = null
+  return function (...args: Parameters<T>) {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => fn(...args), delay)
+  } as unknown as T
+}
+
 export interface ExecStep {
   action: 'MOVE_UP' | 'MOVE_DOWN' | 'MOVE_RIGHT' | 'MOVE_LEFT' | 'TURN_RIGHT' | 'TURN_LEFT'
   sourceCell: { r: number; c: number }
 }
 
 export const useMatStore = defineStore('mat', () => {
+  // Localization, Sound, and Theme states
+  const lang = ref<Language>((localStorage.getItem('vcm_lang') as Language) || 'pl')
+  const isDarkMode = ref<boolean>(localStorage.getItem('vcm_theme') === 'dark')
+  const soundEnabled = ref<boolean>(localStorage.getItem('vcm_sound') === 'true')
+
+  const t = computed(() => translations[lang.value])
+
   const gridSize = ref<GridSize>(DEFAULT_GRID_SIZE)
   const activeTool = ref<ActiveTool>({ type: 'background', value: '#3b82f6' }) // Default blue bg
   const gridData = ref<GridCell[][]>([])
@@ -107,6 +125,47 @@ export const useMatStore = defineStore('mat', () => {
   const simulationPathHistory = ref<{ r: number; c: number }[]>([])
 
   let simulationTimer: ReturnType<typeof setInterval> | null = null
+
+  // Language & Theme Toggle Actions
+  function toggleLanguage() {
+    lang.value = lang.value === 'pl' ? 'en' : 'pl'
+    localStorage.setItem('vcm_lang', lang.value)
+    
+    // If active instructions are currently loaded from a template, update them dynamically
+    if (currentTemplateId.value) {
+      const tpl = templates.find(t => t.id === currentTemplateId.value)
+      if (tpl) {
+        if (tpl.instructions) {
+          // If template key exists, map to i18n instructions key
+          const key = `tpl_${currentTemplateId.value}_instr` as keyof typeof t.value
+          activeInstructions.value = (t.value[key] as string) || tpl.instructions
+        } else {
+          activeInstructions.value = null
+        }
+      }
+    }
+  }
+
+  function toggleTheme() {
+    isDarkMode.value = !isDarkMode.value
+    localStorage.setItem('vcm_theme', isDarkMode.value ? 'dark' : 'light')
+    applyThemeClass()
+  }
+
+  function applyThemeClass() {
+    if (typeof document !== 'undefined') {
+      if (isDarkMode.value) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    }
+  }
+
+  function toggleSound() {
+    soundEnabled.value = !soundEnabled.value
+    localStorage.setItem('vcm_sound', soundEnabled.value ? 'true' : 'false')
+  }
 
   function getCompactState() {
     const compactMain: CompactCell[] = []
@@ -156,6 +215,9 @@ export const useMatStore = defineStore('mat', () => {
     const encoded = btoa(encodeURIComponent(json))
     window.history.replaceState(null, '', `${urlPath}#state=${encoded}`)
   }
+
+  // Create highly optimized debounced url sync for drag-drawing!
+  const syncToUrlDebounced = debounce(syncToUrl, 150)
 
   function applyCompactCells(cells: unknown[], targetGrid: GridCell[][]) {
     cells.forEach((item) => {
@@ -297,7 +359,15 @@ export const useMatStore = defineStore('mat', () => {
   function loadTemplate(size: GridSize, mainCells: CompactCell[], secCells: CompactCell[], instructions: string | null = null, id: string | null = null) {
     saveHistory()
     currentTemplateId.value = id
-    activeInstructions.value = instructions
+    
+    // Map instructions dynamically using translation key if translation available
+    if (id) {
+      const key = `tpl_${id}_instr` as keyof typeof t.value
+      activeInstructions.value = (t.value[key] as string) || instructions
+    } else {
+      activeInstructions.value = instructions
+    }
+
     initBoard(size, false)
     applyCompactCells(mainCells, gridData.value)
     applyCompactCells(secCells, secondaryGridData.value)
@@ -356,7 +426,10 @@ export const useMatStore = defineStore('mat', () => {
       cell.icon = null
     }
 
-    syncToUrl()
+    // Play micro drawing sound effect!
+    playDraw(soundEnabled.value)
+
+    syncToUrlDebounced()
   }
 
   function getCoordinatesText() {
@@ -366,17 +439,17 @@ export const useMatStore = defineStore('mat', () => {
       for (const row of grid) {
         for (const cell of row) {
           if (cell.bg) {
-            const key = `Background: ${cell.bg}`
+            const key = lang.value === 'pl' ? `Tło: ${cell.bg}` : `Background: ${cell.bg}`
             if (!coords[key]) coords[key] = []
             coords[key].push(cell.id)
           }
           if (cell.icon && !(cell.id === 'S1-1' && cell.icon === START_ICON)) {
-            const key = `Icon: ${cell.icon}`
+            const key = lang.value === 'pl' ? `Ikona: ${cell.icon}` : `Icon: ${cell.icon}`
             if (!coords[key]) coords[key] = []
             coords[key].push(cell.id)
           }
           if (cell.text) {
-            const key = `Text: ${cell.text}`
+            const key = lang.value === 'pl' ? `Tekst: ${cell.text}` : `Text: ${cell.text}`
             if (!coords[key]) coords[key] = []
             coords[key].push(cell.id)
           }
@@ -388,10 +461,10 @@ export const useMatStore = defineStore('mat', () => {
     extractCoords(secondaryGridData.value)
 
     if (Object.keys(coords).length === 0) {
-      return 'The board is empty.'
+      return t.value.emptyBoardAlert
     }
 
-    let result = 'Virtual Coding Mat Coordinates\n==============================\n\n'
+    let result = `${t.value.exportTitle}\n==============================\n\n`
     for (const [key, values] of Object.entries(coords)) {
       result += `${key}\n=> ${values.join(', ')}\n\n`
     }
@@ -604,6 +677,7 @@ export const useMatStore = defineStore('mat', () => {
       const robot = simulationRobot.value
       if (isSuccessCell(robot.r, robot.c)) {
         simulationStatus.value = 'success'
+        playSuccess(soundEnabled.value)
       } else {
         simulationStatus.value = 'ready'
       }
@@ -615,6 +689,9 @@ export const useMatStore = defineStore('mat', () => {
     simulationActiveInstructionId.value = `S${step.sourceCell.r + 1}-${step.sourceCell.c + 1}`
 
     const robot = simulationRobot.value
+
+    // play step sound!
+    playStep(soundEnabled.value)
 
     // Execute step
     if (step.action === 'TURN_RIGHT') {
@@ -646,6 +723,7 @@ export const useMatStore = defineStore('mat', () => {
         simulationStatus.value = 'out_of_bounds'
         stopTimer()
         simulationActiveInstructionId.value = null
+        playCollision(soundEnabled.value)
         return
       }
 
@@ -656,6 +734,7 @@ export const useMatStore = defineStore('mat', () => {
         simulationStatus.value = 'collision'
         stopTimer()
         simulationActiveInstructionId.value = null
+        playCollision(soundEnabled.value)
         return
       }
 
@@ -672,6 +751,7 @@ export const useMatStore = defineStore('mat', () => {
       simulationStatus.value = 'success'
       stopTimer()
       simulationActiveInstructionId.value = null
+      playSuccess(soundEnabled.value)
       return
     }
 
@@ -680,6 +760,7 @@ export const useMatStore = defineStore('mat', () => {
       stopTimer()
       if (isSuccessCell(robot.r, robot.c)) {
         simulationStatus.value = 'success'
+        playSuccess(soundEnabled.value)
       } else {
         simulationStatus.value = 'ready'
       }
@@ -695,7 +776,17 @@ export const useMatStore = defineStore('mat', () => {
   // Clear initial history state added by initBoard on load
   history.value = []
 
+  // Ensure appropriate theme class is active on startup
+  applyThemeClass()
+
   return {
+    lang,
+    isDarkMode,
+    soundEnabled,
+    t,
+    toggleLanguage,
+    toggleTheme,
+    toggleSound,
     gridSize,
     activeTool,
     gridData,
