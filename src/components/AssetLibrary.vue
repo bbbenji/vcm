@@ -4,6 +4,7 @@ import { useMatStore } from "../stores/matStore";
 import type { ToolType } from "../stores/matStore";
 import { getIcon } from "../utils/icons";
 import { templates } from "../utils/templates";
+import { Play, Pause, RotateCcw, Lightbulb, Turtle, Gauge, Zap } from "lucide-vue-next";
 
 const store = useMatStore();
 const toolButtonClass =
@@ -88,6 +89,125 @@ const selectTool = (type: ToolType, value: string | null) => {
   <aside
     class="flex flex-col bg-white border-t md:border-t-0 md:border-l border-slate-200 w-full md:w-[320px] h-[240px] md:h-full overflow-hidden shrink-0"
   >
+    <!-- Simulation Control Panel inside Sidebar -->
+    <div 
+      v-if="store.instructionsExist" 
+      class="w-full border-b border-slate-200 bg-slate-50 p-2.5 select-none animate-fade-in flex flex-col gap-2 shrink-0"
+    >
+      <!-- Status row -->
+      <div class="flex items-center gap-2">
+        <div class="relative flex h-3 w-3 shrink-0">
+          <span 
+            class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+            :class="{
+              'bg-slate-400': store.simulationStatus === 'ready',
+              'bg-blue-400': store.simulationStatus === 'running',
+              'bg-emerald-400': store.simulationStatus === 'success',
+              'bg-amber-400': store.simulationStatus === 'paused',
+              'bg-rose-400': ['collision', 'out_of_bounds'].includes(store.simulationStatus),
+            }"
+          ></span>
+          <span 
+            class="relative inline-flex rounded-full h-3 w-3"
+            :class="{
+              'bg-slate-500': store.simulationStatus === 'ready',
+              'bg-blue-500': store.simulationStatus === 'running',
+              'bg-emerald-500': store.simulationStatus === 'success',
+              'bg-amber-500': store.simulationStatus === 'paused',
+              'bg-rose-500': ['collision', 'out_of_bounds'].includes(store.simulationStatus),
+            }"
+          ></span>
+        </div>
+        
+        <div class="flex items-baseline gap-1.5 min-w-0">
+          <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider select-none shrink-0 leading-none">Symulator:</span>
+          <span class="text-xs font-semibold text-slate-700 truncate leading-none">
+            <template v-if="store.simulationStatus === 'ready' && !store.isSimulating">Gotowy</template>
+            <template v-else-if="store.simulationStatus === 'paused'">Wstrzymano</template>
+            <template v-else-if="store.simulationStatus === 'running'">Krok {{ store.simulationStep }}/{{ store.simulationSteps.length }}</template>
+            <template v-else-if="store.simulationStatus === 'success'">Sukces! 🎉</template>
+            <template v-else-if="store.simulationStatus === 'collision'">Kraksa! 💥</template>
+            <template v-else-if="store.simulationStatus === 'out_of_bounds'">Poza planszą! 🗺️</template>
+            <template v-else-if="store.simulationStatus === 'ready' && store.isSimulating">Koniec</template>
+          </span>
+        </div>
+      </div>
+
+      <!-- Action buttons & speed dials row -->
+      <div class="flex flex-row items-center justify-between gap-1.5">
+        <!-- Main simulator controls -->
+        <div class="flex items-center gap-1">
+          <!-- Play / Pause Button -->
+          <button 
+            v-if="store.simulationStatus === 'paused' || store.simulationStatus === 'ready'"
+            @click="store.simulationStatus === 'paused' ? store.resumeSimulation() : store.startSimulation()"
+            class="flex items-center justify-center h-8 px-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[11px] font-bold transition-all shadow-sm shadow-emerald-500/20 active:scale-95 cursor-pointer shrink-0"
+            :title="store.simulationStatus === 'paused' ? 'Wznów symulację' : 'Uruchom symulację'"
+          >
+            <Play :size="12" class="fill-current mr-1" />
+            <span>{{ store.simulationStatus === 'paused' ? 'Wznów' : 'START' }}</span>
+          </button>
+          
+          <button 
+            v-else-if="store.simulationStatus === 'running'"
+            @click="store.pauseSimulation()"
+            class="flex items-center justify-center h-8 px-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[11px] font-bold transition-all shadow-sm shadow-amber-500/20 active:scale-95 cursor-pointer shrink-0"
+            title="Pauzuj symulację"
+          >
+            <Pause :size="12" class="fill-current mr-1" />
+            <span>Pauza</span>
+          </button>
+
+          <!-- Reset Button -->
+          <button 
+            @click="store.resetSimulation()"
+            class="flex items-center justify-center h-8 w-8 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-all active:scale-95 cursor-pointer shrink-0"
+            title="Resetuj symulację"
+          >
+            <RotateCcw :size="13" />
+          </button>
+
+          <!-- Solution Solver Button -->
+          <button 
+            v-if="store.hasSolution"
+            @click="store.showSolution()"
+            class="flex items-center justify-center h-8 w-8 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-150/50 rounded-lg transition-all active:scale-95 cursor-pointer shrink-0"
+            title="Pokaż gotowe rozwiązanie"
+          >
+            <Lightbulb :size="13" />
+          </button>
+        </div>
+
+        <!-- Speed selector -->
+        <div class="flex items-center gap-1 pl-1.5 border-l border-slate-200/80">
+          <button 
+            @click="store.changeSpeed(1500)"
+            class="h-7 w-7 rounded-md cursor-pointer flex items-center justify-center transition-colors"
+            :class="store.simulationSpeed === 1500 ? 'bg-primary text-white font-semibold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+            title="Prędkość: Żółw (wolno)"
+          >
+            <Turtle :size="13" />
+          </button>
+          <button 
+            @click="store.changeSpeed(800)"
+            class="h-7 w-7 rounded-md cursor-pointer flex items-center justify-center transition-colors"
+            :class="store.simulationSpeed === 800 ? 'bg-primary text-white font-semibold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+            title="Prędkość: Normalna"
+          >
+            <Gauge :size="13" />
+          </button>
+          <button 
+            @click="store.changeSpeed(300)"
+            class="h-7 w-7 rounded-md cursor-pointer flex items-center justify-center transition-colors"
+            :class="store.simulationSpeed === 300 ? 'bg-primary text-white font-semibold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+            title="Prędkość: Zając (szybko)"
+          >
+            <Zap :size="13" />
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="flex flex-row overflow-x-auto whitespace-nowrap p-2 gap-1 border-b border-slate-200 bg-slate-100 scrollbar-none">
       <button
         v-for="cat in categories"

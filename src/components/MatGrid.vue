@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { useMatStore } from "../stores/matStore";
 import { getPlacedIcon } from "../utils/icons";
-import { BookOpen, X, Play, Pause, RotateCcw, Lightbulb } from "lucide-vue-next";
+import { BookOpen, X } from "lucide-vue-next";
 
 const store = useMatStore();
 
@@ -72,7 +72,7 @@ const handleTouchEnd = () => {
   <div class="w-full h-full overflow-auto bg-slate-50 relative">
     <div class="min-w-full w-max min-h-full h-max flex flex-col justify-center items-center p-4 md:p-8 gap-4">
       <!-- Active Instructions Alert Box -->
-      <div v-if="store.activeInstructions" class="w-full max-w-xl md:max-w-2xl select-none animate-fade-in">
+      <div v-if="store.activeInstructions" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-xl md:max-w-2xl select-none animate-fade-in">
         <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 p-4 rounded-r-xl shadow-sm border border-l-0 border-slate-200/50">
           <div class="flex items-start gap-3">
             <BookOpen class="text-blue-600 w-5 h-5 shrink-0 mt-0.5" />
@@ -89,7 +89,7 @@ const handleTouchEnd = () => {
 
 
       <div 
-        class="flex flex-col bg-white p-4 rounded-2xl shadow-xl" 
+        class="flex flex-col bg-white p-2.5 sm:p-4 rounded-2xl shadow-xl" 
         id="mat-grid-container"
         @mouseenter="isHoveringGrid = true"
         @mouseleave="isHoveringGrid = false"
@@ -280,122 +280,8 @@ const handleTouchEnd = () => {
         </div>
       </div>
 
-      <!-- Simulation Control Panel (inside grid card at the bottom) -->
-      <div 
-        v-if="store.instructionsExist" 
-        class="w-full select-none animate-fade-in border-t border-slate-100 pt-4 mt-4"
-        data-html2canvas-ignore="true"
-      >
-        <div class="bg-slate-50 border border-slate-200/55 p-3.5 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-inner">
-          <!-- Status & Badge -->
-          <div class="flex items-center gap-2.5">
-            <div class="relative flex h-3.5 w-3.5">
-              <span 
-                class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                :class="{
-                  'bg-slate-400': store.simulationStatus === 'ready',
-                  'bg-blue-400': store.simulationStatus === 'running',
-                  'bg-emerald-400': store.simulationStatus === 'success',
-                  'bg-amber-400': store.simulationStatus === 'paused',
-                  'bg-rose-400': ['collision', 'out_of_bounds'].includes(store.simulationStatus),
-                }"
-              ></span>
-              <span 
-                class="relative inline-flex rounded-full h-3.5 w-3.5"
-                :class="{
-                  'bg-slate-500': store.simulationStatus === 'ready',
-                  'bg-blue-500': store.simulationStatus === 'running',
-                  'bg-emerald-500': store.simulationStatus === 'success',
-                  'bg-amber-500': store.simulationStatus === 'paused',
-                  'bg-rose-500': ['collision', 'out_of_bounds'].includes(store.simulationStatus),
-                }"
-              ></span>
-            </div>
-            
-            <div class="flex flex-col">
-              <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">Symulator</span>
-              <span class="text-xs md:text-sm font-semibold text-slate-700 mt-0.5">
-                <template v-if="store.simulationStatus === 'ready' && !store.isSimulating">Gotowy do startu</template>
-                <template v-else-if="store.simulationStatus === 'paused'">Wstrzymano</template>
-                <template v-else-if="store.simulationStatus === 'running'">W ruchu... (Krok {{ store.simulationStep }}/{{ store.simulationSteps.length }})</template>
-                <template v-else-if="store.simulationStatus === 'success'">Sukces! Cel osiągnięty! 🎉</template>
-                <template v-else-if="store.simulationStatus === 'collision'">Kraksa! Przeszkoda! 💥</template>
-                <template v-else-if="store.simulationStatus === 'out_of_bounds'">Wypadłeś poza planszę! 🗺️</template>
-                <template v-else-if="store.simulationStatus === 'ready' && store.isSimulating">Koniec programu</template>
-              </span>
-            </div>
-          </div>
-
-          <!-- Controls -->
-          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <!-- Play / Pause Button -->
-            <button 
-              v-if="store.simulationStatus === 'paused' || store.simulationStatus === 'ready'"
-              @click="store.simulationStatus === 'paused' ? store.resumeSimulation() : store.startSimulation()"
-              class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-emerald-500/20 hover:scale-105 active:scale-95 cursor-pointer"
-            >
-              <Play :size="14" class="fill-current" />
-              <span>{{ store.simulationStatus === 'paused' ? 'Wznów' : 'URUCHOM' }}</span>
-            </button>
-            
-            <button 
-              v-else-if="store.simulationStatus === 'running'"
-              @click="store.pauseSimulation()"
-              class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-amber-500/20 hover:scale-105 active:scale-95 cursor-pointer"
-            >
-              <Pause :size="14" class="fill-current animate-pulse" />
-              <span>Pauza</span>
-            </button>
-
-            <!-- Reset Button -->
-            <button 
-              @click="store.resetSimulation()"
-              class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer"
-              title="Resetuj symulację"
-            >
-              <RotateCcw :size="14" />
-              <span>Reset</span>
-            </button>
-
-            <!-- Solution Solver Button -->
-            <button 
-              v-if="store.hasSolution"
-              @click="store.showSolution()"
-              class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200/50 rounded-lg text-xs font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm shadow-indigo-100/50"
-              title="Pokaż gotowe rozwiązanie"
-            >
-              <Lightbulb :size="14" />
-              <span>Rozwiązanie</span>
-            </button>
-
-            <!-- Speed controller dropdown / buttons -->
-            <div class="flex items-center gap-1 border-l border-slate-200 pl-2">
-              <button 
-                @click="store.changeSpeed(1500)"
-                class="px-2 py-1 text-[10px] font-bold rounded cursor-pointer"
-                :class="store.simulationSpeed === 1500 ? 'bg-primary text-white font-semibold' : 'bg-slate-100 text-slate-600'"
-              >
-                Żółw
-              </button>
-              <button 
-                @click="store.changeSpeed(800)"
-                class="px-2 py-1 text-[10px] font-bold rounded cursor-pointer"
-                :class="store.simulationSpeed === 800 ? 'bg-primary text-white font-semibold' : 'bg-slate-100 text-slate-600'"
-              >
-                Normal
-              </button>
-              <button 
-                @click="store.changeSpeed(300)"
-                class="px-2 py-1 text-[10px] font-bold rounded cursor-pointer"
-                :class="store.simulationSpeed === 300 ? 'bg-primary text-white font-semibold' : 'bg-slate-100 text-slate-600'"
-              >
-                Zając
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
+
     </div>
 
     <!-- Custom Cursor Overlay -->
