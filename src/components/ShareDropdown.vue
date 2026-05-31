@@ -100,6 +100,7 @@ const downloadImage = async () => {
     const { toPng } = await import('html-to-image')
     const dataUrl = await toPng(matEl, {
       pixelRatio: 2,
+      backgroundColor: '#ffffff',
       filter: (node) => {
         if (
           node instanceof HTMLElement &&
@@ -144,6 +145,7 @@ const downloadPdf = async () => {
     ])
     const dataUrl = await toPng(matEl, {
       pixelRatio: 2,
+      backgroundColor: '#ffffff',
       filter: (node) => {
         if (
           node instanceof HTMLElement &&

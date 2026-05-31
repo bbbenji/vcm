@@ -9,7 +9,7 @@ const store = useMatStore();
 <template>
   <!-- Simulation Control Panel in Sidebar -->
   <div
-    v-if="store.instructionsExist"
+    v-if="store.showSecondaryGrid && store.instructionsExist"
     class="w-full border-b border-slate-200 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-950/40 p-3 select-none animate-fade-in flex flex-col gap-2.5 shrink-0"
   >
     <!-- Simulation Status -->
