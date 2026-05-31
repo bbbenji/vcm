@@ -4,11 +4,11 @@ import { GRID_SIZES, useMatStore } from '../stores/matStore'
 import { Trash2, Undo2 } from 'lucide-vue-next'
 import ShareDropdown from './ShareDropdown.vue'
 import SettingsDropdown from './SettingsDropdown.vue'
-import ClearConfirmDialog from './ClearConfirmDialog.vue'
+import BaseDialog from './BaseDialog.vue'
 
 const store = useMatStore()
 const gridSizes = GRID_SIZES
-const clearDialogRef = ref<InstanceType<typeof ClearConfirmDialog> | null>(null)
+const isClearDialogOpen = ref(false)
 
 const onSizeChange = (e: Event) => {
   const target = e.target as HTMLSelectElement
@@ -16,9 +16,7 @@ const onSizeChange = (e: Event) => {
 }
 
 const confirmClear = () => {
-  if (clearDialogRef.value) {
-    clearDialogRef.value.showModal()
-  }
+  isClearDialogOpen.value = true
 }
 
 const executeClear = () => {
@@ -96,5 +94,15 @@ const executeClear = () => {
   </header>
 
   <!-- Clear Confirmation Dialog Modal -->
-  <ClearConfirmDialog ref="clearDialogRef" @confirm="executeClear" />
+  <BaseDialog
+    :is-open="isClearDialogOpen"
+    :title="store.t.clear"
+    :description="store.t.clearConfirm"
+    :confirm-text="store.t.clear"
+    :cancel-text="store.t.cancel"
+    confirm-variant="rose"
+    icon-type="clear"
+    @confirm="executeClear"
+    @close="isClearDialogOpen = false"
+  />
 </template>

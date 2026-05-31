@@ -1,139 +1,224 @@
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
-import { useMatStore } from '../stores/matStore'
-import { getPlacedIcon } from '../utils/icons'
-import InstructionBanner from './InstructionBanner.vue'
+import { ref, computed, nextTick, watch } from "vue";
+import { useMatStore } from "../stores/matStore";
+import { getPlacedIcon } from "../utils/icons";
+import InstructionBanner from "./InstructionBanner.vue";
+import confetti from "canvas-confetti";
 
-const store = useMatStore()
-const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+const store = useMatStore();
+const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-const isHoveringGrid = ref(false)
-const customCursorRef = ref<HTMLElement | null>(null)
+import BaseDialog from "./BaseDialog.vue";
+
+// Watch simulation success or crash to trigger particles & popup modals!
+const isWinDialogOpen = ref(false);
+const isLoseDialogOpen = ref(false);
+
+watch(
+  () => store.simulationStatus,
+  (status) => {
+    if (status === "success") {
+      // Primary center blast
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 },
+      });
+
+      // Staggered side cannons for a spectacular victory celebration!
+      const end = Date.now() + 2 * 1000; // 2 seconds duration
+      const frame = () => {
+        confetti({
+          particleCount: 2,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0, y: 0.8 },
+        });
+        confetti({
+          particleCount: 2,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1, y: 0.8 },
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+      frame();
+
+      // Show result popup modal with a premium delay!
+      setTimeout(() => {
+        if (store.simulationStatus === "success") {
+          isWinDialogOpen.value = true;
+        }
+      }, 550);
+    } else if (["collision", "out_of_bounds"].includes(status)) {
+      // Show result popup modal with a premium delay!
+      setTimeout(() => {
+        if (["collision", "out_of_bounds"].includes(store.simulationStatus)) {
+          isLoseDialogOpen.value = true;
+        }
+      }, 650);
+    } else {
+      isWinDialogOpen.value = false;
+      isLoseDialogOpen.value = false;
+    }
+  },
+);
+
+const getSparkStyle = (i: number) => {
+  if (!store.simulationRobot) return {};
+  const startX = ((store.simulationRobot.c + 0.5) / store.gridSize) * 100;
+  const startY = ((store.simulationRobot.r + 0.5) / store.gridSize) * 100;
+  const angle = (i * 360) / 16 + ((i * 7) % 10) - 5;
+  const rad = (angle * Math.PI) / 180;
+  const distance = 40 + ((i * 13) % 45);
+  const destX = Math.cos(rad) * distance;
+  const destY = Math.sin(rad) * distance;
+  const duration = 0.4 + ((i * 0.05) % 0.25);
+  const delay = (i * 0.02) % 0.08;
+  return {
+    left: `${startX}%`,
+    top: `${startY}%`,
+    width: `${3 + (i % 4)}px`,
+    height: `${3 + (i % 4)}px`,
+    backgroundColor: i % 2 === 0 ? "#f43f5e" : "#f97316",
+    borderRadius: "50%",
+    animation: `sparkFly ${duration}s cubic-bezier(0.1, 0.8, 0.3, 1) ${delay}s both`,
+    "--tx": `${destX}px`,
+    "--ty": `${destY}px`,
+    position: "absolute" as const,
+  };
+};
+
+const isHoveringGrid = ref(false);
+const customCursorRef = ref<HTMLElement | null>(null);
 
 const onMouseMove = (e: MouseEvent) => {
   if (customCursorRef.value) {
-    const x = e.clientX + 12
-    const y = e.clientY + 12
-    customCursorRef.value.style.transform = `translate3d(${x}px, ${y}px, 0)`
+    const x = e.clientX + 12;
+    const y = e.clientY + 12;
+    customCursorRef.value.style.transform = `translate3d(${x}px, ${y}px, 0)`;
   }
-}
+};
 
 const trailPathD = computed(() => {
-  if (store.simulationPathHistory.length < 2) return ''
+  if (store.simulationPathHistory.length < 2) return "";
   return store.simulationPathHistory
     .map((pos, idx) => {
-      const x = ((pos.c + 0.5) / store.gridSize) * 100
-      const y = ((pos.r + 0.5) / store.gridSize) * 100
-      return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`
+      const x = ((pos.c + 0.5) / store.gridSize) * 100;
+      const y = ((pos.r + 0.5) / store.gridSize) * 100;
+      return `${idx === 0 ? "M" : "L"} ${x} ${y}`;
     })
-    .join(' ')
-})
+    .join(" ");
+});
 
 const paintCell = (row: number, col: number, isSecondary = false) => {
-  store.saveHistory()
-  store.updateCell(row, col, isSecondary)
-}
+  store.saveHistory();
+  store.updateCell(row, col, isSecondary);
+};
 
 const dragPaintCell = (event: MouseEvent, row: number, col: number, isSecondary = false) => {
-  if (event.buttons !== 1) return
-  store.updateCell(row, col, isSecondary)
-}
+  if (event.buttons !== 1) return;
+  store.updateCell(row, col, isSecondary);
+};
 
 // Keyboard Draw Navigation Handler
 const handleKeyDown = (e: KeyboardEvent, row: number, col: number, isSecondary = false) => {
-  let nextR = row
-  let nextC = col
-  const maxRows = isSecondary ? 3 : store.gridSize
-  const maxCols = store.gridSize
+  let nextR = row;
+  let nextC = col;
+  const maxRows = isSecondary ? 3 : store.gridSize;
+  const maxCols = store.gridSize;
 
   switch (e.key) {
-    case 'ArrowUp':
-      nextR = Math.max(0, row - 1)
-      e.preventDefault()
-      break
-    case 'ArrowDown':
-      nextR = Math.min(maxRows - 1, row + 1)
-      e.preventDefault()
-      break
-    case 'ArrowLeft':
-      nextC = Math.max(0, col - 1)
-      e.preventDefault()
-      break
-    case 'ArrowRight':
-      nextC = Math.min(maxCols - 1, col + 1)
-      e.preventDefault()
-      break
-    case ' ':
-    case 'Enter':
-      paintCell(row, col, isSecondary)
-      e.preventDefault()
-      return
-    case 'Escape':
-    case 'Backspace':
-    case 'Delete':
-      store.saveHistory()
+    case "ArrowUp":
+      nextR = Math.max(0, row - 1);
+      e.preventDefault();
+      break;
+    case "ArrowDown":
+      nextR = Math.min(maxRows - 1, row + 1);
+      e.preventDefault();
+      break;
+    case "ArrowLeft":
+      nextC = Math.max(0, col - 1);
+      e.preventDefault();
+      break;
+    case "ArrowRight":
+      nextC = Math.min(maxCols - 1, col + 1);
+      e.preventDefault();
+      break;
+    case " ":
+    case "Enter":
+      paintCell(row, col, isSecondary);
+      e.preventDefault();
+      return;
+    case "Escape":
+    case "Backspace":
+    case "Delete":
+      store.saveHistory();
       // Emulate eraser tool
-      const cell = isSecondary ? store.secondaryGridData[row]?.[col] : store.gridData[row]?.[col]
+      const cell = isSecondary ? store.secondaryGridData[row]?.[col] : store.gridData[row]?.[col];
       if (cell) {
-        cell.bg = null
-        cell.icon = null
-        cell.text = null
+        cell.bg = null;
+        cell.icon = null;
+        cell.text = null;
       }
-      e.preventDefault()
-      return
+      e.preventDefault();
+      return;
     default:
-      return
+      return;
   }
 
   // Focus next cell
   nextTick(() => {
-    const selector = `[data-row="${nextR}"][data-col="${nextC}"][data-secondary="${isSecondary}"]`
-    const nextEl = document.querySelector(selector) as HTMLElement | null
-    nextEl?.focus()
-  })
-}
+    const selector = `[data-row="${nextR}"][data-col="${nextC}"][data-secondary="${isSecondary}"]`;
+    const nextEl = document.querySelector(selector) as HTMLElement | null;
+    nextEl?.focus();
+  });
+};
 
 // Touch drawing support
-const isTouchDevice = ref(false)
-if (typeof window !== 'undefined') {
-  isTouchDevice.value = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+const isTouchDevice = ref(false);
+if (typeof window !== "undefined") {
+  isTouchDevice.value = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 }
 
-const lastTouchedCell = ref<{ row: number; col: number; isSecondary: boolean } | null>(null)
+const lastTouchedCell = ref<{ row: number; col: number; isSecondary: boolean } | null>(null);
 
 const handleTouchStart = (e: TouchEvent, row: number, col: number, isSecondary = false) => {
-  store.saveHistory()
-  lastTouchedCell.value = { row, col, isSecondary }
-  store.updateCell(row, col, isSecondary)
-}
+  store.saveHistory();
+  lastTouchedCell.value = { row, col, isSecondary };
+  store.updateCell(row, col, isSecondary);
+};
 
 const handleTouchMove = (e: TouchEvent) => {
-  if (!lastTouchedCell.value) return
-  const touch = e.touches[0]
-  if (!touch) return
-  const element = document.elementFromPoint(touch.clientX, touch.clientY)
-  if (!element) return
+  if (!lastTouchedCell.value) return;
+  const touch = e.touches[0];
+  if (!touch) return;
+  const element = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (!element) return;
 
-  const cell = element.closest('[data-row][data-col]') as HTMLElement | null
+  const cell = element.closest("[data-row][data-col]") as HTMLElement | null;
   if (cell) {
-    const row = parseInt(cell.dataset.row || '0', 10)
-    const col = parseInt(cell.dataset.col || '0', 10)
-    const isSecondary = cell.dataset.secondary === 'true'
+    const row = parseInt(cell.dataset.row || "0", 10);
+    const col = parseInt(cell.dataset.col || "0", 10);
+    const isSecondary = cell.dataset.secondary === "true";
 
     if (
       lastTouchedCell.value.row !== row ||
       lastTouchedCell.value.col !== col ||
       lastTouchedCell.value.isSecondary !== isSecondary
     ) {
-      lastTouchedCell.value = { row, col, isSecondary }
-      store.updateCell(row, col, isSecondary)
+      lastTouchedCell.value = { row, col, isSecondary };
+      store.updateCell(row, col, isSecondary);
     }
   }
-}
+};
 
 const handleTouchEnd = () => {
-  lastTouchedCell.value = null
-}
+  lastTouchedCell.value = null;
+};
 </script>
 
 <template>
@@ -235,7 +320,9 @@ const handleTouchEnd = () => {
               v-if="store.isSimulating && store.simulationRobot"
               class="absolute pointer-events-none z-30 flex justify-center items-center transition-all duration-300 ease-in-out"
               :class="{
-                'animate-bounce-shake': ['collision', 'out_of_bounds'].includes(store.simulationStatus),
+                'animate-bounce-shake': ['collision', 'out_of_bounds'].includes(
+                  store.simulationStatus,
+                ),
               }"
               :style="{
                 left: (store.simulationRobot.c / store.gridSize) * 100 + '%',
@@ -276,6 +363,31 @@ const handleTouchEnd = () => {
               />
             </div>
 
+            <!-- Spark Explosion and Shockwave Overlay on Lose Crash -->
+            <div
+              v-if="
+                ['collision', 'out_of_bounds'].includes(store.simulationStatus) &&
+                store.simulationRobot
+              "
+              class="absolute pointer-events-none inset-0 z-40"
+            >
+              <!-- Center expanding shockwave circle -->
+              <div
+                class="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-rose-500/70 animate-shockwave"
+                :style="{
+                  left: ((store.simulationRobot.c + 0.5) / store.gridSize) * 100 + '%',
+                  top: ((store.simulationRobot.r + 0.5) / store.gridSize) * 100 + '%',
+                }"
+              ></div>
+              <!-- Radial expanding spark dust particles -->
+              <div
+                v-for="i in 16"
+                :key="'spark-' + i"
+                class="absolute spark-particle"
+                :style="getSparkStyle(i)"
+              ></div>
+            </div>
+
             <!-- Mat cells generator -->
             <template v-for="(row, rIndex) in store.gridData" :key="'row-' + rIndex">
               <div
@@ -306,8 +418,8 @@ const handleTouchEnd = () => {
                     cell.icon === 'Bot'
                       ? 'text-emerald-500 dark:text-emerald-400'
                       : cell.icon === 'BatteryCharging'
-                      ? 'text-amber-500 dark:text-amber-400'
-                      : 'text-slate-800 dark:text-slate-200'
+                        ? 'text-amber-500 dark:text-amber-400'
+                        : 'text-slate-800 dark:text-slate-200'
                   "
                 />
                 <span
@@ -435,8 +547,8 @@ const handleTouchEnd = () => {
           store.activeTool.value === 'Bot'
             ? 'text-emerald-500 dark:text-emerald-400'
             : store.activeTool.value === 'BatteryCharging'
-            ? 'text-amber-500 dark:text-amber-400'
-            : 'text-slate-800 dark:text-slate-200'
+              ? 'text-amber-500 dark:text-amber-400'
+              : 'text-slate-800 dark:text-slate-200'
         "
       />
       <span
@@ -445,5 +557,43 @@ const handleTouchEnd = () => {
         >{{ store.activeTool.value }}</span
       >
     </div>
+
+    <!-- Win Dialog -->
+    <BaseDialog
+      :is-open="isWinDialogOpen"
+      :title="store.t.simSuccess"
+      :description="
+        store.lang === 'pl'
+          ? 'Robot pomyślnie dotarł do ładowarki i naładował baterie!'
+          : 'The robot successfully reached the charger and recharged its batteries!'
+      "
+      confirm-text="OK"
+      confirm-variant="emerald"
+      icon-type="win"
+      @confirm="store.resetSimulation"
+      @close="isWinDialogOpen = false"
+    />
+
+    <!-- Lose Dialog -->
+    <BaseDialog
+      :is-open="isLoseDialogOpen"
+      :title="
+        store.simulationStatus === 'collision' ? store.t.simCollision : store.t.simOutOfBounds
+      "
+      :description="
+        store.simulationStatus === 'collision'
+          ? store.lang === 'pl'
+            ? 'Robot zderzył się z przeszkodą! Spróbuj poprawić trasę.'
+            : 'The robot collided with an obstacle! Try to adjust the path.'
+          : store.lang === 'pl'
+            ? 'Robot wypadł poza krawędź planszy! Spróbuj poprawić trasę.'
+            : 'The robot went off the edge of the board! Try to adjust the path.'
+      "
+      :confirm-text="store.lang === 'pl' ? 'Spróbuj ponownie' : 'Retry'"
+      confirm-variant="rose"
+      icon-type="lose"
+      @confirm="store.resetSimulation"
+      @close="isLoseDialogOpen = false"
+    />
   </div>
 </template>
