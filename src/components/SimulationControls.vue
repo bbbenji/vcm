@@ -2,6 +2,7 @@
 import { useMatStore } from "../stores/matStore";
 import { Play, Pause, RotateCcw, Lightbulb, Turtle, Gauge, Zap } from "lucide-vue-next";
 import { getIcon } from "../utils/icons";
+import { trackEvent } from "../plugins/analytics";
 
 const store = useMatStore();
 </script>
@@ -94,7 +95,9 @@ const store = useMatStore();
         <button
           v-if="store.simulationStatus === 'paused' || store.simulationStatus === 'ready'"
           @click="
-            store.simulationStatus === 'paused' ? store.resumeSimulation() : store.startSimulation()
+            const wasPaused = store.simulationStatus === 'paused';
+            wasPaused ? store.resumeSimulation() : store.startSimulation();
+            trackEvent('simulation_start', { resumed: wasPaused });
           "
           class="flex items-center justify-center h-8 px-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0 shadow-sm shadow-emerald-500/10"
           :title="store.simulationStatus === 'paused' ? store.t.simResume : store.t.simStart"
@@ -107,7 +110,10 @@ const store = useMatStore();
 
         <button
           v-else-if="store.simulationStatus === 'running'"
-          @click="store.pauseSimulation()"
+          @click="
+            store.pauseSimulation();
+            trackEvent('simulation_stop');
+          "
           class="flex items-center justify-center h-8 px-3 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0 shadow-sm shadow-amber-500/10"
           :title="store.t.simPause"
         >
@@ -117,7 +123,10 @@ const store = useMatStore();
 
         <!-- Reset Button -->
         <button
-          @click="store.resetSimulation()"
+          @click="
+            store.resetSimulation();
+            trackEvent('simulation_reset');
+          "
           class="flex items-center justify-center h-8 w-8 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-all active:scale-95 cursor-pointer shrink-0 border border-slate-200/20"
           :title="store.t.simResetTitle"
           :aria-label="store.t.simResetTitle"

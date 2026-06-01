@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useMatStore } from '../stores/matStore'
+import { ref, onMounted, onUnmounted } from "vue";
+import { useMatStore } from "../stores/matStore";
 import {
   Share2,
   ChevronDown,
@@ -11,201 +11,208 @@ import {
   Image,
   FileText,
   FileCode,
-} from 'lucide-vue-next'
+} from "lucide-vue-next";
+import { trackEvent } from "../plugins/analytics";
 
-const store = useMatStore()
-const showMenu = ref(false)
-const dropdownRef = ref<HTMLElement | null>(null)
+const store = useMatStore();
+const showMenu = ref(false);
+const dropdownRef = ref<HTMLElement | null>(null);
 
 const handleClickOutside = (event: MouseEvent) => {
   if (showMenu.value && dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
-    showMenu.value = false
+    showMenu.value = false;
   }
-}
+};
 
 onMounted(() => {
-  window.addEventListener('click', handleClickOutside)
-})
+  window.addEventListener("click", handleClickOutside);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('click', handleClickOutside)
-})
+  window.removeEventListener("click", handleClickOutside);
+});
 
 // Share Link State
-const isCopied = ref(false)
+const isCopied = ref(false);
 
 // Import State
-const fileInputRef = ref<HTMLInputElement | null>(null)
-const importStatus = ref<'idle' | 'success' | 'error'>('idle')
-let importTimer: ReturnType<typeof setTimeout> | null = null
+const fileInputRef = ref<HTMLInputElement | null>(null);
+const importStatus = ref<"idle" | "success" | "error">("idle");
+let importTimer: ReturnType<typeof setTimeout> | null = null;
 
 const copyUrl = async () => {
   try {
-    await navigator.clipboard.writeText(window.location.href)
-    isCopied.value = true
+    await navigator.clipboard.writeText(window.location.href);
+    isCopied.value = true;
+    trackEvent("share_link_copy");
     setTimeout(() => {
-      isCopied.value = false
-    }, 2000)
+      isCopied.value = false;
+    }, 2000);
   } catch (err) {
-    console.error('Failed to copy', err)
+    console.error("Failed to copy", err);
   }
-}
+};
 
 const setImportStatus = (status: typeof importStatus.value) => {
-  importStatus.value = status
-  if (importTimer) clearTimeout(importTimer)
-  if (status !== 'idle') {
+  importStatus.value = status;
+  if (importTimer) clearTimeout(importTimer);
+  if (status !== "idle") {
     importTimer = setTimeout(() => {
-      importStatus.value = 'idle'
-      importTimer = null
-    }, 2200)
+      importStatus.value = "idle";
+      importTimer = null;
+    }, 2200);
   }
-}
+};
 
 const chooseFile = () => {
-  fileInputRef.value?.click()
-}
+  fileInputRef.value?.click();
+};
 
 const importFile = async (event: Event) => {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
 
   try {
-    const text = await file.text()
-    setImportStatus(store.importCoordinatesText(text) ? 'success' : 'error')
+    const text = await file.text();
+    const success = store.importCoordinatesText(text);
+    setImportStatus(success ? "success" : "error");
+    trackEvent("import_txt", { success });
   } catch (error) {
-    console.error('Error importing coordinates', error)
-    setImportStatus('error')
+    console.error("Error importing coordinates", error);
+    setImportStatus("error");
   } finally {
-    input.value = ''
+    input.value = "";
   }
-}
+};
 
 // Export/Download Logic
 const downloadImage = async () => {
-  const matEl = document.getElementById('mat-grid-container')
-  if (!matEl) return
-  const isDark = document.documentElement.classList.contains('dark')
+  const matEl = document.getElementById("mat-grid-container");
+  if (!matEl) return;
+  const isDark = document.documentElement.classList.contains("dark");
   try {
     if (isDark) {
-      document.documentElement.classList.remove('dark')
+      document.documentElement.classList.remove("dark");
     }
-    matEl.classList.add('exporting')
-    
-    // Force synchronous style/layout calculation and wait for repaint
-    void matEl.offsetHeight
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    matEl.classList.add("exporting");
 
-    const { toPng } = await import('html-to-image')
+    // Force synchronous style/layout calculation and wait for repaint
+    void matEl.offsetHeight;
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    const { toPng } = await import("html-to-image");
     const dataUrl = await toPng(matEl, {
       pixelRatio: 2,
-      backgroundColor: '#ffffff',
+      backgroundColor: "#ffffff",
       filter: (node) => {
         if (
           node instanceof HTMLElement &&
-          node.getAttribute('data-html2canvas-ignore') === 'true'
+          node.getAttribute("data-html2canvas-ignore") === "true"
         ) {
-          return false
+          return false;
         }
-        return true
+        return true;
       },
-    })
-    const link = document.createElement('a')
-    link.download = `${store.t.title.toLowerCase().replace(/\s+/g, '-')}.png`
-    link.href = dataUrl
-    link.click()
+    });
+    const link = document.createElement("a");
+    link.download = `${store.t.title.toLowerCase().replace(/\s+/g, "-")}.png`;
+    link.href = dataUrl;
+    link.click();
+    trackEvent("export_image");
   } catch (error) {
-    console.error('Error downloading image', error)
+    console.error("Error downloading image", error);
   } finally {
-    matEl.classList.remove('exporting')
+    matEl.classList.remove("exporting");
     if (isDark) {
-      document.documentElement.classList.add('dark')
+      document.documentElement.classList.add("dark");
     }
   }
-}
+};
 
 const downloadPdf = async () => {
-  const matEl = document.getElementById('mat-grid-container')
-  if (!matEl) return
-  const isDark = document.documentElement.classList.contains('dark')
+  const matEl = document.getElementById("mat-grid-container");
+  if (!matEl) return;
+  const isDark = document.documentElement.classList.contains("dark");
   try {
     if (isDark) {
-      document.documentElement.classList.remove('dark')
+      document.documentElement.classList.remove("dark");
     }
-    matEl.classList.add('exporting')
-    
+    matEl.classList.add("exporting");
+
     // Force synchronous style/layout calculation and wait for repaint
-    void matEl.offsetHeight
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    void matEl.offsetHeight;
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
     const [{ toPng }, { default: jsPDF }] = await Promise.all([
-      import('html-to-image'),
-      import('jspdf'),
-    ])
+      import("html-to-image"),
+      import("jspdf"),
+    ]);
     const dataUrl = await toPng(matEl, {
       pixelRatio: 2,
-      backgroundColor: '#ffffff',
+      backgroundColor: "#ffffff",
       filter: (node) => {
         if (
           node instanceof HTMLElement &&
-          node.getAttribute('data-html2canvas-ignore') === 'true'
+          node.getAttribute("data-html2canvas-ignore") === "true"
         ) {
-          return false
+          return false;
         }
-        return true
+        return true;
       },
-    })
+    });
 
     const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    })
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
 
-    const imgProps = pdf.getImageProperties(dataUrl)
-    const pdfWidth = pdf.internal.pageSize.getWidth()
+    const imgProps = pdf.getImageProperties(dataUrl);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
 
-    const margin = 10
-    const printWidth = pdfWidth - margin * 2
-    const printHeight = (imgProps.height * printWidth) / imgProps.width
+    const margin = 10;
+    const printWidth = pdfWidth - margin * 2;
+    const printHeight = (imgProps.height * printWidth) / imgProps.width;
 
-    pdf.addImage(dataUrl, 'PNG', margin, margin, printWidth, printHeight)
-    pdf.save(`${store.t.title.toLowerCase().replace(/\s+/g, '-')}.pdf`)
+    pdf.addImage(dataUrl, "PNG", margin, margin, printWidth, printHeight);
+    pdf.save(`${store.t.title.toLowerCase().replace(/\s+/g, "-")}.pdf`);
+    trackEvent("export_pdf");
   } catch (error) {
-    console.error('Error downloading PDF', error)
+    console.error("Error downloading PDF", error);
   } finally {
-    matEl.classList.remove('exporting')
+    matEl.classList.remove("exporting");
     if (isDark) {
-      document.documentElement.classList.add('dark')
+      document.documentElement.classList.add("dark");
     }
   }
-}
+};
 
 const downloadCoordinates = () => {
-  const text = store.getCoordinatesText()
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
-  const link = document.createElement('a')
-  link.download = `${store.t.title.toLowerCase().replace(/\s+/g, '-')}-coords.txt`
-  link.href = URL.createObjectURL(blob)
-  link.click()
-  URL.revokeObjectURL(link.href)
-}
+  const text = store.getCoordinatesText();
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const link = document.createElement("a");
+  link.download = `${store.t.title.toLowerCase().replace(/\s+/g, "-")}-coords.txt`;
+  link.href = URL.createObjectURL(blob);
+  link.click();
+  URL.revokeObjectURL(link.href);
+  trackEvent("export_txt");
+};
 
 const handleImageDownload = async () => {
-  showMenu.value = false
-  await downloadImage()
-}
+  showMenu.value = false;
+  await downloadImage();
+};
 
 const handlePdfDownload = async () => {
-  showMenu.value = false
-  await downloadPdf()
-}
+  showMenu.value = false;
+  await downloadPdf();
+};
 
 const handleCoordinatesDownload = () => {
-  showMenu.value = false
-  downloadCoordinates()
-}
+  showMenu.value = false;
+  downloadCoordinates();
+};
 </script>
 
 <template>
@@ -234,7 +241,7 @@ const handleCoordinatesDownload = () => {
       <div
         class="px-3 py-1 text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1"
       >
-        {{ store.lang === 'pl' ? 'Udostępnianie' : 'Sharing' }}
+        {{ store.lang === "pl" ? "Udostępnianie" : "Sharing" }}
       </div>
 
       <!-- Share Option -->
@@ -285,9 +292,9 @@ const handleCoordinatesDownload = () => {
             <CircleAlert v-else-if="importStatus === 'error'" :size="16" class="text-rose-500" />
             <FileUp v-else :size="16" class="text-cyan-500" />
             {{
-              importStatus === 'success'
+              importStatus === "success"
                 ? store.t.importSuccess
-                : importStatus === 'error'
+                : importStatus === "error"
                   ? store.t.importFailed
                   : store.t.importTxt
             }}
@@ -301,7 +308,7 @@ const handleCoordinatesDownload = () => {
                 : 'bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400'
             "
           >
-            {{ importStatus === 'success' ? 'OK' : 'ERR' }}
+            {{ importStatus === "success" ? "OK" : "ERR" }}
           </span>
         </button>
       </div>
@@ -313,7 +320,7 @@ const handleCoordinatesDownload = () => {
       <div
         class="px-3 py-1 text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1"
       >
-        {{ store.lang === 'pl' ? 'Eksportuj / Pobierz' : 'Export / Download' }}
+        {{ store.lang === "pl" ? "Eksportuj / Pobierz" : "Export / Download" }}
       </div>
 
       <!-- PNG Image -->

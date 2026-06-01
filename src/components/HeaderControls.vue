@@ -1,33 +1,36 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { GRID_SIZES, useMatStore } from '../stores/matStore'
-import { Trash2, Undo2, Save } from 'lucide-vue-next'
-import ShareDropdown from './ShareDropdown.vue'
-import SettingsDropdown from './SettingsDropdown.vue'
-import BaseDialog from './BaseDialog.vue'
+import { ref } from "vue";
+import { GRID_SIZES, useMatStore } from "../stores/matStore";
+import { Trash2, Undo2, Save } from "lucide-vue-next";
+import ShareDropdown from "./ShareDropdown.vue";
+import SettingsDropdown from "./SettingsDropdown.vue";
+import BaseDialog from "./BaseDialog.vue";
+import { trackEvent } from "../plugins/analytics";
 
-const store = useMatStore()
-const gridSizes = GRID_SIZES
-const isClearDialogOpen = ref(false)
+const store = useMatStore();
+const gridSizes = GRID_SIZES;
+const isClearDialogOpen = ref(false);
 
 const triggerSaveMat = () => {
-  store.activeTab = "my_mats"
-  store.isCollapsed = false
-  store.showSaveForm = true
-}
+  store.activeTab = "my_mats";
+  store.isCollapsed = false;
+  store.showSaveForm = true;
+  trackEvent("save_template");
+};
 
 const onSizeChange = (e: Event) => {
-  const target = e.target as HTMLSelectElement
-  store.initBoard(Number(target.value))
-}
+  const target = e.target as HTMLSelectElement;
+  store.initBoard(Number(target.value));
+};
 
 const confirmClear = () => {
-  isClearDialogOpen.value = true
-}
+  isClearDialogOpen.value = true;
+};
 
 const executeClear = () => {
-  store.clearBoard()
-}
+  store.clearBoard();
+  trackEvent("clear_mat");
+};
 </script>
 
 <template>

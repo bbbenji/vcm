@@ -17,6 +17,7 @@ import {
 } from "lucide-vue-next";
 import SimulationControls from "./SimulationControls.vue";
 import TemplateCard from "./TemplateCard.vue";
+import { trackEvent } from "../plugins/analytics";
 
 const store = useMatStore();
 const toolButtonClass =
@@ -91,7 +92,12 @@ const categories = [
   { id: "veh" as const, icon: "Car", toolType: "icon" as ToolType, items: vehicles },
   { id: "ani" as const, icon: "Cat", toolType: "icon" as ToolType, items: animals },
   { id: "tasks" as const, icon: "BookOpen", toolType: "task" as ToolType, items: [] as string[] },
-  { id: "my_mats" as const, icon: "FolderHeart", toolType: "task" as ToolType, items: [] as string[] },
+  {
+    id: "my_mats" as const,
+    icon: "FolderHeart",
+    toolType: "task" as ToolType,
+    items: [] as string[],
+  },
 ];
 
 const taskCategories = [
@@ -102,15 +108,21 @@ const taskCategories = [
 
 const activeTab = computed({
   get: () => store.activeTab as (typeof categories)[number]["id"],
-  set: (val) => { store.activeTab = val; }
+  set: (val) => {
+    store.activeTab = val;
+  },
 });
 const isCollapsed = computed({
   get: () => store.isCollapsed,
-  set: (val) => { store.isCollapsed = val; }
+  set: (val) => {
+    store.isCollapsed = val;
+  },
 });
 const showSaveForm = computed({
   get: () => store.showSaveForm,
-  set: (val) => { store.showSaveForm = val; }
+  set: (val) => {
+    store.showSaveForm = val;
+  },
 });
 
 // Custom templates (My Saved Mats) logic
@@ -126,26 +138,26 @@ const activeCustomTemplate = computed(() => {
 });
 
 // Watch loaded custom template to prepopulate name/desc/instructions when editing!
-watch(activeCustomTemplate, (tpl) => {
-  if (tpl) {
-    customName.value = tpl.name;
-    customDesc.value = tpl.desc || "";
-    customInstructions.value = tpl.instructions || "";
-  } else {
-    customName.value = "";
-    customDesc.value = "";
-    customInstructions.value = "";
-  }
-}, { immediate: true });
+watch(
+  activeCustomTemplate,
+  (tpl) => {
+    if (tpl) {
+      customName.value = tpl.name;
+      customDesc.value = tpl.desc || "";
+      customInstructions.value = tpl.instructions || "";
+    } else {
+      customName.value = "";
+      customDesc.value = "";
+      customInstructions.value = "";
+    }
+  },
+  { immediate: true },
+);
 
 const handleSaveCustomMat = () => {
-  store.saveCurrentAsTemplate(
-    customName.value,
-    customDesc.value,
-    customInstructions.value
-  );
+  store.saveCurrentAsTemplate(customName.value, customDesc.value, customInstructions.value);
   showSaveForm.value = false;
-  
+
   // Show gorgeous success feedback
   saveSuccessMessage.value = true;
   setTimeout(() => {
@@ -159,7 +171,7 @@ const handleUpdateCustomMat = () => {
     activeCustomTemplate.value.id,
     customName.value,
     customDesc.value,
-    customInstructions.value
+    customInstructions.value,
   );
   showSaveForm.value = false;
 
@@ -192,31 +204,37 @@ const drawerContainerRef = ref<HTMLElement | null>(null);
 const showLeftShadow = ref(false);
 const showRightShadow = ref(false);
 
-watch(() => store.activeTab, (newTab) => {
-  setTimeout(() => {
-    // 1. Scroll horizontal tab bar to show the active tab button
-    const tabsContainer = tabsContainerRef.value;
-    if (tabsContainer) {
-      const activeBtn = tabsContainer.querySelector(`[data-tab-id="${newTab}"]`) as HTMLElement | null;
-      if (activeBtn) {
-        const containerRect = tabsContainer.getBoundingClientRect();
-        const btnRect = activeBtn.getBoundingClientRect();
-        
-        if (btnRect.left < containerRect.left || btnRect.right > containerRect.right) {
-          tabsContainer.scrollTo({
-            left: activeBtn.offsetLeft - (tabsContainer.clientWidth / 2) + (activeBtn.clientWidth / 2),
-            behavior: 'smooth'
-          });
+watch(
+  () => store.activeTab,
+  (newTab) => {
+    setTimeout(() => {
+      // 1. Scroll horizontal tab bar to show the active tab button
+      const tabsContainer = tabsContainerRef.value;
+      if (tabsContainer) {
+        const activeBtn = tabsContainer.querySelector(
+          `[data-tab-id="${newTab}"]`,
+        ) as HTMLElement | null;
+        if (activeBtn) {
+          const containerRect = tabsContainer.getBoundingClientRect();
+          const btnRect = activeBtn.getBoundingClientRect();
+
+          if (btnRect.left < containerRect.left || btnRect.right > containerRect.right) {
+            tabsContainer.scrollTo({
+              left:
+                activeBtn.offsetLeft - tabsContainer.clientWidth / 2 + activeBtn.clientWidth / 2,
+              behavior: "smooth",
+            });
+          }
         }
       }
-    }
 
-    // 2. Scroll the drawer container to the top
-    if (drawerContainerRef.value) {
-      drawerContainerRef.value.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, 50);
-});
+      // 2. Scroll the drawer container to the top
+      if (drawerContainerRef.value) {
+        drawerContainerRef.value.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }, 50);
+  },
+);
 
 const updateScrollShadows = () => {
   const el = tabsContainerRef.value;
@@ -250,6 +268,7 @@ const selectTab = (tabId: (typeof categories)[number]["id"]) => {
   isCollapsed.value = false;
   // Recalculate shadows when switching tabs since active styling might shift sizing
   setTimeout(updateScrollShadows, 50);
+  trackEvent("change_tab", { tab_id: tabId });
 };
 
 // Helpers for template localization
@@ -277,21 +296,21 @@ type LegendEntry = {
 };
 
 const movementLegend: LegendEntry[] = [
-  { icon: 'Bot',            labelKey: 'moveLegendBot',           sim: true },
-  { icon: 'EvCharger',      labelKey: 'moveLegendEvCharger',     sim: true },
-  { icon: 'ArrowUp',        labelKey: 'moveLegendArrowUp',       sim: true },
-  { icon: 'ArrowDown',      labelKey: 'moveLegendArrowDown',     sim: true },
-  { icon: 'ArrowRight',     labelKey: 'moveLegendArrowRight',    sim: true },
-  { icon: 'ArrowLeft',      labelKey: 'moveLegendArrowLeft',     sim: true },
-  { icon: 'CornerUpRight',  labelKey: 'moveLegendCornerUpRight', sim: true },
-  { icon: 'CornerUpLeft',   labelKey: 'moveLegendCornerUpLeft',  sim: true },
-  { icon: 'Num2Icon',       labelKey: 'moveLegendNum',           sim: true,  isNum: true },
-  { icon: 'PlayFilled',     labelKey: 'moveLegendPlayFilled',    sim: false },
-  { icon: 'StopFilled',     labelKey: 'moveLegendStopFilled',    sim: false },
-  { icon: 'F1Icon',         labelKey: 'moveLegendF1',            sim: false },
-  { icon: 'F2Icon',         labelKey: 'moveLegendF2',            sim: false },
-  { icon: 'LoopPlayIcon',   labelKey: 'moveLegendLoopPlay',      sim: false },
-  { icon: 'LoopStopIcon',   labelKey: 'moveLegendLoopStop',      sim: false },
+  { icon: "Bot", labelKey: "moveLegendBot", sim: true },
+  { icon: "EvCharger", labelKey: "moveLegendEvCharger", sim: true },
+  { icon: "ArrowUp", labelKey: "moveLegendArrowUp", sim: true },
+  { icon: "ArrowDown", labelKey: "moveLegendArrowDown", sim: true },
+  { icon: "ArrowRight", labelKey: "moveLegendArrowRight", sim: true },
+  { icon: "ArrowLeft", labelKey: "moveLegendArrowLeft", sim: true },
+  { icon: "CornerUpRight", labelKey: "moveLegendCornerUpRight", sim: true },
+  { icon: "CornerUpLeft", labelKey: "moveLegendCornerUpLeft", sim: true },
+  { icon: "Num2Icon", labelKey: "moveLegendNum", sim: true, isNum: true },
+  { icon: "PlayFilled", labelKey: "moveLegendPlayFilled", sim: false },
+  { icon: "StopFilled", labelKey: "moveLegendStopFilled", sim: false },
+  { icon: "F1Icon", labelKey: "moveLegendF1", sim: false },
+  { icon: "F2Icon", labelKey: "moveLegendF2", sim: false },
+  { icon: "LoopPlayIcon", labelKey: "moveLegendLoopPlay", sim: false },
+  { icon: "LoopStopIcon", labelKey: "moveLegendLoopStop", sim: false },
 ];
 </script>
 
@@ -467,7 +486,9 @@ const movementLegend: LegendEntry[] = [
         <!-- Movement Symbol Legend -->
         <template v-if="activeTab === 'move'">
           <div class="col-span-full mt-4 border-t border-slate-100 dark:border-slate-800 pt-4">
-            <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-1.5">
+            <p
+              class="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-1.5"
+            >
               <component :is="getIcon('HelpCircle')" :size="11" />
               {{ store.t.moveLegendTitle }}
             </p>
@@ -478,11 +499,14 @@ const movementLegend: LegendEntry[] = [
                 class="flex items-center gap-2.5"
               >
                 <!-- Icon preview -->
-                <div class="w-7 h-7 shrink-0 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                <div
+                  class="w-7 h-7 shrink-0 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center"
+                >
                   <span
                     v-if="entry.isNum"
                     class="text-[10px] font-bold select-none text-slate-800 dark:text-slate-100"
-                  >2–6×</span>
+                    >2–6×</span
+                  >
                   <component
                     v-else
                     :is="getIcon(entry.icon)"
@@ -503,9 +527,10 @@ const movementLegend: LegendEntry[] = [
                 <!-- Sim / Decorative badge -->
                 <span
                   class="text-[8px] font-bold px-1.5 py-0.5 rounded-full shrink-0 uppercase tracking-wide"
-                  :class="entry.sim
-                    ? 'bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                  :class="
+                    entry.sim
+                      ? 'bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                   "
                 >
                   {{ entry.sim ? store.t.moveLegendSimTag : store.t.moveLegendExtTag }}
@@ -552,15 +577,7 @@ const movementLegend: LegendEntry[] = [
                   :load-label="store.t.loadBoard"
                   :pattern-label="store.t.pattern"
                   :task-label="store.t.task"
-                  @load="
-                    store.loadTemplate(
-                      tpl.size,
-                      tpl.main,
-                      tpl.secondary,
-                      null,
-                      tpl.id,
-                    )
-                  "
+                  @load="store.loadTemplate(tpl.size, tpl.main, tpl.secondary, null, tpl.id)"
                 />
               </div>
             </div>
@@ -570,7 +587,6 @@ const movementLegend: LegendEntry[] = [
         <!-- Custom templates lists (My Mats) -->
         <template v-if="activeTab === 'my_mats'">
           <div class="flex flex-col gap-4 col-span-full pb-6 relative w-full animate-fade-in">
-            
             <!-- Success Toast Banner (New Mat) -->
             <transition name="slide-up">
               <div
@@ -594,7 +610,9 @@ const movementLegend: LegendEntry[] = [
             </transition>
 
             <!-- Save Current Mat Expandable Card Form -->
-            <div class="flex flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 p-4 shadow-sm transition-all duration-300 hover:shadow-md">
+            <div
+              class="flex flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 p-4 shadow-sm transition-all duration-300 hover:shadow-md"
+            >
               <button
                 @click="showSaveForm = !showSaveForm"
                 class="flex items-center justify-between w-full font-bold text-xs md:text-sm text-slate-800 dark:text-slate-100 hover:text-primary transition-colors cursor-pointer select-none"
@@ -657,7 +675,7 @@ const movementLegend: LegendEntry[] = [
                       <component :is="Save" class="w-4.5 h-4.5" />
                       <span>{{ store.t.saveChanges }}</span>
                     </button>
-                    
+
                     <!-- Save as New -->
                     <button
                       type="button"
@@ -704,9 +722,17 @@ const movementLegend: LegendEntry[] = [
             </div>
 
             <!-- List Cards or Empty State -->
-            <div v-if="store.customTemplates.length === 0" class="flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/20 dark:bg-slate-950/20">
-              <component :is="FolderHeart" class="w-8 h-8 text-slate-350 dark:text-slate-700 animate-pulse mb-2.5" />
-              <p class="text-[10px] md:text-xs text-slate-400 dark:text-slate-500 leading-relaxed max-w-[200px]">
+            <div
+              v-if="store.customTemplates.length === 0"
+              class="flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/20 dark:bg-slate-950/20"
+            >
+              <component
+                :is="FolderHeart"
+                class="w-8 h-8 text-slate-350 dark:text-slate-700 animate-pulse mb-2.5"
+              />
+              <p
+                class="text-[10px] md:text-xs text-slate-400 dark:text-slate-500 leading-relaxed max-w-[200px]"
+              >
                 {{ store.t.emptyCustomMats }}
               </p>
             </div>
@@ -721,18 +747,11 @@ const movementLegend: LegendEntry[] = [
                 :get-template-desc="getTemplateDesc"
                 :load-label="store.t.loadBoard"
                 @load="
-                  store.loadTemplate(
-                    tpl.size,
-                    tpl.main,
-                    tpl.secondary,
-                    tpl.instructions,
-                    tpl.id,
-                  )
+                  store.loadTemplate(tpl.size, tpl.main, tpl.secondary, tpl.instructions, tpl.id)
                 "
                 @delete="handleDeleteCustomMat"
               />
             </div>
-
           </div>
         </template>
       </div>

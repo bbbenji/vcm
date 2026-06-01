@@ -4,6 +4,7 @@ import { useMatStore } from "../stores/matStore";
 import { getPlacedIcon } from "../utils/icons";
 import InstructionBanner from "./InstructionBanner.vue";
 import confetti from "canvas-confetti";
+import { trackEvent } from "../plugins/analytics";
 
 const store = useMatStore();
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -117,6 +118,11 @@ const trailPathD = computed(() => {
 const paintCell = (row: number, col: number, isSecondary = false) => {
   store.saveHistory();
   store.updateCell(row, col, isSecondary);
+  trackEvent(store.activeTool.type === "eraser" ? "remove_asset" : "place_asset", {
+    tool_type: store.activeTool.type,
+    tool_value: store.activeTool.value,
+    is_secondary: isSecondary,
+  });
 };
 
 const dragPaintCell = (event: MouseEvent, row: number, col: number, isSecondary = false) => {

@@ -22,6 +22,7 @@
     "format": "oxfmt src/"
   },
   "dependencies": {
+    "@qwik.dev/partytown": "^0.14.0",
     "@tailwindcss/vite": "^4.3.0",
     "canvas-confetti": "^1.9.4",
     "html-to-image": "^1.11.13",
@@ -29,6 +30,7 @@
     "lucide-vue-next": "^1.0.0",
     "pinia": "^3.0.4",
     "tailwindcss": "^4.3.0",
+    "vanilla-cookieconsent": "^3.1.0",
     "vue": "^3.5.32"
   },
   "devDependencies": {
