@@ -120,6 +120,7 @@ const store = useMatStore();
           @click="store.resetSimulation()"
           class="flex items-center justify-center h-8 w-8 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-all active:scale-95 cursor-pointer shrink-0 border border-slate-200/20"
           :title="store.t.simResetTitle"
+          :aria-label="store.t.simResetTitle"
         >
           <RotateCcw :size="13" />
         </button>
@@ -130,6 +131,7 @@ const store = useMatStore();
           @click="store.showSolution()"
           class="flex items-center justify-center h-8 w-8 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-950/60 text-primary dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/40 rounded-lg transition-all active:scale-95 cursor-pointer shrink-0"
           :title="store.t.simSolutionTitle"
+          :aria-label="store.t.simSolutionTitle"
         >
           <Lightbulb :size="13" />
         </button>
@@ -146,6 +148,7 @@ const store = useMatStore();
               : 'bg-slate-100 dark:bg-slate-850 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
           "
           :title="store.t.speedSlow"
+          :aria-label="store.t.speedSlow"
         >
           <Turtle :size="13" />
         </button>
@@ -158,6 +161,7 @@ const store = useMatStore();
               : 'bg-slate-100 dark:bg-slate-850 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
           "
           :title="store.t.speedNormal"
+          :aria-label="store.t.speedNormal"
         >
           <Gauge :size="13" />
         </button>
@@ -170,6 +174,7 @@ const store = useMatStore();
               : 'bg-slate-100 dark:bg-slate-850 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
           "
           :title="store.t.speedFast"
+          :aria-label="store.t.speedFast"
         >
           <Zap :size="13" />
         </button>

@@ -1,0 +1,3 @@
+Contact: mailto:czesc@mamywydruki.pl
+Expires: 2028-01-01T00:00:00Z
+Preferred-Languages: pl, en

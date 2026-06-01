@@ -14,12 +14,42 @@
 }
 
 /* Global Transitions and Font smoothing */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   @apply bg-slate-50 text-slate-800 antialiased font-sans transition-colors duration-300;
 }
 
 .dark body {
   @apply bg-[#0b0f19] text-slate-100;
+}
+
+/* Accessibility: Skip to Main Content Link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--color-primary);
+  color: white;
+  padding: 8px;
+  z-index: 100;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Glassmorphism helpers */
