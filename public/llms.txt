@@ -1,10 +1,16 @@
 # Virtual Coding Mat (Wirtualna Mata)
 
-This is a web application designed to help educators, parents, and children create, share, and export coding mats. The application is built using Vue.js and Vite.
+> Virtual Coding Mat is a web application designed to help educators, parents, and children create, share, and export coding mats.
+
 It allows users to generate interactive grids with various digital assets (like paths, obstacles, and goals) and then export these mats to image (PNG) or PDF formats for printing, or export coordinates as TXT files.
 
-Features:
-- Drag and drop coding assets.
-- Responsive design.
-- Export to PNG, PDF, and TXT.
-- Client-side application with no backend dependencies.
+## Features
+
+- **Interactive Grid**: Drag and drop educational coding assets onto customizable grids.
+- **Simulation**: Test paths and movements using built-in simulation tools.
+- **Exporting**: Export to PNG, PDF, and TXT coordinates.
+- **Client-Side**: Fully client-side application with no backend dependencies, using Vue.js and Vite.
+
+## Links
+
+- [Wirtualna Mata Application](https://kodowanie.mamywydruki.pl/): The main interactive application interface.

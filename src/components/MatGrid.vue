@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, watch } from "vue";
+import { ref, computed, nextTick, watch, defineAsyncComponent } from "vue";
 import { useMatStore } from "../stores/matStore";
 import { getPlacedIcon } from "../utils/icons";
 import InstructionBanner from "./InstructionBanner.vue";
-import confetti from "canvas-confetti";
 import { trackEvent } from "../plugins/analytics";
+
+const BaseDialog = defineAsyncComponent(() => import("./BaseDialog.vue"));
 
 const store = useMatStore();
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-import BaseDialog from "./BaseDialog.vue";
 
 // Watch simulation success or crash to trigger particles & popup modals!
 const isWinDialogOpen = ref(false);
@@ -19,34 +18,37 @@ watch(
   () => store.simulationStatus,
   (status) => {
     if (status === "success") {
-      // Primary center blast
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 },
+      import("canvas-confetti").then((mod) => {
+        const confetti = mod.default;
+        // Primary center blast
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.6 },
+        });
+
+        // Staggered side cannons for a spectacular victory celebration!
+        const end = Date.now() + 2 * 1000; // 2 seconds duration
+        const frame = () => {
+          confetti({
+            particleCount: 2,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.8 },
+          });
+          confetti({
+            particleCount: 2,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.8 },
+          });
+
+          if (Date.now() < end) {
+            requestAnimationFrame(frame);
+          }
+        };
+        frame();
       });
-
-      // Staggered side cannons for a spectacular victory celebration!
-      const end = Date.now() + 2 * 1000; // 2 seconds duration
-      const frame = () => {
-        confetti({
-          particleCount: 2,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0, y: 0.8 },
-        });
-        confetti({
-          particleCount: 2,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1, y: 0.8 },
-        });
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
-      };
-      frame();
 
       // Show result popup modal with a premium delay!
       setTimeout(() => {

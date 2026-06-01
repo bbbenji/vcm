@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, defineAsyncComponent } from "vue";
 import { GRID_SIZES, useMatStore } from "../stores/matStore";
 import { Trash2, Undo2, Save } from "lucide-vue-next";
-import ShareDropdown from "./ShareDropdown.vue";
-import SettingsDropdown from "./SettingsDropdown.vue";
-import BaseDialog from "./BaseDialog.vue";
 import { trackEvent } from "../plugins/analytics";
+
+const ShareDropdown = defineAsyncComponent(() => import("./ShareDropdown.vue"));
+const SettingsDropdown = defineAsyncComponent(() => import("./SettingsDropdown.vue"));
+const BaseDialog = defineAsyncComponent(() => import("./BaseDialog.vue"));
 
 const store = useMatStore();
 const gridSizes = GRID_SIZES;
@@ -44,6 +45,7 @@ const executeClear = () => {
         <img
           src="/logo.svg"
           alt="Mamy Wydruki Logo"
+          fetchpriority="high"
           class="h-6 sm:h-8 md:h-10 w-auto dark:invert dark:brightness-150 transition-all"
         />
       </picture>
