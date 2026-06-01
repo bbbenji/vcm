@@ -125,6 +125,124 @@ const showSaveForm = computed({
   },
 });
 
+// Resizable drawer logic for mobile and desktop
+const mobileHeight = ref(320);
+const desktopWidth = ref(330);
+const isDragging = ref(false);
+
+// --- Mobile vertical drag ---
+const startY = ref(0);
+const startHeight = ref(0);
+const hasDragged = ref(false);
+
+const startDrag = (e: TouchEvent | MouseEvent) => {
+  if (window.innerWidth >= 768) return;
+  
+  isDragging.value = true;
+  hasDragged.value = false;
+  startY.value = 'touches' in e ? (e.touches[0]?.clientY ?? 0) : e.clientY;
+  startHeight.value = isCollapsed.value ? 36 : mobileHeight.value; // 36 is h-9
+  
+  document.addEventListener('mousemove', onDrag);
+  document.addEventListener('mouseup', stopDrag);
+  document.addEventListener('touchmove', onDrag, { passive: false });
+  document.addEventListener('touchend', stopDrag);
+};
+
+const onDrag = (e: TouchEvent | MouseEvent) => {
+  if (!isDragging.value) return;
+  
+  const currentY = 'touches' in e ? (e.touches[0]?.clientY ?? 0) : e.clientY;
+  const deltaY = startY.value - currentY;
+  
+  if (Math.abs(deltaY) > 5) {
+    hasDragged.value = true;
+  }
+  
+  if (hasDragged.value) {
+    if ('touches' in e && e.cancelable) {
+      e.preventDefault();
+    }
+    
+    let newHeight = startHeight.value + deltaY;
+    const minHeight = 120;
+    const maxHeight = window.innerHeight * 0.85;
+    
+    if (newHeight < minHeight) {
+      if (newHeight < 80) {
+         isCollapsed.value = true;
+         newHeight = 36;
+      } else {
+         newHeight = minHeight;
+         isCollapsed.value = false;
+      }
+    } else {
+      isCollapsed.value = false;
+      if (newHeight > maxHeight) newHeight = maxHeight;
+    }
+    
+    if (!isCollapsed.value) {
+      mobileHeight.value = newHeight;
+    }
+  }
+};
+
+const stopDrag = () => {
+  isDragging.value = false;
+  document.removeEventListener('mousemove', onDrag);
+  document.removeEventListener('mouseup', stopDrag);
+  document.removeEventListener('touchmove', onDrag);
+  document.removeEventListener('touchend', stopDrag);
+};
+
+const toggleCollapse = (e: Event) => {
+  if (hasDragged.value) {
+    e.preventDefault();
+    e.stopPropagation();
+    return;
+  }
+  isCollapsed.value = !isCollapsed.value;
+};
+
+// --- Desktop horizontal drag ---
+const startX = ref(0);
+const startWidth = ref(0);
+
+const startDragDesktop = (e: MouseEvent) => {
+  if (window.innerWidth < 768) return;
+  
+  isDragging.value = true;
+  startX.value = e.clientX;
+  startWidth.value = desktopWidth.value;
+  
+  document.body.style.cursor = 'col-resize';
+  document.addEventListener('mousemove', onDragDesktop);
+  document.addEventListener('mouseup', stopDragDesktop);
+};
+
+const onDragDesktop = (e: MouseEvent) => {
+  if (!isDragging.value) return;
+  
+  // Dragging left (negative deltaX) should increase the width of a right-sided drawer
+  const deltaX = startX.value - e.clientX; 
+  let newWidth = startWidth.value + deltaX;
+  
+  const minWidth = 250;
+  const maxWidth = window.innerWidth * 0.7;
+  
+  if (newWidth < minWidth) newWidth = minWidth;
+  if (newWidth > maxWidth) newWidth = maxWidth;
+  
+  desktopWidth.value = newWidth;
+};
+
+const stopDragDesktop = () => {
+  isDragging.value = false;
+  document.body.style.cursor = '';
+  document.removeEventListener('mousemove', onDragDesktop);
+  document.removeEventListener('mouseup', stopDragDesktop);
+};
+
 // Custom templates (My Saved Mats) logic
 const customName = ref("");
 const customDesc = ref("");
@@ -239,8 +357,9 @@ watch(
 const updateScrollShadows = () => {
   const el = tabsContainerRef.value;
   if (!el) return;
-  showLeftShadow.value = el.scrollLeft > 2;
-  showRightShadow.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 2;
+  // Use a 5px tolerance to prevent showing arrows due to subpixel rendering or padding edge-cases
+  showLeftShadow.value = el.scrollLeft > 5;
+  showRightShadow.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 5;
 };
 
 const scrollTabs = (direction: "left" | "right") => {
@@ -253,14 +372,33 @@ const scrollTabs = (direction: "left" | "right") => {
   });
 };
 
+let resizeObserver: ResizeObserver | null = null;
+
 onMounted(() => {
   updateScrollShadows();
+  
+  if (tabsContainerRef.value) {
+    resizeObserver = new ResizeObserver(() => {
+      updateScrollShadows();
+    });
+    resizeObserver.observe(tabsContainerRef.value);
+  }
+  
   window.addEventListener("resize", updateScrollShadows);
   setTimeout(updateScrollShadows, 100);
 });
 
 onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
   window.removeEventListener("resize", updateScrollShadows);
+  document.removeEventListener('mousemove', onDrag);
+  document.removeEventListener('mouseup', stopDrag);
+  document.removeEventListener('touchmove', onDrag);
+  document.removeEventListener('touchend', stopDrag);
+  document.removeEventListener('mousemove', onDragDesktop);
+  document.removeEventListener('mouseup', stopDragDesktop);
 });
 
 const selectTab = (tabId: (typeof categories)[number]["id"]) => {
@@ -316,15 +454,32 @@ const movementLegend: LegendEntry[] = [
 
 <template>
   <aside
-    class="flex flex-col bg-white dark:bg-slate-900 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-800 w-full md:w-[330px] md:h-full overflow-hidden shrink-0 transition-all duration-300 ease-in-out shadow-lg"
-    :class="isCollapsed ? 'h-7' : 'h-[320px] md:h-full'"
+    class="flex flex-col relative bg-white dark:bg-slate-900 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-800 w-full overflow-hidden shrink-0 shadow-lg md:w-[var(--desktop-width)]"
+    :class="[
+      isCollapsed ? 'h-9 md:h-full' : 'h-[var(--mobile-height)] md:!h-full',
+      !isDragging ? 'transition-all duration-300 ease-in-out' : '!transition-none'
+    ]"
+    :style="{ '--mobile-height': `${mobileHeight}px`, '--desktop-width': `${desktopWidth}px` }"
   >
+    <!-- Desktop Drag Handle -->
+    <div
+      class="hidden md:flex absolute top-0 left-0 bottom-0 w-2 cursor-col-resize hover:bg-slate-300/50 dark:hover:bg-slate-600/50 active:bg-slate-300/80 dark:active:bg-slate-600/80 z-50 items-center justify-center transition-colors group"
+      @mousedown.prevent="startDragDesktop"
+    >
+       <div class="w-1 h-8 rounded-full bg-slate-300 dark:bg-slate-600 transition-colors group-hover:bg-slate-400 dark:group-hover:bg-slate-500"></div>
+    </div>
+
     <!-- Collapsible drawer slider button for mobile devices -->
     <button
-      class="md:hidden h-7 w-full flex items-center justify-center bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors cursor-pointer select-none shrink-0"
-      @click="isCollapsed = !isCollapsed"
+      class="group md:hidden h-9 w-full flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors cursor-grab active:cursor-grabbing select-none shrink-0 relative"
+      @click="toggleCollapse"
+      @mousedown="startDrag"
+      @touchstart="startDrag"
       :aria-expanded="!isCollapsed"
     >
+      <!-- Drag handle pill -->
+      <div class="w-10 h-1 rounded-full bg-slate-300 dark:bg-slate-600 transition-colors group-hover:bg-slate-400 dark:group-hover:bg-slate-500 mb-0.5"></div>
+
       <div
         class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-bold text-[10px] tracking-wider uppercase"
       >
