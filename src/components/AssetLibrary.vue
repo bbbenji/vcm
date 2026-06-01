@@ -188,8 +188,35 @@ const handleDragStart = (e: DragEvent, type: ToolType, value: string | null) => 
 };
 
 const tabsContainerRef = ref<HTMLElement | null>(null);
+const drawerContainerRef = ref<HTMLElement | null>(null);
 const showLeftShadow = ref(false);
 const showRightShadow = ref(false);
+
+watch(() => store.activeTab, (newTab) => {
+  setTimeout(() => {
+    // 1. Scroll horizontal tab bar to show the active tab button
+    const tabsContainer = tabsContainerRef.value;
+    if (tabsContainer) {
+      const activeBtn = tabsContainer.querySelector(`[data-tab-id="${newTab}"]`) as HTMLElement | null;
+      if (activeBtn) {
+        const containerRect = tabsContainer.getBoundingClientRect();
+        const btnRect = activeBtn.getBoundingClientRect();
+        
+        if (btnRect.left < containerRect.left || btnRect.right > containerRect.right) {
+          tabsContainer.scrollTo({
+            left: activeBtn.offsetLeft - (tabsContainer.clientWidth / 2) + (activeBtn.clientWidth / 2),
+            behavior: 'smooth'
+          });
+        }
+      }
+    }
+
+    // 2. Scroll the drawer container to the top
+    if (drawerContainerRef.value) {
+      drawerContainerRef.value.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, 50);
+});
 
 const updateScrollShadows = () => {
   const el = tabsContainerRef.value;
@@ -352,6 +379,7 @@ const movementLegend: LegendEntry[] = [
           }"
           @click="selectTab(cat.id)"
           :title="store.t[cat.id as keyof typeof store.t] || cat.id"
+          :data-tab-id="cat.id"
         >
           <component :is="getIcon(cat.icon)" :size="18" class="md:w-5 md:h-5 shrink-0" />
           <span
@@ -365,6 +393,7 @@ const movementLegend: LegendEntry[] = [
 
     <!-- Assets / Tasks Drawer Panels -->
     <div
+      ref="drawerContainerRef"
       class="py-3 px-3 md:p-5 flex-1 overflow-y-auto bg-white dark:bg-slate-900 transition-colors duration-300"
     >
       <div
