@@ -53,6 +53,7 @@ const movements = [
   "Num3Icon",
   "Num4Icon",
   "Num5Icon",
+  "Num6Icon",
 ];
 const numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "-", "=", "<", ">"];
 const alphabet = "AĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻ?!.".split("");
@@ -320,7 +321,7 @@ const movementLegend: LegendEntry[] = [
               <span
                 v-if="
                   cat.toolType === 'icon' &&
-                  ['Num2Icon', 'Num3Icon', 'Num4Icon', 'Num5Icon'].includes(item)
+                  ['Num2Icon', 'Num3Icon', 'Num4Icon', 'Num5Icon', 'Num6Icon'].includes(item)
                 "
                 class="text-xl font-bold select-none text-slate-800 dark:text-slate-100 flex justify-center items-center w-full h-full"
               >
@@ -361,7 +362,7 @@ const movementLegend: LegendEntry[] = [
                   <span
                     v-if="entry.isNum"
                     class="text-[10px] font-bold select-none text-slate-800 dark:text-slate-100"
-                  >2–5×</span>
+                  >2–6×</span>
                   <component
                     v-else
                     :is="getIcon(entry.icon)"

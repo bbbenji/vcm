@@ -397,6 +397,27 @@ describe("matStore robot and goal simulation", () => {
     expect(store.gridData[1]![0]!.text).toBe("A");
     expect(store.gridData[2]![0]!.icon).toBe("Car");
   });
+
+  it("supports repeating an instruction 6 times using Num6Icon", () => {
+    const store = useMatStore();
+
+    // Place robot at (0, 0)
+    store.activeTool = { type: "icon", value: "Bot" };
+    store.updateCell(0, 0, false);
+
+    // Program ArrowDown instruction followed by Num6Icon
+    store.secondaryGridData[0]![1]!.icon = "ArrowDown";
+    store.secondaryGridData[0]![2]!.icon = "Num6Icon";
+
+    // Start simulation
+    store.startSimulation();
+
+    // We expect ArrowDown followed by 5 repetitions, so 6 steps of ArrowDown total
+    expect(store.simulationSteps).toHaveLength(6);
+    store.simulationSteps.forEach((step) => {
+      expect(step.action).toBe("MOVE_DOWN");
+    });
+  });
 });
 
 describe("matStore layout settings", () => {

@@ -93,6 +93,7 @@ const Num2Icon = createTextIcon("2");
 const Num3Icon = createTextIcon("3");
 const Num4Icon = createTextIcon("4");
 const Num5Icon = createTextIcon("5");
+const Num6Icon = createTextIcon("6");
 
 const icons = {
   ArrowDown,
@@ -143,6 +144,7 @@ const icons = {
   Num3Icon,
   Num4Icon,
   Num5Icon,
+  Num6Icon,
 } satisfies Record<string, Component>;
 
 export type IconName = keyof typeof icons;

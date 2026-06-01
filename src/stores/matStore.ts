@@ -769,6 +769,7 @@ export const useMatStore = defineStore("mat", () => {
         else if (["3", "Num3Icon"].includes(textVal) || iconVal === "Num3Icon") repeatCount = 3;
         else if (["4", "Num4Icon"].includes(textVal) || iconVal === "Num4Icon") repeatCount = 4;
         else if (["5", "Num5Icon"].includes(textVal) || iconVal === "Num5Icon") repeatCount = 5;
+        else if (["6", "Num6Icon"].includes(textVal) || iconVal === "Num6Icon") repeatCount = 6;
 
         if (repeatCount > 0 && lastAction && lastSourceCell) {
           // Repeat (repeatCount - 1) times since first is already added
