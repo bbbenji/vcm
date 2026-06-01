@@ -92,7 +92,7 @@ describe("matStore undo history", () => {
       template.size,
       template.main,
       template.secondary,
-      template.instructions ?? null,
+      null,
       template.id,
     );
 
@@ -117,7 +117,7 @@ describe("matStore undo history", () => {
       template.size,
       template.main,
       template.secondary,
-      template.instructions ?? null,
+      null,
       template.id,
     );
     store.history.splice(0);
@@ -144,7 +144,7 @@ describe("matStore undo history", () => {
       template.size,
       template.main,
       template.secondary,
-      template.instructions ?? null,
+      null,
       template.id,
     );
     store.history.splice(0);
