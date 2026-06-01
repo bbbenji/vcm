@@ -2,13 +2,9 @@ import type { Template } from "../templates";
 
 export const island_maze: Template = {
   id: "island_maze",
-  name: "Wyspa Skarbów",
-  description: "Doprowadź robota przez rafy koralowe na planszy 12x12, zbierając nagrody!",
   size: 12,
   type: "instruction",
   category: "algorithm",
-  instructions:
-    "Pomóż robotowi zebrać skarby i dopłynąć do stacji ładowania na L12!\n\n1. Startujesz w lewym górnym rogu (A1).\n2. Zbierz po drodze konsolę i zębatkę.\n3. Omijaj ciemne rafy koralowe.\n4. Cel: ładowarka na L12!",
   main: [
     [0, 0, null, "Bot", null],
     [11, 11, null, "EvCharger", null],

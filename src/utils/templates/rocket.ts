@@ -2,8 +2,6 @@ import type { Template } from '../templates'
 
 export const rocket: Template = {
   id: 'rocket',
-  name: 'Rakieta',
-  description: 'Kosmiczny pixel art gotowej rakiety.',
   size: 10,
   type: 'premade',
   category: 'pixel_art',

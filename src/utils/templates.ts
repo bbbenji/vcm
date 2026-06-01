@@ -15,12 +15,9 @@ import { space_labyrinth } from './templates/space_labyrinth'
 
 export interface Template {
   id: string
-  name: string
-  description: string
   size: GridSize
   type: 'premade' | 'instruction'
   category: 'pixel_art' | 'algorithm' | 'math_symmetry'
-  instructions?: string
   main: [number, number, string | null, string | null, string | null][]
   secondary: [number, number, string | null, string | null, string | null][]
   mainSolution?: [number, number, string | null, string | null, string | null][]

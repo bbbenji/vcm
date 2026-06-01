@@ -2,13 +2,9 @@ import type { Template } from '../templates'
 
 export const shield_symmetry: Template = {
   id: 'shield_symmetry',
-  name: 'Tarcza Rycerza',
-  description: 'Dokończ rysowanie symetrycznej królewskiej tarczy rycerskiej na planszy 12x12.',
   size: 12,
   type: 'instruction',
   category: 'math_symmetry',
-  instructions:
-    'Tarcza rycerska straciła swoją prawą połówkę!\n\n1. Odbij lewą stronę rysunku symetrycznie względem środkowej linii (między F a G).\n2. Zachowaj królewskie barwy (złoty, szafirowy, błękitny)!',
   main: [
     [1, 5, '#475569', null, null],
     [2, 5, '#475569', null, null],

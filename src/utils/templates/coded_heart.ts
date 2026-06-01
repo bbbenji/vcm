@@ -2,14 +2,9 @@ import type { Template } from '../templates'
 
 export const coded_heart: Template = {
   id: 'coded_heart',
-  name: 'Zakodowane Serduszko',
-  description:
-    'Plansza jest pusta! Odkryj rysunek, kolorując kratki według podanej instrukcji współrzędnych.',
   size: 10,
   type: 'instruction',
   category: 'math_symmetry',
-  instructions:
-    'Odkryj obrazek! Pokoloruj kratki na CZERWONO:\n\n- C2, D2, G2, H2\n- B3 do I3 (czyli B3, C3, D3, E3, F3, G3, H3, I3)\n- B4 do I4\n- B5 do I5\n- C6 do H6\n- D7 do G7\n- E8, F8',
   main: [],
   secondary: [],
   mainSolution: [

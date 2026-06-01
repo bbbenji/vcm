@@ -2,8 +2,6 @@ import type { Template } from '../templates'
 
 export const flower: Template = {
   id: 'flower',
-  name: 'Wesoły Kwiatek',
-  description: 'Kolorowy, wiosenny pixel art kwiatka w doniczce.',
   size: 10,
   type: 'premade',
   category: 'pixel_art',

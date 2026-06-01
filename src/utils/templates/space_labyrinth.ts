@@ -2,14 +2,9 @@ import type { Template } from "../templates";
 
 export const space_labyrinth: Template = {
   id: "space_labyrinth",
-  name: "Galaktyczny Labirynt",
-  description:
-    "Wielki labirynt 20x20. Zaprogramuj długą misję kosmiczną i zbierz wszystkie akumulatory!",
   size: 20,
   type: "instruction",
   category: "algorithm",
-  instructions:
-    "Poprowadź robota przez gigantyczny labirynt 20x20!\n\n1. Startujesz na A1.\n2. Cel to stacja ładowania na T20 (prawy dolny róg).\n3. Omijaj kosmiczne barierki.\n4. Zbierz rozrzucone urządzenia po drodze!",
   main: [
     [0, 0, null, "Bot", null],
     [19, 19, null, "EvCharger", null],

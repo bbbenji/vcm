@@ -2,8 +2,6 @@ import type { Template } from '../templates'
 
 export const digital_robot: Template = {
   id: 'digital_robot',
-  name: 'Cyfrowy Robot',
-  description: 'Zaawansowany pixel art cyber-robota na dużej planszy 20x20.',
   size: 20,
   type: 'premade',
   category: 'pixel_art',

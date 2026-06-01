@@ -2,13 +2,9 @@ import type { Template } from "../templates";
 
 export const maze1: Template = {
   id: "maze1",
-  name: "Labirynt Robota",
-  description: "Doprowadź robota z A1 do ładowarki na J10, omijając szare ściany!",
   size: 10,
   type: "instruction",
   category: "algorithm",
-  instructions:
-    "1. Znajdź robota (Bot) w lewym górnym rogu (A1).\n2. Zaprogramuj trasę na dolnej planszy za pomocą strzałek.\n3. Omijaj szare ściany (przeszkody).\n4. Cel: Ładowarka na J10!",
   main: [
     [1, 1, "#475569", null, null],
     [1, 2, "#475569", null, null],

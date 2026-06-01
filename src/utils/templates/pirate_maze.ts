@@ -2,13 +2,9 @@ import type { Template } from "../templates";
 
 export const pirate_maze: Template = {
   id: "pirate_maze",
-  name: "Kosmiczna Misja",
-  description: "Poprowadź robota z bazy A10 do ładowarki na J1, omijając kosmiczne przeszkody!",
   size: 10,
   type: "instruction",
   category: "algorithm",
-  instructions:
-    "Pomóż robotowi dotrzeć do ładowarki:\n\n1. Twój robot (Bot) startuje w lewym dolnym rogu (A10).\n2. Unikaj niebezpiecznych przeszkód oznaczonych kolorem szarym.\n3. Ułóż instrukcję ruchu na dolnej planszy za pomocą strzałek.\n4. Cel: Doprowadź robota do ładowarki (J1)!",
   main: [
     [9, 0, null, "Bot", null],
     [0, 9, null, "EvCharger", null],

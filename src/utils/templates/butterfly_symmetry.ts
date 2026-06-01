@@ -2,14 +2,9 @@ import type { Template } from '../templates'
 
 export const butterfly_symmetry: Template = {
   id: 'butterfly_symmetry',
-  name: 'Symetryczny Motylek',
-  description:
-    'Narysuj drugą połówkę motylka! Dokończ rysunek symetrycznie względem pionowej linii.',
   size: 10,
   type: 'instruction',
   category: 'math_symmetry',
-  instructions:
-    'Kolorowy motyl zgubił wzory na prawym skrzydle!\n\n1. Odbij lewą stronę rysunku symetrycznie (jak w lustrze) na prawą stronę.\n2. Oś symetrii przebiega pionowo na środku maty (między kolumnami E a F).\n3. Zachowaj te same kolory na odpowiadających sobie polach!',
   main: [
     [2, 4, '#475569', null, null],
     [3, 4, '#475569', null, null],

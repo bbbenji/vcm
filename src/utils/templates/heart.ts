@@ -2,8 +2,6 @@ import type { Template } from '../templates'
 
 export const heart: Template = {
   id: 'heart',
-  name: 'Serduszko',
-  description: 'Gotowy kolorowy wzór czerwonego serduszka.',
   size: 10,
   type: 'premade',
   category: 'pixel_art',

@@ -2,8 +2,6 @@ import type { Template } from '../templates'
 
 export const house: Template = {
   id: 'house',
-  name: 'Domek w Ogrodzie',
-  description: 'Klasyczny pixel art domku z ogródkiem i słońcem.',
   size: 10,
   type: 'premade',
   category: 'pixel_art',

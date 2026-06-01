@@ -2,8 +2,6 @@ import type { Template } from '../templates'
 
 export const castle: Template = {
   id: 'castle',
-  name: 'Zamek Rycerski',
-  description: 'Wspaniała brama zamku z basztami i powiewającymi flagami na matrycy 12x12.',
   size: 12,
   type: 'premade',
   category: 'pixel_art',
