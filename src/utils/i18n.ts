@@ -54,6 +54,26 @@ export const translations = {
     menuExpand: "Rozwiń menu",
     menuCollapse: "Zwiń menu",
 
+    // Movement Legend
+    moveLegendTitle: "Legenda symboli",
+    moveLegendSimTag: "Symulator",
+    moveLegendExtTag: "Dekoracyjny",
+    moveLegendBot: "Robot – postać, którą programujesz",
+    moveLegendEvCharger: "Ładowarka – cel robota",
+    moveLegendArrowUp: "Ruch w górę",
+    moveLegendArrowDown: "Ruch w dół",
+    moveLegendArrowRight: "Ruch w prawo",
+    moveLegendArrowLeft: "Ruch w lewo",
+    moveLegendCornerUpRight: "Skręt w prawo",
+    moveLegendCornerUpLeft: "Skręt w lewo",
+    moveLegendNum: "Powtórz × razy (2–5)",
+    moveLegendPlayFilled: "Start (dekoracja)",
+    moveLegendStopFilled: "Stop (dekoracja)",
+    moveLegendF1: "Funkcja F1 (dekoracja)",
+    moveLegendF2: "Funkcja F2 (dekoracja)",
+    moveLegendLoopPlay: "Pętla start (dekoracja)",
+    moveLegendLoopStop: "Pętla stop (dekoracja)",
+
     // Category Translations
     cat_pixel_art: "Rysunki i Pixel Art",
     cat_algorithm: "Ruch i Algorytmy",
@@ -171,6 +191,26 @@ export const translations = {
     themeToggle: "Theme",
     menuExpand: "Expand Menu",
     menuCollapse: "Collapse Menu",
+
+    // Movement Legend
+    moveLegendTitle: "Symbol legend",
+    moveLegendSimTag: "Simulator",
+    moveLegendExtTag: "Decorative",
+    moveLegendBot: "Robot – the character you program",
+    moveLegendEvCharger: "Charger – the robot's goal",
+    moveLegendArrowUp: "Move up",
+    moveLegendArrowDown: "Move down",
+    moveLegendArrowRight: "Move right",
+    moveLegendArrowLeft: "Move left",
+    moveLegendCornerUpRight: "Turn right",
+    moveLegendCornerUpLeft: "Turn left",
+    moveLegendNum: "Repeat × times (2–5)",
+    moveLegendPlayFilled: "Start (decorative)",
+    moveLegendStopFilled: "Stop (decorative)",
+    moveLegendF1: "Function F1 (decorative)",
+    moveLegendF2: "Function F2 (decorative)",
+    moveLegendLoopPlay: "Loop start (decorative)",
+    moveLegendLoopStop: "Loop stop (decorative)",
 
     // Category Translations
     cat_pixel_art: "Pixel Art & Patterns",

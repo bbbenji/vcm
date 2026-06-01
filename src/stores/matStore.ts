@@ -300,13 +300,8 @@ export const useMatStore = defineStore("mat", () => {
     if (currentTemplateId.value) {
       const tpl = templates.find((t) => t.id === currentTemplateId.value);
       if (tpl) {
-        if (tpl.instructions) {
-          // If template key exists, map to i18n instructions key
-          const key = `tpl_${currentTemplateId.value}_instr` as keyof typeof t.value;
-          activeInstructions.value = (t.value[key] as string) || tpl.instructions;
-        } else {
-          activeInstructions.value = null;
-        }
+        const key = `tpl_${currentTemplateId.value}_instr` as keyof typeof t.value;
+        activeInstructions.value = (t.value[key] as string) || null;
       }
     }
   }

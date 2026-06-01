@@ -142,13 +142,38 @@ const selectTab = (tabId: (typeof categories)[number]["id"]) => {
 // Helpers for template localization
 const getTemplateName = (tpl: (typeof templates)[number]) => {
   const key = `tpl_${tpl.id}_name` as keyof typeof store.t;
-  return (store.t[key] as string) || tpl.name;
+  return store.t[key] as string;
 };
 
 const getTemplateDesc = (tpl: (typeof templates)[number]) => {
   const key = `tpl_${tpl.id}_desc` as keyof typeof store.t;
-  return (store.t[key] as string) || tpl.description;
+  return store.t[key] as string;
 };
+
+type LegendEntry = {
+  icon: string;
+  labelKey: keyof typeof store.t;
+  sim: boolean;
+  isNum?: boolean;
+};
+
+const movementLegend: LegendEntry[] = [
+  { icon: 'Bot',            labelKey: 'moveLegendBot',           sim: true },
+  { icon: 'EvCharger',      labelKey: 'moveLegendEvCharger',     sim: true },
+  { icon: 'ArrowUp',        labelKey: 'moveLegendArrowUp',       sim: true },
+  { icon: 'ArrowDown',      labelKey: 'moveLegendArrowDown',     sim: true },
+  { icon: 'ArrowRight',     labelKey: 'moveLegendArrowRight',    sim: true },
+  { icon: 'ArrowLeft',      labelKey: 'moveLegendArrowLeft',     sim: true },
+  { icon: 'CornerUpRight',  labelKey: 'moveLegendCornerUpRight', sim: true },
+  { icon: 'CornerUpLeft',   labelKey: 'moveLegendCornerUpLeft',  sim: true },
+  { icon: 'Num2Icon',       labelKey: 'moveLegendNum',           sim: true,  isNum: true },
+  { icon: 'PlayFilled',     labelKey: 'moveLegendPlayFilled',    sim: false },
+  { icon: 'StopFilled',     labelKey: 'moveLegendStopFilled',    sim: false },
+  { icon: 'F1Icon',         labelKey: 'moveLegendF1',            sim: false },
+  { icon: 'F2Icon',         labelKey: 'moveLegendF2',            sim: false },
+  { icon: 'LoopPlayIcon',   labelKey: 'moveLegendLoopPlay',      sim: false },
+  { icon: 'LoopStopIcon',   labelKey: 'moveLegendLoopStop',      sim: false },
+];
 </script>
 
 <template>
@@ -318,6 +343,57 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
           </template>
         </template>
 
+        <!-- Movement Symbol Legend -->
+        <template v-if="activeTab === 'move'">
+          <div class="col-span-full mt-4 border-t border-slate-100 dark:border-slate-800 pt-4">
+            <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-1.5">
+              <component :is="getIcon('HelpCircle')" :size="11" />
+              {{ store.t.moveLegendTitle }}
+            </p>
+            <div class="flex flex-col gap-1.5">
+              <div
+                v-for="entry in movementLegend"
+                :key="entry.icon"
+                class="flex items-center gap-2.5"
+              >
+                <!-- Icon preview -->
+                <div class="w-7 h-7 shrink-0 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                  <span
+                    v-if="entry.isNum"
+                    class="text-[10px] font-bold select-none text-slate-800 dark:text-slate-100"
+                  >2–5×</span>
+                  <component
+                    v-else
+                    :is="getIcon(entry.icon)"
+                    class="w-4 h-4"
+                    :class="
+                      entry.icon === 'Bot'
+                        ? 'text-emerald-500 dark:text-emerald-400'
+                        : entry.icon === 'EvCharger'
+                          ? 'text-amber-500 dark:text-amber-400'
+                          : 'text-slate-600 dark:text-slate-300'
+                    "
+                  />
+                </div>
+                <!-- Description -->
+                <span class="text-[10px] text-slate-600 dark:text-slate-400 leading-tight flex-1">
+                  {{ store.t[entry.labelKey] }}
+                </span>
+                <!-- Sim / Decorative badge -->
+                <span
+                  class="text-[8px] font-bold px-1.5 py-0.5 rounded-full shrink-0 uppercase tracking-wide"
+                  :class="entry.sim
+                    ? 'bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                  "
+                >
+                  {{ entry.sim ? store.t.moveLegendSimTag : store.t.moveLegendExtTag }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </template>
+
         <!-- Predefined and instructional templates lists grouped by Category -->
         <template v-if="activeTab === 'tasks'">
           <div class="flex flex-col gap-5 col-span-full pb-6">
@@ -353,7 +429,7 @@ const getTemplateDesc = (tpl: (typeof templates)[number]) => {
                       tpl.size,
                       tpl.main,
                       tpl.secondary,
-                      tpl.instructions || null,
+                      null,
                       tpl.id,
                     )
                   "
