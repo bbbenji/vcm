@@ -38,6 +38,8 @@ import {
   PartyPopper,
   Zap,
   Compass,
+  BookOpen,
+  FolderHeart,
 } from "lucide-vue-next";
 import { h } from "vue";
 import type { Component } from "vue";
@@ -134,6 +136,8 @@ const icons = {
   PartyPopper,
   Zap,
   Compass,
+  BookOpen,
+  FolderHeart,
   PlayFilled: Play,
   StopFilled: Square,
   F1Icon,

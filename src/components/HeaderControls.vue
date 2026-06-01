@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { GRID_SIZES, useMatStore } from '../stores/matStore'
-import { Trash2, Undo2 } from 'lucide-vue-next'
+import { Trash2, Undo2, Save } from 'lucide-vue-next'
 import ShareDropdown from './ShareDropdown.vue'
 import SettingsDropdown from './SettingsDropdown.vue'
 import BaseDialog from './BaseDialog.vue'
@@ -9,6 +9,12 @@ import BaseDialog from './BaseDialog.vue'
 const store = useMatStore()
 const gridSizes = GRID_SIZES
 const isClearDialogOpen = ref(false)
+
+const triggerSaveMat = () => {
+  store.activeTab = "my_mats"
+  store.isCollapsed = false
+  store.showSaveForm = true
+}
 
 const onSizeChange = (e: Event) => {
   const target = e.target as HTMLSelectElement
@@ -80,6 +86,16 @@ const executeClear = () => {
       >
         <Trash2 :size="16" class="md:w-[18px] md:h-[18px]" />
         <span class="hidden sm:inline">{{ store.t.clear }}</span>
+      </button>
+
+      <!-- Save Action -->
+      <button
+        @click="triggerSaveMat"
+        :title="store.t.saveMat"
+        class="flex items-center gap-1 px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-lg font-bold text-xs md:text-sm transition-all bg-indigo-50 dark:bg-indigo-950/30 text-primary dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-950/60 active:scale-95 cursor-pointer shrink-0"
+      >
+        <Save :size="16" class="md:w-[18px] md:h-[18px]" />
+        <span class="hidden sm:inline">{{ store.t.saveMat }}</span>
       </button>
 
       <!-- Share & Export Actions -->

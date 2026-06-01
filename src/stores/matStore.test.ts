@@ -441,3 +441,121 @@ describe("matStore layout settings", () => {
     expect(store.showSecondaryGrid).toBe(false);
   });
 });
+
+describe("matStore custom templates", () => {
+  beforeEach(() => {
+    installBrowserStubs();
+    setActivePinia(createPinia());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("saves the current board layout as a custom template with correct metadata", () => {
+    const store = useMatStore();
+    store.initBoard(12);
+
+    const cell = store.gridData[2]?.[3];
+    if (!cell) throw new Error("Expected cell to be initialized");
+    cell.bg = "#ef4444";
+    cell.icon = "Bot";
+
+    const secCell = store.secondaryGridData[0]?.[1];
+    if (!secCell) throw new Error("Expected secondary cell to be initialized");
+    secCell.icon = "ArrowUp";
+
+    store.saveCurrentAsTemplate("My Custom Maze", "Learn standard coding", "Follow instructions carefully");
+
+    expect(store.customTemplates).toHaveLength(1);
+    const saved = store.customTemplates[0]!;
+    expect(saved.name).toBe("My Custom Maze");
+    expect(saved.desc).toBe("Learn standard coding");
+    expect(saved.instructions).toBe("Follow instructions carefully");
+    expect(saved.size).toBe(12);
+    expect(saved.main).toContainEqual([2, 3, "#ef4444", "Bot", null]);
+    expect(saved.secondary).toContainEqual([0, 1, null, "ArrowUp", null]);
+  });
+
+  it("loads a custom template and restores grid layouts and instructions", () => {
+    const store = useMatStore();
+    store.customTemplates = [
+      {
+        id: "custom_12345",
+        name: "Test Saved",
+        desc: "Task desc",
+        size: 14,
+        main: [[1, 2, "#ef4444", "Bot", null]],
+        secondary: [[0, 1, null, "ArrowRight", null]],
+        instructions: "Step by step instruction set",
+        createdAt: Date.now(),
+      },
+    ];
+
+    const tpl = store.customTemplates[0]!;
+    store.loadTemplate(tpl.size, tpl.main, tpl.secondary, tpl.instructions, tpl.id);
+
+    expect(store.gridSize).toBe(14);
+    expect(store.gridData[1]?.[2]?.bg).toBe("#ef4444");
+    expect(store.gridData[1]?.[2]?.icon).toBe("Bot");
+    expect(store.secondaryGridData[0]?.[1]?.icon).toBe("ArrowRight");
+    expect(store.activeInstructions).toBe("Step by step instruction set");
+    expect(store.currentTemplateId).toBe("custom_12345");
+  });
+
+  it("deletes a custom template and clears active template id if matched", () => {
+    const store = useMatStore();
+    store.customTemplates = [
+      {
+        id: "custom_1",
+        name: "Mat 1",
+        desc: "Desc",
+        size: 10,
+        main: [],
+        secondary: [],
+        instructions: "Run it",
+        createdAt: Date.now(),
+      },
+    ];
+
+    store.currentTemplateId = "custom_1";
+    store.activeInstructions = "Run it";
+
+    store.deleteCustomTemplate("custom_1");
+
+    expect(store.customTemplates).toHaveLength(0);
+    expect(store.currentTemplateId).toBeNull();
+    expect(store.activeInstructions).toBeNull();
+  });
+
+  it("updates/overwrites an existing custom template", () => {
+    const store = useMatStore();
+    store.customTemplates = [
+      {
+        id: "custom_1",
+        name: "Old Mat",
+        desc: "Old Desc",
+        size: 10,
+        main: [],
+        secondary: [],
+        instructions: "Old instr",
+        createdAt: Date.now(),
+      },
+    ];
+
+    store.initBoard(16);
+    const cell = store.gridData[0]?.[0];
+    if (!cell) throw new Error("Expected cell to be initialized");
+    cell.bg = "#ef4444";
+
+    store.updateCustomTemplate("custom_1", "Updated Mat Name", "New Desc", "New instr");
+
+    expect(store.customTemplates).toHaveLength(1);
+    const updated = store.customTemplates[0]!;
+    expect(updated.name).toBe("Updated Mat Name");
+    expect(updated.desc).toBe("New Desc");
+    expect(updated.instructions).toBe("New instr");
+    expect(updated.size).toBe(16);
+    expect(updated.main).toContainEqual([0, 0, "#ef4444", null, null]);
+  });
+});

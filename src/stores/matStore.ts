@@ -38,6 +38,17 @@ interface HistorySnapshot {
   currentTemplateId: string | null;
 }
 
+export interface CustomTemplate {
+  id: string;
+  name: string;
+  desc: string;
+  size: GridSize;
+  main: CompactCell[];
+  secondary: CompactCell[];
+  instructions: string | null;
+  createdAt: number;
+}
+
 type CoordinateImportKind = "bg" | "icon" | "text";
 
 interface CoordinateImportTarget {
@@ -248,6 +259,26 @@ export const useMatStore = defineStore("mat", () => {
   const history = ref<string[]>([]);
   const activeInstructions = ref<string | null>(null);
   const currentTemplateId = ref<string | null>(null);
+
+  // Sidebar navigation and layout states
+  const activeTab = ref<string>("bg");
+  const isCollapsed = ref<boolean>(false);
+  const showSaveForm = ref<boolean>(false);
+
+  // Custom Templates states
+  const customTemplates = ref<CustomTemplate[]>([]);
+  try {
+    const rawTemplates = localStorage.getItem("vcm_custom_templates");
+    if (rawTemplates) {
+      customTemplates.value = JSON.parse(rawTemplates) as CustomTemplate[];
+    }
+  } catch (e) {
+    console.error("Failed to parse custom templates", e);
+  }
+
+  watch(customTemplates, (val) => {
+    localStorage.setItem("vcm_custom_templates", JSON.stringify(val));
+  }, { deep: true });
 
   const hasSolution = computed(() => {
     if (!currentTemplateId.value) return false;
@@ -541,8 +572,12 @@ export const useMatStore = defineStore("mat", () => {
 
     // Map instructions dynamically using translation key if translation available
     if (id) {
-      const key = `tpl_${id}_instr` as keyof typeof t.value;
-      activeInstructions.value = (t.value[key] as string) || instructions;
+      if (id.startsWith("custom_")) {
+        activeInstructions.value = instructions;
+      } else {
+        const key = `tpl_${id}_instr` as keyof typeof t.value;
+        activeInstructions.value = (t.value[key] as string) || instructions;
+      }
     } else {
       activeInstructions.value = instructions;
     }
@@ -553,6 +588,68 @@ export const useMatStore = defineStore("mat", () => {
     const startCell = secondaryGridData.value[0]?.[0];
     if (startCell) startCell.icon = START_ICON;
     syncToUrl();
+  }
+
+  function saveCurrentAsTemplate(name: string, desc: string, instructions: string | null) {
+    if (isSimulating.value) {
+      resetSimulation();
+    }
+    const cleanName = name.trim() || `${t.value.my_mats} ${new Date().toLocaleDateString()}`;
+    const cleanDesc = desc.trim();
+    const cleanInstructions = instructions ? instructions.trim() : null;
+
+    const state = getCompactState();
+
+    const newTpl: CustomTemplate = {
+      id: `custom_${Date.now()}`,
+      name: cleanName,
+      desc: cleanDesc,
+      size: state.s,
+      main: state.m,
+      secondary: state.sec,
+      instructions: cleanInstructions,
+      createdAt: Date.now(),
+    };
+
+    customTemplates.value.unshift(newTpl);
+    currentTemplateId.value = newTpl.id;
+    activeInstructions.value = cleanInstructions;
+  }
+
+  function deleteCustomTemplate(id: string) {
+    customTemplates.value = customTemplates.value.filter((tpl) => tpl.id !== id);
+    if (currentTemplateId.value === id) {
+      currentTemplateId.value = null;
+      activeInstructions.value = null;
+    }
+  }
+
+  function updateCustomTemplate(id: string, name: string, desc: string, instructions: string | null) {
+    if (isSimulating.value) {
+      resetSimulation();
+    }
+    const tplIndex = customTemplates.value.findIndex((t) => t.id === id);
+    if (tplIndex === -1) return;
+
+    const cleanName = name.trim() || `${t.value.my_mats} ${new Date().toLocaleDateString()}`;
+    const cleanDesc = desc.trim();
+    const cleanInstructions = instructions ? instructions.trim() : null;
+
+    const state = getCompactState();
+
+    customTemplates.value[tplIndex] = {
+      ...customTemplates.value[tplIndex]!,
+      name: cleanName,
+      desc: cleanDesc,
+      size: state.s,
+      main: state.m,
+      secondary: state.sec,
+      instructions: cleanInstructions,
+    };
+
+    activeInstructions.value = cleanInstructions;
+    // Trigger deep watcher explicitly
+    customTemplates.value = [...customTemplates.value];
   }
 
   function showSolution() {
@@ -1089,5 +1186,12 @@ export const useMatStore = defineStore("mat", () => {
     getDirectionAngle,
     simulationPathHistory,
     simulationInventory,
+    customTemplates,
+    saveCurrentAsTemplate,
+    deleteCustomTemplate,
+    updateCustomTemplate,
+    activeTab,
+    isCollapsed,
+    showSaveForm,
   };
 });

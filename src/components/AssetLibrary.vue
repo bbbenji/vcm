@@ -1,11 +1,22 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useMatStore } from "../stores/matStore";
 import type { ToolType } from "../stores/matStore";
 import { getIcon } from "../utils/icons";
 import { templates } from "../utils/templates";
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-vue-next";
+import {
+  ChevronUp,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  FolderHeart,
+  Plus,
+  Sparkles,
+  FolderOpen,
+  Save,
+} from "lucide-vue-next";
 import SimulationControls from "./SimulationControls.vue";
+import TemplateCard from "./TemplateCard.vue";
 
 const store = useMatStore();
 const toolButtonClass =
@@ -80,6 +91,7 @@ const categories = [
   { id: "veh" as const, icon: "Car", toolType: "icon" as ToolType, items: vehicles },
   { id: "ani" as const, icon: "Cat", toolType: "icon" as ToolType, items: animals },
   { id: "tasks" as const, icon: "BookOpen", toolType: "task" as ToolType, items: [] as string[] },
+  { id: "my_mats" as const, icon: "FolderHeart", toolType: "task" as ToolType, items: [] as string[] },
 ];
 
 const taskCategories = [
@@ -88,8 +100,81 @@ const taskCategories = [
   { id: "math_symmetry" as const, titleKey: "cat_math_symmetry" as const, icon: "Binary" },
 ];
 
-const activeTab = ref<(typeof categories)[number]["id"]>("bg");
-const isCollapsed = ref(false);
+const activeTab = computed({
+  get: () => store.activeTab as (typeof categories)[number]["id"],
+  set: (val) => { store.activeTab = val; }
+});
+const isCollapsed = computed({
+  get: () => store.isCollapsed,
+  set: (val) => { store.isCollapsed = val; }
+});
+const showSaveForm = computed({
+  get: () => store.showSaveForm,
+  set: (val) => { store.showSaveForm = val; }
+});
+
+// Custom templates (My Saved Mats) logic
+const customName = ref("");
+const customDesc = ref("");
+const customInstructions = ref("");
+const saveSuccessMessage = ref(false);
+const saveSuccessUpdateMessage = ref(false);
+
+const activeCustomTemplate = computed(() => {
+  if (!store.currentTemplateId || !store.currentTemplateId.startsWith("custom_")) return null;
+  return store.customTemplates.find((t) => t.id === store.currentTemplateId);
+});
+
+// Watch loaded custom template to prepopulate name/desc/instructions when editing!
+watch(activeCustomTemplate, (tpl) => {
+  if (tpl) {
+    customName.value = tpl.name;
+    customDesc.value = tpl.desc || "";
+    customInstructions.value = tpl.instructions || "";
+  } else {
+    customName.value = "";
+    customDesc.value = "";
+    customInstructions.value = "";
+  }
+}, { immediate: true });
+
+const handleSaveCustomMat = () => {
+  store.saveCurrentAsTemplate(
+    customName.value,
+    customDesc.value,
+    customInstructions.value
+  );
+  showSaveForm.value = false;
+  
+  // Show gorgeous success feedback
+  saveSuccessMessage.value = true;
+  setTimeout(() => {
+    saveSuccessMessage.value = false;
+  }, 3000);
+};
+
+const handleUpdateCustomMat = () => {
+  if (!activeCustomTemplate.value) return;
+  store.updateCustomTemplate(
+    activeCustomTemplate.value.id,
+    customName.value,
+    customDesc.value,
+    customInstructions.value
+  );
+  showSaveForm.value = false;
+
+  // Show gorgeous update success feedback
+  saveSuccessUpdateMessage.value = true;
+  setTimeout(() => {
+    saveSuccessUpdateMessage.value = false;
+  }, 3000);
+};
+
+const handleDeleteCustomMat = (tplId: string) => {
+  if (confirm(store.t.deleteConfirm || "Are you sure you want to delete this template?")) {
+    store.deleteCustomTemplate(tplId);
+  }
+};
 
 const selectTool = (type: ToolType, value: string | null) => {
   store.activeTool = { type, value };
@@ -141,14 +226,20 @@ const selectTab = (tabId: (typeof categories)[number]["id"]) => {
 };
 
 // Helpers for template localization
-const getTemplateName = (tpl: (typeof templates)[number]) => {
+const getTemplateName = (tpl: { id: string; name?: string; desc?: string }) => {
+  if (tpl.id.startsWith("custom_")) {
+    return tpl.name || "";
+  }
   const key = `tpl_${tpl.id}_name` as keyof typeof store.t;
-  return store.t[key] as string;
+  return (store.t[key] as string) || tpl.name || "";
 };
 
-const getTemplateDesc = (tpl: (typeof templates)[number]) => {
+const getTemplateDesc = (tpl: { id: string; name?: string; desc?: string }) => {
+  if (tpl.id.startsWith("custom_")) {
+    return tpl.desc || "";
+  }
   const key = `tpl_${tpl.id}_desc` as keyof typeof store.t;
-  return store.t[key] as string;
+  return (store.t[key] as string) || tpl.desc || "";
 };
 
 type LegendEntry = {
@@ -281,7 +372,7 @@ const movementLegend: LegendEntry[] = [
       >
         <!-- Special eraser button (available in all item lists) -->
         <button
-          v-if="activeTab !== 'tasks'"
+          v-if="activeTab !== 'tasks' && activeTab !== 'my_mats'"
           draggable="true"
           @dragstart="handleDragStart($event, 'eraser', null)"
           class="w-full aspect-square rounded-lg border-2 flex justify-center items-center text-xl font-bold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 transition-all shadow-sm hover:scale-105 hover:shadow-md border-dashed border-slate-400 dark:border-slate-600 cursor-pointer"
@@ -422,10 +513,17 @@ const movementLegend: LegendEntry[] = [
 
               <!-- List of Templates in Category -->
               <div class="flex flex-col gap-3">
-                <button
+                <TemplateCard
                   v-for="tpl in templates.filter((t) => t.category === cat.id)"
                   :key="tpl.id"
-                  @click="
+                  :tpl="tpl"
+                  :is-custom="false"
+                  :get-template-name="getTemplateName"
+                  :get-template-desc="getTemplateDesc"
+                  :load-label="store.t.loadBoard"
+                  :pattern-label="store.t.pattern"
+                  :task-label="store.t.task"
+                  @load="
                     store.loadTemplate(
                       tpl.size,
                       tpl.main,
@@ -434,38 +532,178 @@ const movementLegend: LegendEntry[] = [
                       tpl.id,
                     )
                   "
-                  class="flex flex-col text-left p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 hover:bg-slate-100 dark:hover:bg-slate-950/90 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer shadow-sm select-none"
-                >
-                  <div class="flex justify-between items-center w-full">
-                    <span
-                      class="font-bold text-slate-800 dark:text-slate-100 text-xs md:text-sm tracking-tight leading-tight"
-                    >
-                      {{ getTemplateName(tpl) }}
-                    </span>
-                    <span
-                      class="text-[8px] md:text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider select-none shrink-0"
-                      :class="
-                        tpl.type === 'premade'
-                          ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
-                          : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
-                      "
-                    >
-                      {{ tpl.type === "premade" ? store.t.pattern : store.t.task }}
-                    </span>
-                  </div>
-                  <p
-                    class="text-[10px] md:text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-normal break-words"
-                  >
-                    {{ getTemplateDesc(tpl) }}
-                  </p>
-                  <span
-                    class="text-[10px] text-primary font-bold mt-3 flex items-center gap-1.5 hover:translate-x-1 transition-transform animate-pulse"
-                  >
-                    {{ store.t.loadBoard }} ({{ tpl.size }}x{{ tpl.size }}) &rarr;
-                  </span>
-                </button>
+                />
               </div>
             </div>
+          </div>
+        </template>
+
+        <!-- Custom templates lists (My Mats) -->
+        <template v-if="activeTab === 'my_mats'">
+          <div class="flex flex-col gap-4 col-span-full pb-6 relative w-full animate-fade-in">
+            
+            <!-- Success Toast Banner (New Mat) -->
+            <transition name="slide-up">
+              <div
+                v-if="saveSuccessMessage"
+                class="flex items-center gap-2 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-xl text-emerald-800 dark:text-emerald-300 text-xs font-bold shadow-md shadow-emerald-500/10 mb-2 select-none"
+              >
+                <component :is="Sparkles" class="w-4 h-4 text-emerald-500 animate-pulse" />
+                <span>{{ store.t.saveSuccess }}</span>
+              </div>
+            </transition>
+
+            <!-- Success Toast Banner (Update Mat) -->
+            <transition name="slide-up">
+              <div
+                v-if="saveSuccessUpdateMessage"
+                class="flex items-center gap-2 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-xl text-emerald-800 dark:text-emerald-300 text-xs font-bold shadow-md shadow-emerald-500/10 mb-2 select-none"
+              >
+                <component :is="Sparkles" class="w-4 h-4 text-emerald-500 animate-pulse" />
+                <span>{{ store.t.saveSuccessUpdate }}</span>
+              </div>
+            </transition>
+
+            <!-- Save Current Mat Expandable Card Form -->
+            <div class="flex flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 p-4 shadow-sm transition-all duration-300 hover:shadow-md">
+              <button
+                @click="showSaveForm = !showSaveForm"
+                class="flex items-center justify-between w-full font-bold text-xs md:text-sm text-slate-800 dark:text-slate-100 hover:text-primary transition-colors cursor-pointer select-none"
+              >
+                <span class="flex items-center gap-2">
+                  <component :is="Save" class="w-4.5 h-4.5 text-primary shrink-0" />
+                  {{ store.t.saveCurrentMatTitle }}
+                </span>
+                <component
+                  :is="showSaveForm ? ChevronUp : ChevronDown"
+                  class="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0 transition-transform duration-300"
+                />
+              </button>
+
+              <transition name="expand">
+                <form
+                  v-if="showSaveForm"
+                  @submit.prevent="handleSaveCustomMat"
+                  class="flex flex-col gap-3 mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/60"
+                >
+                  <!-- Name Input -->
+                  <div class="flex flex-col gap-1.5">
+                    <input
+                      v-model="customName"
+                      type="text"
+                      required
+                      :placeholder="store.t.matTitlePlaceholder"
+                      class="px-3 py-2 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs md:text-sm bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 outline-none focus:border-primary dark:focus:border-primary focus:ring-1 focus:ring-primary transition-all font-semibold"
+                    />
+                  </div>
+
+                  <!-- Description Input -->
+                  <div class="flex flex-col gap-1.5">
+                    <input
+                      v-model="customDesc"
+                      type="text"
+                      :placeholder="store.t.matDescPlaceholder"
+                      class="px-3 py-2 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs md:text-sm bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 outline-none focus:border-primary dark:focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                    />
+                  </div>
+
+                  <!-- Instructions Input -->
+                  <div class="flex flex-col gap-1.5">
+                    <textarea
+                      v-model="customInstructions"
+                      rows="3"
+                      :placeholder="store.t.matInstrPlaceholder"
+                      class="px-3 py-2 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs md:text-sm bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 outline-none focus:border-primary dark:focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none leading-relaxed"
+                    ></textarea>
+                  </div>
+
+                  <!-- Submit button actions (Save changes / Save as new) -->
+                  <div v-if="activeCustomTemplate" class="flex flex-col gap-2 mt-1 select-none">
+                    <!-- Overwrite / Save changes -->
+                    <button
+                      type="button"
+                      @click="handleUpdateCustomMat"
+                      class="w-full flex items-center justify-center gap-1.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all active:scale-98 cursor-pointer shadow-md shadow-emerald-500/10"
+                    >
+                      <component :is="Save" class="w-4.5 h-4.5" />
+                      <span>{{ store.t.saveChanges }}</span>
+                    </button>
+                    
+                    <!-- Save as New -->
+                    <button
+                      type="button"
+                      @click="handleSaveCustomMat"
+                      class="w-full flex items-center justify-center gap-1.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition-all active:scale-98 cursor-pointer shadow-md border border-slate-200 dark:border-slate-750"
+                    >
+                      <component :is="Plus" class="w-4 h-4" />
+                      <span>{{ store.t.saveAsNew }}</span>
+                    </button>
+                  </div>
+
+                  <!-- Standard Submit button -->
+                  <button
+                    v-else
+                    type="submit"
+                    class="flex items-center justify-center gap-1.5 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all active:scale-98 cursor-pointer shadow-md shadow-primary/10 mt-1 select-none"
+                  >
+                    <component :is="Plus" class="w-4 h-4" />
+                    <span>{{ store.t.saveBtn }}</span>
+                  </button>
+                </form>
+              </transition>
+            </div>
+
+            <!-- Custom Templates List Header -->
+            <div
+              class="flex items-center gap-2 px-1 border-b border-slate-150 dark:border-slate-800 pb-1.5 mt-2 select-none"
+            >
+              <component
+                :is="FolderOpen"
+                :size="13"
+                class="text-slate-400 dark:text-slate-500 shrink-0"
+              />
+              <span
+                class="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500"
+              >
+                {{ store.t.my_mats }}
+              </span>
+              <span
+                class="text-[8px] font-bold px-1.5 py-0.25 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 ml-auto animate-pulse-glow"
+              >
+                {{ store.customTemplates.length }}
+              </span>
+            </div>
+
+            <!-- List Cards or Empty State -->
+            <div v-if="store.customTemplates.length === 0" class="flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/20 dark:bg-slate-950/20">
+              <component :is="FolderHeart" class="w-8 h-8 text-slate-350 dark:text-slate-700 animate-pulse mb-2.5" />
+              <p class="text-[10px] md:text-xs text-slate-400 dark:text-slate-500 leading-relaxed max-w-[200px]">
+                {{ store.t.emptyCustomMats }}
+              </p>
+            </div>
+
+            <div v-else class="flex flex-col gap-3">
+              <TemplateCard
+                v-for="tpl in store.customTemplates"
+                :key="tpl.id"
+                :tpl="tpl"
+                :is-custom="true"
+                :get-template-name="getTemplateName"
+                :get-template-desc="getTemplateDesc"
+                :load-label="store.t.loadBoard"
+                @load="
+                  store.loadTemplate(
+                    tpl.size,
+                    tpl.main,
+                    tpl.secondary,
+                    tpl.instructions,
+                    tpl.id,
+                  )
+                "
+                @delete="handleDeleteCustomMat"
+              />
+            </div>
+
           </div>
         </template>
       </div>
