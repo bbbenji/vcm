@@ -12,9 +12,12 @@ const props = withDefaults(
     cancelText?: string;
     confirmVariant?: "rose" | "emerald" | "primary";
     iconType?: "clear" | "win" | "lose";
+    hideConfirm?: boolean;
+    size?: "sm" | "md" | "lg";
   }>(),
   {
     confirmVariant: "primary",
+    size: "sm",
   },
 );
 
@@ -116,6 +119,7 @@ onMounted(() => {
   <dialog
     ref="dialogRef"
     @close="handleCloseEvent"
+    @mousedown.self="handleCancel"
     class="fixed inset-0 w-screen h-screen bg-transparent border-none outline-none p-0 max-w-none shadow-none backdrop:bg-slate-950/40 backdrop:backdrop-blur-sm overflow-hidden"
   >
     <!-- Canvas for top-layer confetti (spans full viewport) -->
@@ -128,7 +132,12 @@ onMounted(() => {
     <!-- Centered dialog card container -->
     <div class="flex items-center justify-center w-full h-full p-4 pointer-events-none">
       <div
-        class="glass-modal p-6 rounded-2xl max-w-sm w-full text-slate-800 dark:text-slate-100 border border-slate-150 dark:border-slate-800/80 shadow-2xl bg-white dark:bg-slate-900 animate-fade-in pointer-events-auto relative z-10"
+        class="glass-modal p-6 rounded-2xl w-full text-slate-800 dark:text-slate-100 border border-slate-150 dark:border-slate-800/80 shadow-2xl bg-white dark:bg-slate-900 animate-fade-in pointer-events-auto relative z-10"
+        :class="{
+          'max-w-sm': size === 'sm',
+          'max-w-md': size === 'md',
+          'max-w-lg': size === 'lg'
+        }"
       >
         <div class="flex flex-col items-center text-center select-none">
           <!-- Icon Header -->
@@ -167,6 +176,8 @@ onMounted(() => {
           >
             {{ description }}
           </p>
+          
+          <slot></slot>
 
           <div class="flex w-full gap-3 font-semibold justify-end">
             <!-- Cancel button (only if cancelText is provided) -->
@@ -180,6 +191,7 @@ onMounted(() => {
 
             <!-- Confirm button -->
             <button
+              v-if="!hideConfirm"
               @click="handleConfirm"
               class="flex-1 px-4 py-2.5 text-xs font-bold text-white rounded-lg cursor-pointer transition-all active:scale-95 text-center shadow-md shadow-primary/10"
               :class="{

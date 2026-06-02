@@ -40,6 +40,7 @@ import {
   Compass,
   BookOpen,
   FolderHeart,
+  History,
 } from "lucide-vue-next";
 import { h } from "vue";
 import type { Component } from "vue";
@@ -138,6 +139,7 @@ const icons = {
   Compass,
   BookOpen,
   FolderHeart,
+  History,
   PlayFilled: Play,
   StopFilled: Square,
   F1Icon,

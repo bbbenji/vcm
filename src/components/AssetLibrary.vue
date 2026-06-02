@@ -17,6 +17,7 @@ import {
 } from "lucide-vue-next";
 import SimulationControls from "./SimulationControls.vue";
 import TemplateCard from "./TemplateCard.vue";
+import CustomColorPicker from "./CustomColorPicker.vue";
 import { trackEvent } from "../plugins/analytics";
 
 const store = useMatStore();
@@ -44,7 +45,6 @@ const colors = [
   "#ec4899",
   "#f43f5e",
   "#000000",
-  "#475569",
 ];
 const movements = [
   "Bot",
@@ -137,50 +137,50 @@ const hasDragged = ref(false);
 
 const startDrag = (e: TouchEvent | MouseEvent) => {
   if (window.innerWidth >= 768) return;
-  
+
   isDragging.value = true;
   hasDragged.value = false;
-  startY.value = 'touches' in e ? (e.touches[0]?.clientY ?? 0) : e.clientY;
+  startY.value = "touches" in e ? (e.touches[0]?.clientY ?? 0) : e.clientY;
   startHeight.value = isCollapsed.value ? 36 : mobileHeight.value; // 36 is h-9
-  
-  document.addEventListener('mousemove', onDrag);
-  document.addEventListener('mouseup', stopDrag);
-  document.addEventListener('touchmove', onDrag, { passive: false });
-  document.addEventListener('touchend', stopDrag);
+
+  document.addEventListener("mousemove", onDrag);
+  document.addEventListener("mouseup", stopDrag);
+  document.addEventListener("touchmove", onDrag, { passive: false });
+  document.addEventListener("touchend", stopDrag);
 };
 
 const onDrag = (e: TouchEvent | MouseEvent) => {
   if (!isDragging.value) return;
-  
-  const currentY = 'touches' in e ? (e.touches[0]?.clientY ?? 0) : e.clientY;
+
+  const currentY = "touches" in e ? (e.touches[0]?.clientY ?? 0) : e.clientY;
   const deltaY = startY.value - currentY;
-  
+
   if (Math.abs(deltaY) > 5) {
     hasDragged.value = true;
   }
-  
+
   if (hasDragged.value) {
-    if ('touches' in e && e.cancelable) {
+    if ("touches" in e && e.cancelable) {
       e.preventDefault();
     }
-    
+
     let newHeight = startHeight.value + deltaY;
     const minHeight = 120;
     const maxHeight = window.innerHeight * 0.85;
-    
+
     if (newHeight < minHeight) {
       if (newHeight < 80) {
-         isCollapsed.value = true;
-         newHeight = 36;
+        isCollapsed.value = true;
+        newHeight = 36;
       } else {
-         newHeight = minHeight;
-         isCollapsed.value = false;
+        newHeight = minHeight;
+        isCollapsed.value = false;
       }
     } else {
       isCollapsed.value = false;
       if (newHeight > maxHeight) newHeight = maxHeight;
     }
-    
+
     if (!isCollapsed.value) {
       mobileHeight.value = newHeight;
     }
@@ -189,10 +189,10 @@ const onDrag = (e: TouchEvent | MouseEvent) => {
 
 const stopDrag = () => {
   isDragging.value = false;
-  document.removeEventListener('mousemove', onDrag);
-  document.removeEventListener('mouseup', stopDrag);
-  document.removeEventListener('touchmove', onDrag);
-  document.removeEventListener('touchend', stopDrag);
+  document.removeEventListener("mousemove", onDrag);
+  document.removeEventListener("mouseup", stopDrag);
+  document.removeEventListener("touchmove", onDrag);
+  document.removeEventListener("touchend", stopDrag);
 };
 
 const toggleCollapse = (e: Event) => {
@@ -210,37 +210,37 @@ const startWidth = ref(0);
 
 const startDragDesktop = (e: MouseEvent) => {
   if (window.innerWidth < 768) return;
-  
+
   isDragging.value = true;
   startX.value = e.clientX;
   startWidth.value = desktopWidth.value;
-  
-  document.body.style.cursor = 'col-resize';
-  document.addEventListener('mousemove', onDragDesktop);
-  document.addEventListener('mouseup', stopDragDesktop);
+
+  document.body.style.cursor = "col-resize";
+  document.addEventListener("mousemove", onDragDesktop);
+  document.addEventListener("mouseup", stopDragDesktop);
 };
 
 const onDragDesktop = (e: MouseEvent) => {
   if (!isDragging.value) return;
-  
+
   // Dragging left (negative deltaX) should increase the width of a right-sided drawer
-  const deltaX = startX.value - e.clientX; 
+  const deltaX = startX.value - e.clientX;
   let newWidth = startWidth.value + deltaX;
-  
+
   const minWidth = 250;
   const maxWidth = window.innerWidth * 0.7;
-  
+
   if (newWidth < minWidth) newWidth = minWidth;
   if (newWidth > maxWidth) newWidth = maxWidth;
-  
+
   desktopWidth.value = newWidth;
 };
 
 const stopDragDesktop = () => {
   isDragging.value = false;
-  document.body.style.cursor = '';
-  document.removeEventListener('mousemove', onDragDesktop);
-  document.removeEventListener('mouseup', stopDragDesktop);
+  document.body.style.cursor = "";
+  document.removeEventListener("mousemove", onDragDesktop);
+  document.removeEventListener("mouseup", stopDragDesktop);
 };
 
 // Custom templates (My Saved Mats) logic
@@ -306,8 +306,32 @@ const handleDeleteCustomMat = (tplId: string) => {
   }
 };
 
+const recentColors = ref<string[]>([]);
+try {
+  const stored = localStorage.getItem("vcm_recent_colors");
+  if (stored) recentColors.value = JSON.parse(stored);
+} catch {}
+
+watch(
+  recentColors,
+  (val) => {
+    localStorage.setItem("vcm_recent_colors", JSON.stringify(val));
+  },
+  { deep: true },
+);
+
+const customColor = ref("#ffffff");
+
+const addRecentColor = (color: string) => {
+  const c = color.toLowerCase();
+  recentColors.value = [c, ...recentColors.value.filter((x) => x !== c)].slice(0, 20);
+};
+
 const selectTool = (type: ToolType, value: string | null) => {
   store.activeTool = { type, value };
+  if (type === "background" && value) {
+    addRecentColor(value);
+  }
 };
 
 const handleDragStart = (e: DragEvent, type: ToolType, value: string | null) => {
@@ -376,14 +400,14 @@ let resizeObserver: ResizeObserver | null = null;
 
 onMounted(() => {
   updateScrollShadows();
-  
+
   if (tabsContainerRef.value) {
     resizeObserver = new ResizeObserver(() => {
       updateScrollShadows();
     });
     resizeObserver.observe(tabsContainerRef.value);
   }
-  
+
   window.addEventListener("resize", updateScrollShadows);
   setTimeout(updateScrollShadows, 100);
 });
@@ -393,12 +417,12 @@ onUnmounted(() => {
     resizeObserver.disconnect();
   }
   window.removeEventListener("resize", updateScrollShadows);
-  document.removeEventListener('mousemove', onDrag);
-  document.removeEventListener('mouseup', stopDrag);
-  document.removeEventListener('touchmove', onDrag);
-  document.removeEventListener('touchend', stopDrag);
-  document.removeEventListener('mousemove', onDragDesktop);
-  document.removeEventListener('mouseup', stopDragDesktop);
+  document.removeEventListener("mousemove", onDrag);
+  document.removeEventListener("mouseup", stopDrag);
+  document.removeEventListener("touchmove", onDrag);
+  document.removeEventListener("touchend", stopDrag);
+  document.removeEventListener("mousemove", onDragDesktop);
+  document.removeEventListener("mouseup", stopDragDesktop);
 });
 
 const selectTab = (tabId: (typeof categories)[number]["id"]) => {
@@ -457,7 +481,7 @@ const movementLegend: LegendEntry[] = [
     class="flex flex-col relative bg-white dark:bg-slate-900 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-800 w-full overflow-hidden shrink-0 shadow-lg md:w-[var(--desktop-width)]"
     :class="[
       isCollapsed ? 'h-9 md:h-full' : 'h-[var(--mobile-height)] md:!h-full',
-      !isDragging ? 'transition-all duration-300 ease-in-out' : '!transition-none'
+      !isDragging ? 'transition-all duration-300 ease-in-out' : '!transition-none',
     ]"
     :style="{ '--mobile-height': `${mobileHeight}px`, '--desktop-width': `${desktopWidth}px` }"
   >
@@ -466,7 +490,9 @@ const movementLegend: LegendEntry[] = [
       class="hidden md:flex absolute top-0 left-0 bottom-0 w-2 cursor-col-resize hover:bg-slate-300/50 dark:hover:bg-slate-600/50 active:bg-slate-300/80 dark:active:bg-slate-600/80 z-50 items-center justify-center transition-colors group"
       @mousedown.prevent="startDragDesktop"
     >
-       <div class="w-1 h-8 rounded-full bg-slate-300 dark:bg-slate-600 transition-colors group-hover:bg-slate-400 dark:group-hover:bg-slate-500"></div>
+      <div
+        class="w-1 h-8 rounded-full bg-slate-300 dark:bg-slate-600 transition-colors group-hover:bg-slate-400 dark:group-hover:bg-slate-500"
+      ></div>
     </div>
 
     <!-- Collapsible drawer slider button for mobile devices -->
@@ -478,7 +504,9 @@ const movementLegend: LegendEntry[] = [
       :aria-expanded="!isCollapsed"
     >
       <!-- Drag handle pill -->
-      <div class="w-10 h-1 rounded-full bg-slate-300 dark:bg-slate-600 transition-colors group-hover:bg-slate-400 dark:group-hover:bg-slate-500 mb-0.5"></div>
+      <div
+        class="w-10 h-1 rounded-full bg-slate-300 dark:bg-slate-600 transition-colors group-hover:bg-slate-400 dark:group-hover:bg-slate-500 mb-0.5"
+      ></div>
 
       <div
         class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-bold text-[10px] tracking-wider uppercase"
@@ -635,6 +663,49 @@ const movementLegend: LegendEntry[] = [
               />
               <template v-else-if="cat.toolType === 'text'">{{ item }}</template>
             </button>
+
+            <!-- Custom color picker -->
+            <CustomColorPicker
+              v-if="cat.toolType === 'background'"
+              v-model="customColor"
+              :selected-tool-class="selectedToolClass"
+              :is-active="
+                store.activeTool.type === 'background' && store.activeTool.value === customColor
+              "
+              :title="store.t.customColor || 'Custom color'"
+              @input="store.activeTool = { type: 'background', value: $event }"
+              @change="selectTool('background', $event)"
+            />
+
+            <!-- Recent Colors Legend -->
+            <template v-if="cat.toolType === 'background' && recentColors.length > 0">
+              <div class="col-span-full mt-4 border-t border-slate-100 dark:border-slate-800 pt-4">
+                <p
+                  class="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-1.5"
+                >
+                  <component :is="getIcon('History')" :size="11" />
+                  {{ store.t.recentColors || "Recent Colors" }}
+                </p>
+                <div
+                  class="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] md:grid-cols-[repeat(auto-fill,minmax(3rem,1fr))] gap-2.5 w-full"
+                >
+                  <button
+                    v-for="item in recentColors"
+                    :key="'recent-' + item"
+                    draggable="true"
+                    @dragstart="handleDragStart($event, 'background', item)"
+                    class="w-full aspect-square rounded-lg border flex justify-center items-center text-xl font-bold bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 transition-all shadow-sm hover:scale-105 hover:shadow-md border-black/10 dark:border-white/10 cursor-pointer"
+                    :class="{
+                      [selectedToolClass]:
+                        store.activeTool.type === 'background' && store.activeTool.value === item,
+                    }"
+                    :style="{ backgroundColor: item }"
+                    @click="selectTool('background', item)"
+                    :title="item"
+                  ></button>
+                </div>
+              </div>
+            </template>
           </template>
         </template>
 
