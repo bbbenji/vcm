@@ -78,7 +78,6 @@ const movements = [
   "Num5Icon",
   "Num6Icon",
 ];
-const numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "-", "=", "<", ">"];
 const alphabet = "AĄBCĆDEĘFGHIJKLŁMNŃOÓPRSŚTUWYZŹŻ?!.".split("");
 const vehicles = [
   "Car",
@@ -98,7 +97,7 @@ const animals = ["Cat", "Dog", "Bird", "Rabbit", "Snail", "Bug", "Fish", "Turtle
 const categories = [
   { id: "bg" as const, icon: "Palette", toolType: "background" as ToolType, items: colors },
   { id: "move" as const, icon: "Move", toolType: "icon" as ToolType, items: movements },
-  { id: "num" as const, icon: "Binary", toolType: "text" as ToolType, items: numbers },
+  { id: "num" as const, icon: "Binary", toolType: "text" as ToolType, items: [] as string[] },
   { id: "abc" as const, icon: "Type", toolType: "text" as ToolType, items: alphabet },
   { id: "emoji" as const, icon: "Smile", toolType: "text" as ToolType, items: [] as string[] },
   { id: "veh" as const, icon: "Car", toolType: "icon" as ToolType, items: vehicles },
@@ -116,6 +115,15 @@ const taskCategories = [
   { id: "pixel_art" as const, titleKey: "cat_pixel_art" as const, icon: "Palette" },
   { id: "algorithm" as const, titleKey: "cat_algorithm" as const, icon: "Move" },
   { id: "math_symmetry" as const, titleKey: "cat_math_symmetry" as const, icon: "Binary" },
+];
+
+const numCategories = [
+  { id: "num_basic" as const, titleKey: "num_basic" as const, icon: "Calculator", items: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "-", "=", "<", ">", "×", "*", "·", "÷", "/", "%", "±", "∓", "(", ")", "[", "]", "{", "}"] },
+  { id: "num_adv" as const, titleKey: "num_adv" as const, icon: "EqualNot", items: ["≠", "≈", "≤", "≥", "≡", "≪", "≫"] },
+  { id: "num_alg" as const, titleKey: "num_alg" as const, icon: "Superscript", items: ["√", "∛", "^", "!", "|"] },
+  { id: "num_const" as const, titleKey: "num_const" as const, icon: "Pi", items: ["π", "e", "i", "∞", "∫", "∑", "∏", "∂", "∆"] },
+  { id: "num_set" as const, titleKey: "num_set" as const, icon: "Infinity", items: ["∈", "∉", "∪", "∩", "⊂", "∅", "∴", "∵", "∀", "∃"] },
+  { id: "num_geo" as const, titleKey: "num_geo" as const, icon: "Triangle", items: ["°", "∠", "⊥", "∥", "△"] },
 ];
 
 const emojiCategories = [
@@ -795,6 +803,40 @@ const movementLegend: LegendEntry[] = [
                 >
                   {{ entry.sim ? store.t.moveLegendSimTag : store.t.moveLegendExtTag }}
                 </span>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Numbers list grouped by Category -->
+        <template v-if="activeTab === 'num'">
+          <div class="flex flex-col gap-5 col-span-full pb-6">
+            <div v-for="cat in numCategories" :key="cat.id" class="flex flex-col gap-2.5">
+              <!-- Category Header -->
+              <CategoryHeader
+                :icon="cat.icon"
+                :title="String(store.t[cat.titleKey as keyof typeof store.t])"
+                :count="cat.items.length"
+              />
+              
+              <!-- Items Grid -->
+              <div class="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] md:grid-cols-[repeat(auto-fill,minmax(3rem,1fr))] gap-2.5 w-full">
+                <button
+                  v-for="item in cat.items"
+                  :key="item"
+                  draggable="true"
+                  @dragstart="handleDragStart($event, 'text', item)"
+                  :class="[
+                    toolButtonClass,
+                    {
+                      [selectedToolClass]: store.activeTool.type === 'text' && store.activeTool.value === item,
+                    },
+                  ]"
+                  @click="selectTool('text', item)"
+                  :title="item"
+                >
+                  {{ item }}
+                </button>
               </div>
             </div>
           </div>

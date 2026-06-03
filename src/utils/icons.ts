@@ -50,6 +50,12 @@ import {
   Apple,
   Hash,
   Flag,
+  Calculator,
+  EqualNot,
+  Superscript,
+  Pi,
+  Infinity as InfinityIcon,
+  Triangle,
 } from "lucide-vue-next";
 import { h } from "vue";
 import type { Component } from "vue";
@@ -158,6 +164,12 @@ const icons = {
   Apple,
   Hash,
   Flag,
+  Calculator,
+  EqualNot,
+  Superscript,
+  Pi,
+  Infinity: InfinityIcon,
+  Triangle,
   PlayFilled: Play,
   StopFilled: Square,
   F1Icon,

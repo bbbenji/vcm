@@ -98,6 +98,14 @@ export const translations = {
     moveLegendLoopPlay: "Pętla start (dekoracja)",
     moveLegendLoopStop: "Pętla stop (dekoracja)",
 
+    // Number Category Translations
+    num_basic: "Podstawowa arytmetyka i nawiasy",
+    num_adv: "Zaawansowane równania i porównania",
+    num_alg: "Algebra, pierwiastki i potęgi",
+    num_const: "Stałe i analiza matematyczna",
+    num_set: "Teoria mnogości i logika",
+    num_geo: "Geometria i trygonometria",
+
     // Category Translations
     cat_pixel_art: "Rysunki i Pixel Art",
     cat_algorithm: "Ruch i Algorytmy",
@@ -260,6 +268,14 @@ export const translations = {
     moveLegendF2: "Function F2 (decorative)",
     moveLegendLoopPlay: "Loop start (decorative)",
     moveLegendLoopStop: "Loop stop (decorative)",
+
+    // Number Category Translations
+    num_basic: "Basic Arithmetic & Grouping",
+    num_adv: "Advanced Equality & Comparison",
+    num_alg: "Algebra, Roots & Exponents",
+    num_const: "Constants & Calculus",
+    num_set: "Set Theory & Logic",
+    num_geo: "Geometry & Trigonometry",
 
     // Category Translations
     cat_pixel_art: "Pixel Art & Patterns",
