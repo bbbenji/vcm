@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, defineAsyncComponent } from "vue";
+import { ref, defineAsyncComponent, onMounted, onUnmounted } from "vue";
 import { GRID_SIZES, useMatStore } from "../stores/matStore";
-import { Trash2, Undo2, Save } from "lucide-vue-next";
+import { Trash2, Undo2, Save, ChevronLeft, ChevronRight } from "lucide-vue-next";
 import { trackEvent } from "../plugins/analytics";
 
 const ShareDropdown = defineAsyncComponent(() => import("./ShareDropdown.vue"));
@@ -32,6 +32,49 @@ const executeClear = () => {
   store.clearBoard();
   trackEvent("clear_mat");
 };
+
+const actionsContainerRef = ref<HTMLElement | null>(null);
+const showLeftShadow = ref(false);
+const showRightShadow = ref(false);
+
+const updateScrollShadows = () => {
+  const el = actionsContainerRef.value;
+  if (!el) return;
+  showLeftShadow.value = el.scrollLeft > 5;
+  showRightShadow.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 5;
+};
+
+const scrollActions = (direction: "left" | "right") => {
+  const el = actionsContainerRef.value;
+  if (!el) return;
+  const scrollAmount = direction === "left" ? -150 : 150;
+  el.scrollBy({
+    left: scrollAmount,
+    behavior: "smooth",
+  });
+};
+
+let resizeObserver: ResizeObserver | null = null;
+
+onMounted(() => {
+  updateScrollShadows();
+  
+  if (actionsContainerRef.value) {
+    resizeObserver = new ResizeObserver(() => {
+      updateScrollShadows();
+    });
+    resizeObserver.observe(actionsContainerRef.value);
+  }
+  window.addEventListener("resize", updateScrollShadows);
+  setTimeout(updateScrollShadows, 100);
+});
+
+onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
+  window.removeEventListener("resize", updateScrollShadows);
+});
 </script>
 
 <template>
@@ -51,12 +94,58 @@ const executeClear = () => {
       </picture>
     </div>
 
-    <!-- Center/Right Action Menu -->
-    <div
-      class="flex flex-row flex-nowrap items-center gap-1.5 sm:gap-2.5 md:gap-4 py-0.5 max-w-full overflow-x-auto scrollbar-none ml-auto"
-    >
-      <!-- Grid Size Selection -->
-      <div class="flex items-center gap-1 md:gap-2 font-medium shrink-0">
+    <!-- Center/Right Action Menu Wrapper -->
+    <div class="relative flex-1 min-w-0 ml-auto flex items-center justify-end">
+      <!-- Left scroll shadow fade -->
+      <div
+        class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white/90 dark:from-slate-900/90 to-transparent pointer-events-none z-10 transition-opacity duration-300"
+        :class="showLeftShadow ? 'opacity-100' : 'opacity-0'"
+      ></div>
+
+      <!-- Right scroll shadow fade -->
+      <div
+        class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white/90 dark:from-slate-900/90 to-transparent pointer-events-none z-10 transition-opacity duration-300"
+        :class="showRightShadow ? 'opacity-100' : 'opacity-0'"
+      ></div>
+
+      <!-- Left scroll indicator chevron button -->
+      <button
+        @click="scrollActions('left')"
+        class="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-md border border-slate-150 dark:border-slate-700/80 cursor-pointer z-20 transition-all duration-300 hover:scale-105 active:scale-90 hover:bg-slate-50 dark:hover:bg-slate-700"
+        :class="
+          showLeftShadow
+            ? 'opacity-100 translate-x-0 scale-100'
+            : 'opacity-0 -translate-x-2 scale-75 pointer-events-none'
+        "
+        title="Scroll Left"
+      >
+        <component :is="ChevronLeft" :size="14" class="stroke-[3]" />
+      </button>
+
+      <!-- Right scroll indicator chevron button -->
+      <button
+        @click="scrollActions('right')"
+        class="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-md border border-slate-150 dark:border-slate-700/80 cursor-pointer z-20 transition-all duration-300 hover:scale-105 active:scale-90 hover:bg-slate-50 dark:hover:bg-slate-700"
+        :class="
+          showRightShadow
+            ? 'opacity-100 translate-x-0 scale-100 animate-pulse'
+            : 'opacity-0 translate-x-2 scale-75 pointer-events-none'
+        "
+        title="Scroll Right"
+      >
+        <component :is="ChevronRight" :size="14" class="stroke-[3]" />
+      </button>
+
+      <!-- Center/Right Action Menu -->
+      <div
+        ref="actionsContainerRef"
+        @scroll="updateScrollShadows"
+        class="flex flex-row flex-nowrap items-center gap-1.5 sm:gap-2.5 md:gap-4 py-0.5 w-full overflow-x-auto scrollbar-none"
+      >
+        <!-- Spacer to push items right when there's space -->
+        <div class="flex-1 min-w-0"></div>
+        <!-- Grid Size Selection -->
+        <div class="flex items-center gap-1 md:gap-2 font-medium shrink-0">
         <label
           for="grid-size"
           class="hidden md:inline text-xs md:text-sm text-slate-500 dark:text-slate-400 font-semibold"
@@ -111,6 +200,7 @@ const executeClear = () => {
 
       <!-- Settings Dropdown -->
       <SettingsDropdown />
+    </div>
     </div>
   </header>
 

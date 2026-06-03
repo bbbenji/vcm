@@ -28,6 +28,7 @@ import SimulationControls from "./SimulationControls.vue";
 import TemplateCard from "./TemplateCard.vue";
 import CustomColorPicker from "./CustomColorPicker.vue";
 import CategoryHeader from "./CategoryHeader.vue";
+import BaseDialog from "./BaseDialog.vue";
 import { trackEvent } from "../plugins/analytics";
 
 const store = useMatStore();
@@ -322,10 +323,25 @@ const handleUpdateCustomMat = () => {
   }, 3000);
 };
 
+const showDeleteDialog = ref(false);
+const templateToDelete = ref<string | null>(null);
+
 const handleDeleteCustomMat = (tplId: string) => {
-  if (confirm(store.t.deleteConfirm || "Are you sure you want to delete this template?")) {
-    store.deleteCustomTemplate(tplId);
+  templateToDelete.value = tplId;
+  showDeleteDialog.value = true;
+};
+
+const confirmDeleteCustomMat = () => {
+  if (templateToDelete.value) {
+    store.deleteCustomTemplate(templateToDelete.value);
+    templateToDelete.value = null;
   }
+  showDeleteDialog.value = false;
+};
+
+const cancelDeleteCustomMat = () => {
+  templateToDelete.value = null;
+  showDeleteDialog.value = false;
 };
 
 const recentColors = ref<string[]>([]);
@@ -1006,5 +1022,18 @@ const movementLegend: LegendEntry[] = [
         </template>
       </div>
     </div>
+
+    <BaseDialog
+      :isOpen="showDeleteDialog"
+      title="Delete Template"
+      :description="String(store.t.deleteConfirm || 'Are you sure you want to delete this template?')"
+      confirmText="Delete"
+      :cancelText="String(store.t.cancel || 'Cancel')"
+      confirmVariant="rose"
+      iconType="clear"
+      @confirm="confirmDeleteCustomMat"
+      @cancel="cancelDeleteCustomMat"
+      @close="cancelDeleteCustomMat"
+    />
   </aside>
 </template>
