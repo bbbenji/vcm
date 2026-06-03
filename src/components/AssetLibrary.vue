@@ -33,7 +33,7 @@ import { trackEvent } from "../plugins/analytics";
 
 const store = useMatStore();
 const toolButtonClass =
-  "w-full aspect-square rounded-lg border-2 flex justify-center items-center text-xl font-bold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 transition-all shadow-sm hover:scale-105 hover:shadow-md border-slate-200 dark:border-slate-700/80 cursor-pointer";
+  "w-full aspect-square rounded-lg border-2 flex justify-center items-center text-xl font-bold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 transition-all duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] shadow-sm hover:scale-105 hover:shadow-md border-slate-200 dark:border-slate-700/80 cursor-pointer sleek-focus";
 const selectedToolClass =
   "!border-primary dark:!border-primary scale-110 shadow-[0_0_0_3px_rgba(99,102,241,0.35)] dark:shadow-[0_0_0_3px_rgba(99,102,241,0.5)]";
 
@@ -232,7 +232,14 @@ const toggleCollapse = (e: Event) => {
     e.stopPropagation();
     return;
   }
-  isCollapsed.value = !isCollapsed.value;
+  if (!document.startViewTransition) {
+    isCollapsed.value = !isCollapsed.value;
+    return;
+  }
+  document.startViewTransition(async () => {
+    isCollapsed.value = !isCollapsed.value;
+    await nextTick();
+  });
 };
 
 // --- Desktop horizontal drag ---
@@ -598,7 +605,7 @@ const movementLegend: LegendEntry[] = [
       <!-- Left scroll indicator chevron button -->
       <button
         @click="scrollTabs('left')"
-        class="absolute left-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center h-5 w-5 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-md border border-slate-150 dark:border-slate-700/80 cursor-pointer z-20 transition-all duration-300 hover:scale-105 active:scale-90 hover:bg-slate-50 dark:hover:bg-slate-700"
+        class="absolute left-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center h-5 w-5 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-md border border-slate-150 dark:border-slate-700/80 cursor-pointer z-20 transition-all duration-300 hover:scale-105 active:scale-90 hover:bg-slate-50 dark:hover:bg-slate-700 sleek-focus"
         :class="
           showLeftShadow
             ? 'opacity-100 translate-x-0 scale-100'
@@ -612,7 +619,7 @@ const movementLegend: LegendEntry[] = [
       <!-- Right scroll indicator chevron button -->
       <button
         @click="scrollTabs('right')"
-        class="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center h-5 w-5 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-md border border-slate-150 dark:border-slate-700/80 cursor-pointer z-20 transition-all duration-300 hover:scale-105 active:scale-90 hover:bg-slate-50 dark:hover:bg-slate-700"
+        class="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center h-5 w-5 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-md border border-slate-150 dark:border-slate-700/80 cursor-pointer z-20 transition-all duration-300 hover:scale-105 active:scale-90 hover:bg-slate-50 dark:hover:bg-slate-700 sleek-focus"
         :class="
           showRightShadow
             ? 'opacity-100 translate-x-0 scale-100 animate-pulse'
@@ -632,7 +639,7 @@ const movementLegend: LegendEntry[] = [
         <button
           v-for="cat in categories"
           :key="cat.id"
-          class="flex flex-col items-center justify-center gap-1 p-1 md:p-2 rounded-lg text-slate-500 dark:text-slate-400 transition-colors hover:bg-slate-200/70 dark:hover:bg-slate-800/70 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer shrink-0 w-[74px] md:w-auto md:flex-1"
+          class="flex flex-col items-center justify-center gap-1 p-1 md:p-2 rounded-lg text-slate-500 dark:text-slate-400 transition-colors hover:bg-slate-200/70 dark:hover:bg-slate-800/70 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer shrink-0 w-[74px] md:w-auto md:flex-1 sleek-focus"
           :class="{
             'bg-white dark:bg-slate-800 text-primary dark:text-primary shadow-sm font-bold border border-slate-100 dark:border-slate-700/30':
               activeTab === cat.id,

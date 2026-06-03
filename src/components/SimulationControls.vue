@@ -99,7 +99,7 @@ const store = useMatStore();
             wasPaused ? store.resumeSimulation() : store.startSimulation();
             trackEvent('simulation_start', { resumed: wasPaused });
           "
-          class="flex items-center justify-center h-8 px-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0 shadow-sm shadow-emerald-500/10"
+          class="flex items-center justify-center h-8 px-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0 shadow-sm shadow-emerald-500/10 sleek-focus"
           :title="store.simulationStatus === 'paused' ? store.t.simResume : store.t.simStart"
         >
           <Play :size="12" class="fill-current mr-1" />
@@ -114,7 +114,7 @@ const store = useMatStore();
             store.pauseSimulation();
             trackEvent('simulation_stop');
           "
-          class="flex items-center justify-center h-8 px-3 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0 shadow-sm shadow-amber-500/10"
+          class="flex items-center justify-center h-8 px-3 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0 shadow-sm shadow-amber-500/10 sleek-focus"
           :title="store.t.simPause"
         >
           <Pause :size="12" class="fill-current mr-1" />
@@ -127,7 +127,7 @@ const store = useMatStore();
             store.resetSimulation();
             trackEvent('simulation_reset');
           "
-          class="flex items-center justify-center h-8 w-8 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-all active:scale-95 cursor-pointer shrink-0 border border-slate-200/20"
+          class="flex items-center justify-center h-8 w-8 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-all active:scale-95 cursor-pointer shrink-0 border border-slate-200/20 sleek-focus"
           :title="store.t.simResetTitle"
           :aria-label="store.t.simResetTitle"
         >
@@ -138,7 +138,7 @@ const store = useMatStore();
         <button
           v-if="store.hasSolution"
           @click="store.showSolution()"
-          class="flex items-center justify-center h-8 w-8 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-950/60 text-primary dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/40 rounded-lg transition-all active:scale-95 cursor-pointer shrink-0"
+          class="flex items-center justify-center h-8 w-8 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-950/60 text-primary dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/40 rounded-lg transition-all active:scale-95 cursor-pointer shrink-0 sleek-focus"
           :title="store.t.simSolutionTitle"
           :aria-label="store.t.simSolutionTitle"
         >
@@ -150,7 +150,7 @@ const store = useMatStore();
       <div class="flex items-center gap-1 pl-2 border-l border-slate-200 dark:border-slate-800">
         <button
           @click="store.changeSpeed(1500)"
-          class="h-7 w-7 rounded-md cursor-pointer flex items-center justify-center transition-colors"
+          class="h-7 w-7 rounded-md cursor-pointer flex items-center justify-center transition-colors sleek-focus"
           :class="
             store.simulationSpeed === 1500
               ? 'bg-primary text-white font-bold'
@@ -163,7 +163,7 @@ const store = useMatStore();
         </button>
         <button
           @click="store.changeSpeed(800)"
-          class="h-7 w-7 rounded-md cursor-pointer flex items-center justify-center transition-colors"
+          class="h-7 w-7 rounded-md cursor-pointer flex items-center justify-center transition-colors sleek-focus"
           :class="
             store.simulationSpeed === 800
               ? 'bg-primary text-white font-bold'
@@ -176,7 +176,7 @@ const store = useMatStore();
         </button>
         <button
           @click="store.changeSpeed(300)"
-          class="h-7 w-7 rounded-md cursor-pointer flex items-center justify-center transition-colors"
+          class="h-7 w-7 rounded-md cursor-pointer flex items-center justify-center transition-colors sleek-focus"
           :class="
             store.simulationSpeed === 300
               ? 'bg-primary text-white font-bold'

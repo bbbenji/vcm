@@ -79,7 +79,7 @@ onUnmounted(() => {
 
 <template>
   <header
-    class="flex flex-row justify-between items-center p-3 md:p-4 md:px-8 bg-white/90 dark:bg-slate-900/90 border-b border-slate-100 dark:border-slate-800/80 backdrop-blur-md sticky top-0 z-40 gap-2 select-none shadow-sm transition-colors duration-300"
+    class="flex flex-row justify-between items-center p-3 md:p-4 md:px-8 glass-header sticky top-0 z-40 gap-2 select-none shadow-sm transition-colors duration-300"
   >
     <!-- Logo Title -->
     <div class="flex items-center shrink-0">
@@ -111,7 +111,7 @@ onUnmounted(() => {
       <!-- Left scroll indicator chevron button -->
       <button
         @click="scrollActions('left')"
-        class="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-md border border-slate-150 dark:border-slate-700/80 cursor-pointer z-20 transition-all duration-300 hover:scale-105 active:scale-90 hover:bg-slate-50 dark:hover:bg-slate-700"
+        class="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-md border border-slate-150 dark:border-slate-700/80 cursor-pointer z-20 transition-all duration-300 hover:scale-105 active:scale-90 hover:bg-slate-50 dark:hover:bg-slate-700 sleek-focus"
         :class="
           showLeftShadow
             ? 'opacity-100 translate-x-0 scale-100'
@@ -125,7 +125,7 @@ onUnmounted(() => {
       <!-- Right scroll indicator chevron button -->
       <button
         @click="scrollActions('right')"
-        class="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-md border border-slate-150 dark:border-slate-700/80 cursor-pointer z-20 transition-all duration-300 hover:scale-105 active:scale-90 hover:bg-slate-50 dark:hover:bg-slate-700"
+        class="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-center h-6 w-6 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-md border border-slate-150 dark:border-slate-700/80 cursor-pointer z-20 transition-all duration-300 hover:scale-105 active:scale-90 hover:bg-slate-50 dark:hover:bg-slate-700 sleek-focus"
         :class="
           showRightShadow
             ? 'opacity-100 translate-x-0 scale-100 animate-pulse'
@@ -155,7 +155,7 @@ onUnmounted(() => {
           id="grid-size"
           :value="store.gridSize"
           @change="onSizeChange"
-          class="px-2 py-1 md:px-3 md:py-2 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs md:text-sm bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 outline-none focus:border-primary dark:focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer font-semibold"
+          class="px-2 py-1 md:px-3 md:py-2 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs md:text-sm bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 cursor-pointer font-semibold sleek-focus"
         >
           <option v-for="size in gridSizes" :key="size" :value="size">{{ size }}x{{ size }}</option>
         </select>
@@ -166,7 +166,7 @@ onUnmounted(() => {
         @click="store.undo"
         :disabled="store.history.length === 0"
         :title="store.t.undo"
-        class="flex items-center gap-1 px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-lg font-bold text-xs md:text-sm transition-all bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer shrink-0"
+        class="flex items-center gap-1 px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-lg font-bold text-xs md:text-sm transition-all bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer shrink-0 sleek-focus"
       >
         <Undo2 :size="16" class="md:w-[18px] md:h-[18px]" />
         <span class="hidden sm:inline">{{ store.t.undo }}</span>
@@ -176,7 +176,7 @@ onUnmounted(() => {
       <button
         @click="confirmClear"
         :title="store.t.clear"
-        class="flex items-center gap-1 px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-lg font-bold text-xs md:text-sm transition-all bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/60 active:scale-95 cursor-pointer shrink-0"
+        class="flex items-center gap-1 px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-lg font-bold text-xs md:text-sm transition-all bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/60 active:scale-95 cursor-pointer shrink-0 sleek-focus"
       >
         <Trash2 :size="16" class="md:w-[18px] md:h-[18px]" />
         <span class="hidden sm:inline">{{ store.t.clear }}</span>
@@ -186,7 +186,7 @@ onUnmounted(() => {
       <button
         @click="triggerSaveMat"
         :title="store.t.saveMat"
-        class="flex items-center gap-1 px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-lg font-bold text-xs md:text-sm transition-all bg-indigo-50 dark:bg-indigo-950/30 text-primary dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-950/60 active:scale-95 cursor-pointer shrink-0"
+        class="flex items-center gap-1 px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-lg font-bold text-xs md:text-sm transition-all bg-indigo-50 dark:bg-indigo-950/30 text-primary dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-950/60 active:scale-95 cursor-pointer shrink-0 sleek-focus"
       >
         <Save :size="16" class="md:w-[18px] md:h-[18px]" />
         <span class="hidden sm:inline">{{ store.t.saveMat }}</span>

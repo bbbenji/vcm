@@ -23,7 +23,7 @@ body {
 }
 
 .dark body {
-  @apply bg-[#0b0f19] text-slate-100;
+  @apply bg-slate-950 text-slate-100;
 }
 
 /* Accessibility: Skip to Main Content Link */
@@ -60,15 +60,18 @@ body {
 
 /* Glassmorphism helpers */
 .glass-header {
-  @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800/80;
+  @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-slate-200/40 dark:border-slate-700/40;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
 .glass-card {
-  @apply bg-white dark:bg-slate-900/50 backdrop-blur-md border border-slate-100 dark:border-slate-800/80 shadow-xl;
+  @apply bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/40 dark:border-slate-700/40;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
 .glass-modal {
-  @apply bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/60 shadow-2xl;
+  @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-700/50;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25), inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 /* Symmetry Line Glow */
@@ -138,8 +141,22 @@ body {
 }
 
 /* Micro Focus Ring for Accessibility */
+.sleek-focus {
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-primary/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 dark:focus-visible:ring-offset-slate-950 transition-shadow;
+}
+
 .focus-cell {
-  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 z-20;
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-primary/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 dark:focus-visible:ring-offset-slate-950 z-20 transition-shadow;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.7); opacity: 0; }
+  60% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pop-in {
+  animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 /* Mat Container Export Target adjustment */

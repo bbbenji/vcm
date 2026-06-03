@@ -450,7 +450,7 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                 tabindex="0"
                 role="gridcell"
                 :aria-label="`Cell ${cell.id}`"
-                class="flex justify-center items-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 border-r border-b border-grid-line dark:border-grid-line-dark cursor-crosshair transition-all duration-100 hover:brightness-95 dark:hover:brightness-110 hover:bg-slate-100/60 dark:hover:bg-slate-800/40 focus-cell focus:z-20"
+                class="relative flex justify-center items-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 border-r border-b border-grid-line dark:border-grid-line-dark cursor-crosshair transition-all duration-100 hover:brightness-95 dark:hover:brightness-110 hover:bg-slate-100/60 dark:hover:bg-slate-800/40 focus-cell focus:z-20"
                 :class="{
                   'sym-line-horizontal': rIndex === Math.floor(store.gridSize / 2) - 1,
                   'sym-line-vertical': cIndex === Math.floor(store.gridSize / 2) - 1,
@@ -460,7 +460,6 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                     dragOverCell.col === cIndex &&
                     dragOverCell.isSecondary === false,
                 }"
-                :style="cell.bg ? { backgroundColor: cell.bg } : {}"
                 @mousedown="paintCell(rIndex, cIndex)"
                 @mouseenter="dragPaintCell($event, rIndex, cIndex)"
                 @keydown="handleKeyDown($event, rIndex, cIndex, false)"
@@ -470,10 +469,17 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                 @dragover.prevent
                 @drop="handleDrop($event, rIndex, cIndex, false)"
               >
+                <div
+                  v-if="cell.bg"
+                  :key="cell.bg"
+                  class="absolute inset-0 animate-pop-in pointer-events-none z-0"
+                  :style="{ backgroundColor: cell.bg }"
+                ></div>
                 <component
                   v-if="cell.icon"
+                  :key="cell.icon"
                   :is="getPlacedIcon(cell.icon)"
-                  class="w-[65%] h-[65%] pointer-events-none"
+                  class="w-[65%] h-[65%] pointer-events-none animate-pop-in z-10"
                   :class="
                     cell.icon === 'Bot'
                       ? 'text-emerald-500 dark:text-emerald-400'
@@ -484,7 +490,8 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                 />
                 <span
                   v-else-if="cell.text"
-                  class="text-sm sm:text-base md:text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100 pointer-events-none select-none"
+                  :key="cell.text"
+                  class="text-sm sm:text-base md:text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100 pointer-events-none select-none animate-pop-in z-10"
                   >{{ cell.text }}</span
                 >
               </div>
@@ -561,24 +568,31 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                     dragOverCell.col === cIndex &&
                     dragOverCell.isSecondary === true,
                 }"
-                :style="cell.bg ? { backgroundColor: cell.bg } : {}"
                 @mousedown="paintCell(rIndex, cIndex, true)"
                 @mouseenter="dragPaintCell($event, rIndex, cIndex, true)"
-                @keydown="handleKeyDown($event, rIndex, cIndex, true)"
-                @touchstart.passive="handleTouchStart($event, rIndex, cIndex, true)"
-                @dragenter.prevent="handleDragEnter(rIndex, cIndex, true)"
-                @dragleave="handleDragLeave(rIndex, cIndex, true)"
+                @keydown="handleKeyDown($event, 0, cIndex, true)"
+                @touchstart.passive="handleTouchStart($event, 0, cIndex, true)"
+                @dragenter.prevent="handleDragEnter(0, cIndex, true)"
+                @dragleave="handleDragLeave(0, cIndex, true)"
                 @dragover.prevent
-                @drop="handleDrop($event, rIndex, cIndex, true)"
+                @drop="handleDrop($event, 0, cIndex, true)"
               >
+                <div
+                  v-if="cell.bg"
+                  :key="cell.bg"
+                  class="absolute inset-0 animate-pop-in pointer-events-none z-0"
+                  :style="{ backgroundColor: cell.bg }"
+                ></div>
                 <component
                   v-if="cell.icon"
+                  :key="cell.icon"
                   :is="getPlacedIcon(cell.icon)"
-                  class="w-[65%] h-[65%] text-slate-800 dark:text-slate-200 pointer-events-none"
+                  class="w-[65%] h-[65%] text-slate-800 dark:text-slate-200 pointer-events-none animate-pop-in z-10"
                 />
                 <span
                   v-else-if="cell.text"
-                  class="text-sm sm:text-base md:text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100 pointer-events-none select-none"
+                  :key="cell.text"
+                  class="text-sm sm:text-base md:text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100 pointer-events-none select-none animate-pop-in z-10"
                   >{{ cell.text }}</span
                 >
               </div>
