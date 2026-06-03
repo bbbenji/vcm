@@ -23,7 +23,7 @@ const props = withDefaults(
 const emit = defineEmits(["confirm", "cancel", "close"]);
 const dialogRef = ref<HTMLDialogElement | null>(null);
 const confettiCanvasRef = ref<HTMLCanvasElement | null>(null);
-let localConfetti: any = null;
+let localConfetti: ReturnType<typeof import("canvas-confetti").create> | null = null;
 
 const triggerConfetti = () => {
   nextTick(() => {

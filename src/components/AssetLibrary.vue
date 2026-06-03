@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, defineAsyncComponent } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted, defineAsyncComponent, nextTick } from "vue";
 import { useMatStore } from "../stores/matStore";
 import type { ToolType } from "../stores/matStore";
 import { getIcon } from "../utils/icons";
@@ -472,11 +472,23 @@ onUnmounted(() => {
 });
 
 const selectTab = (tabId: (typeof categories)[number]["id"]) => {
-  activeTab.value = tabId;
-  isCollapsed.value = false;
-  // Recalculate shadows when switching tabs since active styling might shift sizing
-  setTimeout(updateScrollShadows, 50);
-  trackEvent("change_tab", { tab_id: tabId });
+  if (!document.startViewTransition) {
+    activeTab.value = tabId;
+    isCollapsed.value = false;
+    // Recalculate shadows when switching tabs since active styling might shift sizing
+    setTimeout(updateScrollShadows, 50);
+    trackEvent("change_tab", { tab_id: tabId });
+    return;
+  }
+
+  document.startViewTransition(async () => {
+    activeTab.value = tabId;
+    isCollapsed.value = false;
+    await nextTick();
+    // Recalculate shadows when switching tabs since active styling might shift sizing
+    setTimeout(updateScrollShadows, 50);
+    trackEvent("change_tab", { tab_id: tabId });
+  });
 };
 
 // Helpers for template localization
@@ -643,6 +655,7 @@ const movementLegend: LegendEntry[] = [
     <div
       ref="drawerContainerRef"
       class="py-3 px-3 md:p-5 flex-1 overflow-y-auto bg-white dark:bg-slate-900 transition-colors duration-300"
+      style="view-transition-name: asset-drawer"
     >
       <div
         class="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] md:grid-cols-[repeat(auto-fill,minmax(3rem,1fr))] gap-2.5"
