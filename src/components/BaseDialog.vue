@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, nextTick } from "vue";
 import { getPlacedIcon } from "../utils/icons";
-import confetti from "canvas-confetti";
 
 const props = withDefaults(
   defineProps<{
@@ -24,47 +23,50 @@ const props = withDefaults(
 const emit = defineEmits(["confirm", "cancel", "close"]);
 const dialogRef = ref<HTMLDialogElement | null>(null);
 const confettiCanvasRef = ref<HTMLCanvasElement | null>(null);
-let localConfetti: ReturnType<typeof confetti.create> | null = null;
+let localConfetti: any = null;
 
 const triggerConfetti = () => {
   nextTick(() => {
     if (confettiCanvasRef.value) {
-      localConfetti = confetti.create(confettiCanvasRef.value, {
-        resize: true,
-        useWorker: true,
-      });
-
-      if (localConfetti) {
-        // Primary center blast
-        localConfetti({
-          particleCount: 120,
-          spread: 80,
-          origin: { y: 0.6 },
+      import("canvas-confetti").then((mod) => {
+        const confetti = mod.default || mod;
+        localConfetti = confetti.create(confettiCanvasRef.value as HTMLCanvasElement, {
+          resize: true,
+          useWorker: true,
         });
 
-        // Staggered side cannons for a spectacular victory celebration!
-        const end = Date.now() + 2 * 1000; // 2 seconds duration
-        const frame = () => {
-          if (!props.isOpen || !localConfetti) return;
+        if (localConfetti) {
+          // Primary center blast
           localConfetti({
-            particleCount: 2,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0, y: 0.8 },
-          });
-          localConfetti({
-            particleCount: 2,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1, y: 0.8 },
+            particleCount: 120,
+            spread: 80,
+            origin: { y: 0.6 },
           });
 
-          if (Date.now() < end) {
-            requestAnimationFrame(frame);
-          }
-        };
-        frame();
-      }
+          // Staggered side cannons for a spectacular victory celebration!
+          const end = Date.now() + 2 * 1000; // 2 seconds duration
+          const frame = () => {
+            if (!props.isOpen || !localConfetti) return;
+            localConfetti({
+              particleCount: 2,
+              angle: 60,
+              spread: 55,
+              origin: { x: 0, y: 0.8 },
+            });
+            localConfetti({
+              particleCount: 2,
+              angle: 120,
+              spread: 55,
+              origin: { x: 1, y: 0.8 },
+            });
+
+            if (Date.now() < end) {
+              requestAnimationFrame(frame);
+            }
+          };
+          frame();
+        }
+      });
     }
   });
 };

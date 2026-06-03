@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted, defineAsyncComponent } from "vue";
 import { useMatStore } from "../stores/matStore";
 import type { ToolType } from "../stores/matStore";
 import { getIcon } from "../utils/icons";
@@ -28,7 +28,7 @@ import SimulationControls from "./SimulationControls.vue";
 import TemplateCard from "./TemplateCard.vue";
 import CustomColorPicker from "./CustomColorPicker.vue";
 import CategoryHeader from "./CategoryHeader.vue";
-import BaseDialog from "./BaseDialog.vue";
+const BaseDialog = defineAsyncComponent(() => import("./BaseDialog.vue"));
 import { trackEvent } from "../plugins/analytics";
 
 const store = useMatStore();
