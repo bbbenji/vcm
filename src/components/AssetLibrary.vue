@@ -5,6 +5,16 @@ import type { ToolType } from "../stores/matStore";
 import { getIcon } from "../utils/icons";
 import { templates } from "../utils/templates";
 import {
+  emoji_people,
+  emoji_activity,
+  emoji_places,
+  emoji_nature,
+  emoji_objects,
+  emoji_foods,
+  emoji_symbols,
+  emoji_flags,
+} from "../utils/emojis";
+import {
   ChevronUp,
   ChevronDown,
   ChevronLeft,
@@ -12,12 +22,12 @@ import {
   FolderHeart,
   Plus,
   Sparkles,
-  FolderOpen,
   Save,
 } from "lucide-vue-next";
 import SimulationControls from "./SimulationControls.vue";
 import TemplateCard from "./TemplateCard.vue";
 import CustomColorPicker from "./CustomColorPicker.vue";
+import CategoryHeader from "./CategoryHeader.vue";
 import { trackEvent } from "../plugins/analytics";
 
 const store = useMatStore();
@@ -89,6 +99,7 @@ const categories = [
   { id: "move" as const, icon: "Move", toolType: "icon" as ToolType, items: movements },
   { id: "num" as const, icon: "Binary", toolType: "text" as ToolType, items: numbers },
   { id: "abc" as const, icon: "Type", toolType: "text" as ToolType, items: alphabet },
+  { id: "emoji" as const, icon: "Smile", toolType: "text" as ToolType, items: [] as string[] },
   { id: "veh" as const, icon: "Car", toolType: "icon" as ToolType, items: vehicles },
   { id: "ani" as const, icon: "Cat", toolType: "icon" as ToolType, items: animals },
   { id: "tasks" as const, icon: "BookOpen", toolType: "task" as ToolType, items: [] as string[] },
@@ -104,6 +115,17 @@ const taskCategories = [
   { id: "pixel_art" as const, titleKey: "cat_pixel_art" as const, icon: "Palette" },
   { id: "algorithm" as const, titleKey: "cat_algorithm" as const, icon: "Move" },
   { id: "math_symmetry" as const, titleKey: "cat_math_symmetry" as const, icon: "Binary" },
+];
+
+const emojiCategories = [
+  { id: "emoji_people" as const, titleKey: "emoji_people" as const, icon: "Smile", items: emoji_people },
+  { id: "emoji_nature" as const, titleKey: "emoji_nature" as const, icon: "Leaf", items: emoji_nature },
+  { id: "emoji_foods" as const, titleKey: "emoji_foods" as const, icon: "Apple", items: emoji_foods },
+  { id: "emoji_activity" as const, titleKey: "emoji_activity" as const, icon: "Activity", items: emoji_activity },
+  { id: "emoji_places" as const, titleKey: "emoji_places" as const, icon: "MapPin", items: emoji_places },
+  { id: "emoji_objects" as const, titleKey: "emoji_objects" as const, icon: "Package", items: emoji_objects },
+  { id: "emoji_symbols" as const, titleKey: "emoji_symbols" as const, icon: "Hash", items: emoji_symbols },
+  { id: "emoji_flags" as const, titleKey: "emoji_flags" as const, icon: "Flag", items: emoji_flags },
 ];
 
 const activeTab = computed({
@@ -680,12 +702,10 @@ const movementLegend: LegendEntry[] = [
             <!-- Recent Colors Legend -->
             <template v-if="cat.toolType === 'background' && recentColors.length > 0">
               <div class="col-span-full mt-4 border-t border-slate-100 dark:border-slate-800 pt-4">
-                <p
-                  class="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-1.5"
-                >
-                  <component :is="getIcon('History')" :size="11" />
-                  {{ store.t.recentColors || "Recent Colors" }}
-                </p>
+                <CategoryHeader
+                  icon="History"
+                  :title="String(store.t.recentColors || 'Recent Colors')"
+                />
                 <div
                   class="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] md:grid-cols-[repeat(auto-fill,minmax(3rem,1fr))] gap-2.5 w-full"
                 >
@@ -712,12 +732,10 @@ const movementLegend: LegendEntry[] = [
         <!-- Movement Symbol Legend -->
         <template v-if="activeTab === 'move'">
           <div class="col-span-full mt-4 border-t border-slate-100 dark:border-slate-800 pt-4">
-            <p
-              class="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-1.5"
-            >
-              <component :is="getIcon('HelpCircle')" :size="11" />
-              {{ store.t.moveLegendTitle }}
-            </p>
+            <CategoryHeader
+              icon="HelpCircle"
+              :title="String(store.t.moveLegendTitle)"
+            />
             <div class="flex flex-col gap-1.5">
               <div
                 v-for="entry in movementLegend"
@@ -766,30 +784,50 @@ const movementLegend: LegendEntry[] = [
           </div>
         </template>
 
+        <!-- Emojis list grouped by Category -->
+        <template v-if="activeTab === 'emoji'">
+          <div class="flex flex-col gap-5 col-span-full pb-6">
+            <div v-for="cat in emojiCategories" :key="cat.id" class="flex flex-col gap-2.5">
+              <!-- Category Header -->
+              <CategoryHeader
+                :icon="cat.icon"
+                :title="String(store.t[cat.titleKey as keyof typeof store.t])"
+                :count="cat.items.length"
+              />
+              
+              <!-- Items Grid -->
+              <div class="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] md:grid-cols-[repeat(auto-fill,minmax(3rem,1fr))] gap-2.5 w-full">
+                <button
+                  v-for="item in cat.items"
+                  :key="item"
+                  draggable="true"
+                  @dragstart="handleDragStart($event, 'text', item)"
+                  :class="[
+                    toolButtonClass,
+                    {
+                      [selectedToolClass]: store.activeTool.type === 'text' && store.activeTool.value === item,
+                    },
+                  ]"
+                  @click="selectTool('text', item)"
+                  :title="item"
+                >
+                  {{ item }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
+
         <!-- Predefined and instructional templates lists grouped by Category -->
         <template v-if="activeTab === 'tasks'">
           <div class="flex flex-col gap-5 col-span-full pb-6">
             <div v-for="cat in taskCategories" :key="cat.id" class="flex flex-col gap-2.5">
               <!-- Category Header -->
-              <div
-                class="flex items-center gap-2 px-1 border-b border-slate-100 dark:border-slate-800/60 pb-1.5 mt-3 select-none"
-              >
-                <component
-                  :is="getIcon(cat.icon)"
-                  :size="13"
-                  class="text-slate-400 dark:text-slate-500 shrink-0"
-                />
-                <span
-                  class="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500"
-                >
-                  {{ store.t[cat.titleKey as keyof typeof store.t] }}
-                </span>
-                <span
-                  class="text-[8px] font-bold px-1.5 py-0.25 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 ml-auto"
-                >
-                  {{ templates.filter((t) => t.category === cat.id).length }}
-                </span>
-              </div>
+              <CategoryHeader
+                :icon="cat.icon"
+                :title="String(store.t[cat.titleKey as keyof typeof store.t])"
+                :count="templates.filter((t) => t.category === cat.id).length"
+              />
 
               <!-- List of Templates in Category -->
               <div class="flex flex-col gap-3">
@@ -926,26 +964,12 @@ const movementLegend: LegendEntry[] = [
               </transition>
             </div>
 
-            <!-- Custom Templates List Header -->
-            <div
-              class="flex items-center gap-2 px-1 border-b border-slate-150 dark:border-slate-800 pb-1.5 mt-2 select-none"
-            >
-              <component
-                :is="FolderOpen"
-                :size="13"
-                class="text-slate-400 dark:text-slate-500 shrink-0"
-              />
-              <span
-                class="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500"
-              >
-                {{ store.t.my_mats }}
-              </span>
-              <span
-                class="text-[8px] font-bold px-1.5 py-0.25 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 ml-auto animate-pulse-glow"
-              >
-                {{ store.customTemplates.length }}
-              </span>
-            </div>
+            <CategoryHeader
+              icon="FolderOpen"
+              :title="String(store.t.my_mats)"
+              :count="store.customTemplates.length"
+              countClass="animate-pulse-glow"
+            />
 
             <!-- List Cards or Empty State -->
             <div
