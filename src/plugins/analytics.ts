@@ -1,6 +1,7 @@
 interface CookieConsentAPI {
   run: (config: Record<string, unknown>) => void;
   acceptedCategory: (category: string) => boolean;
+  showPreferences: () => void;
 }
 
 let CookieConsent: CookieConsentAPI | null = null;
@@ -11,6 +12,12 @@ export const trackEvent = (eventName: string, eventParams: Record<string, unknow
       event: eventName,
       ...eventParams,
     });
+  }
+};
+
+export const showCookiePreferences = () => {
+  if (CookieConsent) {
+    CookieConsent.showPreferences();
   }
 };
 

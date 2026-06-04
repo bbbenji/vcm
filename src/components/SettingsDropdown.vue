@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 import { useMatStore } from "../stores/matStore";
-import { Sun, Moon, Volume2, VolumeX, Languages, Settings, Eye, EyeOff } from "lucide-vue-next";
+import { showCookiePreferences } from "../plugins/analytics";
+import { Sun, Moon, Volume2, VolumeX, Languages, Settings, Eye, EyeOff, Cookie } from "lucide-vue-next";
 
 const store = useMatStore();
 const showSettingsMenu = ref(false);
@@ -137,6 +138,16 @@ onUnmounted(() => {
                 ? "Jasny"
                 : "Light"
           }}
+        </span>
+      </button>
+      <!-- Cookie Consent Row -->
+      <button
+        @click="showCookiePreferences(); showSettingsMenu = false;"
+        class="flex items-center justify-between w-full px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold transition-colors cursor-pointer text-left border-t border-slate-50 dark:border-slate-700/30"
+      >
+        <span class="flex items-center gap-2.5">
+          <Cookie :size="16" class="text-orange-500" />
+          {{ store.lang === "pl" ? "Ciasteczka" : "Cookies" }}
         </span>
       </button>
     </div>
