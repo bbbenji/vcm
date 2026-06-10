@@ -226,6 +226,24 @@ function parseCoordinateImport(text: string): ParsedCoordinateImport | null {
   return { size, main: Array.from(main.values()), secondary: Array.from(secondary.values()) };
 }
 
+// localStorage can throw (e.g. Safari private mode, storage blocked in iframes);
+// never let persistence take the app down.
+function readStorage(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Storage unavailable or quota exceeded - state simply won't persist
+  }
+}
+
 function debounce<T extends (...args: never[]) => void>(fn: T, delay: number): T {
   let timer: ReturnType<typeof setTimeout> | null = null;
   return function (...args: Parameters<T>) {
@@ -241,13 +259,13 @@ export interface ExecStep {
 
 export const useMatStore = defineStore("mat", () => {
   // Localization, Sound, and Theme states
-  const lang = ref<Language>((localStorage.getItem("vcm_lang") as Language) || "pl");
-  const isDarkMode = ref<boolean>(localStorage.getItem("vcm_theme") === "dark");
-  const soundEnabled = ref<boolean>(localStorage.getItem("vcm_sound") === "true");
-  const showSecondaryGrid = ref<boolean>(localStorage.getItem("vcm_show_secondary") !== "false");
+  const lang = ref<Language>((readStorage("vcm_lang") as Language) || "pl");
+  const isDarkMode = ref<boolean>(readStorage("vcm_theme") === "dark");
+  const soundEnabled = ref<boolean>(readStorage("vcm_sound") === "true");
+  const showSecondaryGrid = ref<boolean>(readStorage("vcm_show_secondary") !== "false");
 
   watch(showSecondaryGrid, (val) => {
-    localStorage.setItem("vcm_show_secondary", val ? "true" : "false");
+    writeStorage("vcm_show_secondary", val ? "true" : "false");
   });
 
   const t = computed(() => translations[lang.value]);
@@ -268,16 +286,26 @@ export const useMatStore = defineStore("mat", () => {
   // Custom Templates states
   const customTemplates = ref<CustomTemplate[]>([]);
   try {
-    const rawTemplates = localStorage.getItem("vcm_custom_templates");
+    const rawTemplates = readStorage("vcm_custom_templates");
     if (rawTemplates) {
-      customTemplates.value = JSON.parse(rawTemplates) as CustomTemplate[];
+      const parsed = JSON.parse(rawTemplates) as unknown;
+      if (Array.isArray(parsed)) {
+        customTemplates.value = parsed.filter(
+          (tpl): tpl is CustomTemplate =>
+            !!tpl &&
+            typeof tpl === "object" &&
+            typeof (tpl as CustomTemplate).id === "string" &&
+            Array.isArray((tpl as CustomTemplate).main) &&
+            Array.isArray((tpl as CustomTemplate).secondary),
+        );
+      }
     }
   } catch (e) {
     console.error("Failed to parse custom templates", e);
   }
 
   watch(customTemplates, (val) => {
-    localStorage.setItem("vcm_custom_templates", JSON.stringify(val));
+    writeStorage("vcm_custom_templates", JSON.stringify(val));
   }, { deep: true });
 
   const hasSolution = computed(() => {
@@ -325,7 +353,7 @@ export const useMatStore = defineStore("mat", () => {
   // Language & Theme Toggle Actions
   function toggleLanguage() {
     lang.value = lang.value === "pl" ? "en" : "pl";
-    localStorage.setItem("vcm_lang", lang.value);
+    writeStorage("vcm_lang", lang.value);
 
     // If active instructions are currently loaded from a template, update them dynamically
     if (currentTemplateId.value) {
@@ -339,7 +367,7 @@ export const useMatStore = defineStore("mat", () => {
 
   function toggleTheme() {
     isDarkMode.value = !isDarkMode.value;
-    localStorage.setItem("vcm_theme", isDarkMode.value ? "dark" : "light");
+    writeStorage("vcm_theme", isDarkMode.value ? "dark" : "light");
     applyThemeClass();
   }
 
@@ -355,7 +383,7 @@ export const useMatStore = defineStore("mat", () => {
 
   function toggleSound() {
     soundEnabled.value = !soundEnabled.value;
-    localStorage.setItem("vcm_sound", soundEnabled.value ? "true" : "false");
+    writeStorage("vcm_sound", soundEnabled.value ? "true" : "false");
   }
 
   function getCompactState() {
@@ -567,6 +595,9 @@ export const useMatStore = defineStore("mat", () => {
     instructions: string | null = null,
     id: string | null = null,
   ) {
+    if (isSimulating.value) {
+      resetSimulation();
+    }
     saveHistory();
     currentTemplateId.value = id;
 
@@ -648,8 +679,6 @@ export const useMatStore = defineStore("mat", () => {
     };
 
     activeInstructions.value = cleanInstructions;
-    // Trigger deep watcher explicitly
-    customTemplates.value = [...customTemplates.value];
   }
 
   function showSolution() {
@@ -657,6 +686,9 @@ export const useMatStore = defineStore("mat", () => {
     const tpl = templates.find((t) => t.id === currentTemplateId.value);
     if (!tpl) return;
 
+    if (isSimulating.value) {
+      resetSimulation();
+    }
     saveHistory();
 
     if (tpl.mainSolution) {
@@ -671,6 +703,41 @@ export const useMatStore = defineStore("mat", () => {
     if (startCell) startCell.icon = START_ICON;
 
     syncToUrl();
+  }
+
+  // Begins an undoable edit gesture (click, touch stroke, drop, key press).
+  // Must run before mutating cells so the history snapshot captures the board
+  // *after* any active simulation is rolled back, not the mid-simulation state.
+  // Returns false when editing is not allowed right now.
+  function beginStroke() {
+    if (isSimulating.value && simulationStatus.value === "running") {
+      return false;
+    }
+    if (isSimulating.value) {
+      resetSimulation();
+    }
+    saveHistory();
+    return true;
+  }
+
+  function clearCell(row: number, col: number, isSecondary = false) {
+    if (isSimulating.value && simulationStatus.value === "running") {
+      return;
+    }
+    if (isSimulating.value) {
+      resetSimulation();
+    }
+    // Prevent erasing the start icon
+    if (isSecondary && row === 0 && col === 0) return;
+
+    const cell = isSecondary ? secondaryGridData.value[row]?.[col] : gridData.value[row]?.[col];
+    if (!cell) return;
+
+    cell.bg = null;
+    cell.icon = null;
+    cell.text = null;
+
+    syncToUrlDebounced();
   }
 
   function updateCell(row: number, col: number, isSecondary = false) {
@@ -1158,7 +1225,9 @@ export const useMatStore = defineStore("mat", () => {
     history,
     initBoard,
     clearBoard,
+    beginStroke,
     updateCell,
+    clearCell,
     saveHistory,
     undo,
     getCoordinatesText,

@@ -9,6 +9,15 @@
   --color-grid-line-dark: #334155;
   --color-grid-sym-line: #a5253b;
 
+  /* Intermediate palette shades used across components (not part of Tailwind's default scale) */
+  --color-slate-150: #eaeef5;
+  --color-slate-250: #d7dee9;
+  --color-slate-350: #b0bccd;
+  --color-slate-750: #293548;
+  --color-slate-850: #172033;
+  --color-emerald-250: #8bedc4;
+  --color-indigo-250: #b6c3fd;
+
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-heading: 'Outfit', 'Inter', sans-serif;
 }

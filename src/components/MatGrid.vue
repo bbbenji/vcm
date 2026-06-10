@@ -118,7 +118,7 @@ const trailPathD = computed(() => {
 });
 
 const paintCell = (row: number, col: number, isSecondary = false) => {
-  store.saveHistory();
+  if (!store.beginStroke()) return;
   store.updateCell(row, col, isSecondary);
   trackEvent(store.activeTool.type === "eraser" ? "remove_asset" : "place_asset", {
     tool_type: store.activeTool.type,
@@ -164,13 +164,8 @@ const handleKeyDown = (e: KeyboardEvent, row: number, col: number, isSecondary =
     case "Escape":
     case "Backspace":
     case "Delete":
-      store.saveHistory();
-      // Emulate eraser tool
-      const cell = isSecondary ? store.secondaryGridData[row]?.[col] : store.gridData[row]?.[col];
-      if (cell) {
-        cell.bg = null;
-        cell.icon = null;
-        cell.text = null;
+      if (store.beginStroke()) {
+        store.clearCell(row, col, isSecondary);
       }
       e.preventDefault();
       return;
@@ -194,8 +189,8 @@ if (typeof window !== "undefined") {
 
 const lastTouchedCell = ref<{ row: number; col: number; isSecondary: boolean } | null>(null);
 
-const handleTouchStart = (e: TouchEvent, row: number, col: number, isSecondary = false) => {
-  store.saveHistory();
+const handleTouchStart = (_e: TouchEvent, row: number, col: number, isSecondary = false) => {
+  if (!store.beginStroke()) return;
   lastTouchedCell.value = { row, col, isSecondary };
   store.updateCell(row, col, isSecondary);
 };
@@ -257,7 +252,7 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
         const { type, value } = JSON.parse(dataStr) as { type: ToolType; value: string | null };
         store.activeTool = { type, value };
 
-        store.saveHistory();
+        if (!store.beginStroke()) return;
         store.updateCell(row, col, isSecondary);
       } catch (err) {
         console.error("Failed to parse drop data", err);
@@ -570,12 +565,12 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                 }"
                 @mousedown="paintCell(rIndex, cIndex, true)"
                 @mouseenter="dragPaintCell($event, rIndex, cIndex, true)"
-                @keydown="handleKeyDown($event, 0, cIndex, true)"
-                @touchstart.passive="handleTouchStart($event, 0, cIndex, true)"
-                @dragenter.prevent="handleDragEnter(0, cIndex, true)"
-                @dragleave="handleDragLeave(0, cIndex, true)"
+                @keydown="handleKeyDown($event, rIndex, cIndex, true)"
+                @touchstart.passive="handleTouchStart($event, rIndex, cIndex, true)"
+                @dragenter.prevent="handleDragEnter(rIndex, cIndex, true)"
+                @dragleave="handleDragLeave(rIndex, cIndex, true)"
                 @dragover.prevent
-                @drop="handleDrop($event, 0, cIndex, true)"
+                @drop="handleDrop($event, rIndex, cIndex, true)"
               >
                 <div
                   v-if="cell.bg"

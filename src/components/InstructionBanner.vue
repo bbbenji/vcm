@@ -28,6 +28,7 @@ const store = useMatStore()
         </div>
         <button
           @click="store.activeInstructions = null"
+          :aria-label="store.t.cancel"
           class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
         >
           <X class="w-4 h-4" />

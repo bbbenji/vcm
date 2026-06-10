@@ -420,6 +420,109 @@ describe("matStore robot and goal simulation", () => {
   });
 });
 
+describe("matStore edit gestures during simulation", () => {
+  beforeEach(() => {
+    installBrowserStubs();
+    setActivePinia(createPinia());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("blocks strokes while the simulation is running and records none in history", () => {
+    const store = useMatStore();
+
+    store.activeTool = { type: "icon", value: "Bot" };
+    store.updateCell(0, 0, false);
+    store.secondaryGridData[0]![1]!.icon = "ArrowDown";
+    store.history.splice(0);
+
+    store.startSimulation();
+    expect(store.simulationStatus).toBe("running");
+
+    expect(store.beginStroke()).toBe(false);
+    expect(store.history).toHaveLength(0);
+
+    store.resetSimulation();
+  });
+
+  it("rolls back picked-up items before snapshotting history for a new stroke", () => {
+    const store = useMatStore();
+
+    store.activeTool = { type: "icon", value: "Bot" };
+    store.updateCell(0, 0, false);
+    store.activeTool = { type: "text", value: "A" };
+    store.updateCell(1, 0, false);
+    store.secondaryGridData[0]![1]!.icon = "ArrowDown";
+
+    store.startSimulation();
+    store.nextSimulationStep();
+    store.pauseSimulation();
+    expect(store.gridData[1]![0]!.text).toBeNull(); // picked up mid-simulation
+
+    store.history.splice(0);
+    expect(store.beginStroke()).toBe(true);
+
+    // The simulation was reset, the item restored, and the snapshot captured *after* that
+    expect(store.isSimulating).toBe(false);
+    expect(store.gridData[1]![0]!.text).toBe("A");
+    expect(store.history).toHaveLength(1);
+
+    store.gridData[1]![0]!.text = null;
+    store.undo();
+    expect(store.gridData[1]![0]!.text).toBe("A");
+  });
+
+  it("resets an active simulation before loading a template", () => {
+    const store = useMatStore();
+    const template = templateById("maze1");
+
+    store.activeTool = { type: "icon", value: "Bot" };
+    store.updateCell(0, 0, false);
+    store.secondaryGridData[0]![1]!.icon = "ArrowDown";
+    store.startSimulation();
+
+    store.loadTemplate(template.size, template.main, template.secondary, null, template.id);
+
+    expect(store.isSimulating).toBe(false);
+    expect(store.simulationStatus).toBe("ready");
+    expect(store.currentTemplateId).toBe("maze1");
+  });
+});
+
+describe("matStore clearCell", () => {
+  beforeEach(() => {
+    installBrowserStubs();
+    setActivePinia(createPinia());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("clears a cell's background, icon and text", () => {
+    const store = useMatStore();
+    const cell = store.gridData[2]![3]!;
+    cell.bg = "#ef4444";
+    cell.icon = "Car";
+
+    store.clearCell(2, 3, false);
+
+    expect(cell.bg).toBeNull();
+    expect(cell.icon).toBeNull();
+    expect(cell.text).toBeNull();
+  });
+
+  it("never erases the protected start icon on the secondary grid", () => {
+    const store = useMatStore();
+
+    store.clearCell(0, 0, true);
+
+    expect(store.secondaryGridData[0]![0]!.icon).toBe("Play");
+  });
+});
+
 describe("matStore layout settings", () => {
   beforeEach(() => {
     installBrowserStubs();

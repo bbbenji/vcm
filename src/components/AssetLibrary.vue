@@ -368,7 +368,9 @@ try {
 watch(
   recentColors,
   (val) => {
-    localStorage.setItem("vcm_recent_colors", JSON.stringify(val));
+    try {
+      localStorage.setItem("vcm_recent_colors", JSON.stringify(val));
+    } catch {}
   },
   { deep: true },
 );
