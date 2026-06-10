@@ -1,16 +1,23 @@
 <script setup lang="ts">
 import { ref, defineAsyncComponent, onMounted, onUnmounted } from "vue";
 import { GRID_SIZES, useMatStore } from "../stores/matStore";
-import { Trash2, Undo2, Save, ChevronLeft, ChevronRight } from "lucide-vue-next";
+import { Trash2, Undo2, Save, Sparkles, ChevronLeft, ChevronRight } from "lucide-vue-next";
 import { trackEvent } from "../plugins/analytics";
 
 const ShareDropdown = defineAsyncComponent(() => import("./ShareDropdown.vue"));
 const SettingsDropdown = defineAsyncComponent(() => import("./SettingsDropdown.vue"));
 const BaseDialog = defineAsyncComponent(() => import("./BaseDialog.vue"));
+const AiGeneratorDialog = defineAsyncComponent(() => import("./AiGeneratorDialog.vue"));
 
 const store = useMatStore();
 const gridSizes = GRID_SIZES;
 const isClearDialogOpen = ref(false);
+const isAiDialogOpen = ref(false);
+
+const openAiDialog = () => {
+  isAiDialogOpen.value = true;
+  trackEvent("ai_dialog_open");
+};
 
 const triggerSaveMat = () => {
   store.activeTab = "my_mats";
@@ -192,6 +199,16 @@ onUnmounted(() => {
         <span class="hidden sm:inline">{{ store.t.saveMat }}</span>
       </button>
 
+      <!-- AI Generator Action -->
+      <button
+        @click="openAiDialog"
+        :title="store.t.aiTitle"
+        class="flex items-center gap-1 px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-lg font-bold text-xs md:text-sm transition-all bg-violet-50 dark:bg-violet-950/30 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-950/60 active:scale-95 cursor-pointer shrink-0 sleek-focus"
+      >
+        <Sparkles :size="16" class="md:w-[18px] md:h-[18px]" />
+        <span class="hidden sm:inline">AI</span>
+      </button>
+
       <!-- Share & Export Actions -->
       <ShareDropdown />
 
@@ -215,5 +232,12 @@ onUnmounted(() => {
     icon-type="clear"
     @confirm="executeClear"
     @close="isClearDialogOpen = false"
+  />
+
+  <!-- AI Generator Dialog Modal -->
+  <AiGeneratorDialog
+    v-if="isAiDialogOpen"
+    :is-open="isAiDialogOpen"
+    @close="isAiDialogOpen = false"
   />
 </template>

@@ -78,6 +78,18 @@ export const translations = {
     menuExpand: "Rozwiń menu",
     menuCollapse: "Zwiń menu",
 
+    // AI Generator
+    aiTitle: "Generator AI",
+    aiDesc: "Opisz, co AI ma zaprojektować, skopiuj instrukcję do wybranego czatu AI (np. ChatGPT, Claude, Gemini), a następnie zaimportuj jego odpowiedź na planszę.",
+    aiSubjectLabel: "Co AI ma zaprojektować?",
+    aiSubjectPlaceholder: "np. samochód, kot, rakieta...",
+    aiPromptLabel: "Instrukcja do skopiowania",
+    aiCopyPrompt: "Kopiuj instrukcję",
+    aiPasteLabel: "Wklej odpowiedź AI (lub zaimportuj plik TXT z menu Udostępnij)",
+    aiPastePlaceholder: "Wklej tutaj tekst wygenerowany przez AI...",
+    aiImportBtn: "Importuj na planszę",
+    aiClose: "Zamknij",
+
     // Movement Legend
     moveLegendTitle: "Legenda symboli",
     moveLegendSimTag: "Symulator",
@@ -248,6 +260,18 @@ export const translations = {
     themeToggle: "Theme",
     menuExpand: "Expand Menu",
     menuCollapse: "Collapse Menu",
+
+    // AI Generator
+    aiTitle: "AI Generator",
+    aiDesc: "Describe what the AI should design, copy the instructions into the AI of your choice (e.g. ChatGPT, Claude, Gemini), then import its answer onto the board.",
+    aiSubjectLabel: "What should the AI design?",
+    aiSubjectPlaceholder: "e.g. a car, a cat, a rocket...",
+    aiPromptLabel: "Instructions to copy",
+    aiCopyPrompt: "Copy instructions",
+    aiPasteLabel: "Paste the AI's answer (or import a TXT file from the Share menu)",
+    aiPastePlaceholder: "Paste the AI-generated text here...",
+    aiImportBtn: "Import to board",
+    aiClose: "Close",
 
     // Movement Legend
     moveLegendTitle: "Symbol legend",
