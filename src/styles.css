@@ -8,6 +8,8 @@
   --color-grid-line: #e2e8f0;
   --color-grid-line-dark: #334155;
   --color-grid-sym-line: #a5253b;
+  /* Ring drawn around pale colour dots so they stay visible on white paper */
+  --color-dot-outline: #64748b;
 
   /* Intermediate palette shades used across components (not part of Tailwind's default scale) */
   --color-slate-150: #eaeef5;
@@ -180,6 +182,9 @@ body {
   box-shadow: none !important;
   background: transparent !important;
   background-color: transparent !important;
+  /* html-to-image paints its backgroundColor onto this node, so any radius here
+     clips the fill and leaves semi-transparent fringes at the page corners. */
+  border-radius: 0 !important;
 }
 
 /* Force Light Theme on Grid Board, Cells, and Borders during export */
@@ -194,6 +199,63 @@ body {
 #mat-grid-container.exporting .grid > div {
   border-right-color: var(--color-grid-line) !important;
   border-bottom-color: var(--color-grid-line) !important;
+}
+
+/* ...but keep the red symmetry lines red; the rule above would flatten them to
+   ordinary grid lines, which is why they used to export grey. */
+#mat-grid-container.exporting .grid > div.sym-line-horizontal {
+  border-bottom-color: var(--color-grid-sym-line) !important;
+}
+
+#mat-grid-container.exporting .grid > div.sym-line-vertical {
+  border-right-color: var(--color-grid-sym-line) !important;
+}
+
+/* On the 1:1 print the centre lines are drawn as a centred overlay instead of a
+   cell border. A border can only sit on one side of the boundary, so it reads as
+   off-centre, it eats into that cell's colour fill, and being a fixed pixel width
+   it prints thinner or thicker depending on the browser window. The overlay
+   straddles the boundary, sits on top of the fill, and is sized as a fraction of
+   the grid so it lands at a constant width on paper. */
+.print-sym-line {
+  display: none;
+}
+
+#mat-grid-container.exporting.printing .print-sym-line {
+  display: block;
+  position: absolute;
+  background-color: var(--color-grid-sym-line);
+  pointer-events: none;
+  /* Above the cells, their fills and any icons, so nothing breaks the line up. */
+  z-index: 40;
+}
+
+#mat-grid-container.exporting.printing .print-sym-line-h {
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#mat-grid-container.exporting.printing .print-sym-line-v {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* With the overlay drawing the line, the boundary cell goes back to looking like
+   an ordinary grid line so the two do not stack. */
+#mat-grid-container.exporting.printing .grid > div.sym-line-horizontal {
+  border-bottom-width: 1px !important;
+  border-bottom-style: solid !important;
+  border-bottom-color: var(--color-grid-line) !important;
+}
+
+#mat-grid-container.exporting.printing .grid > div.sym-line-vertical {
+  border-right-width: 1px !important;
+  border-right-style: solid !important;
+  border-right-color: var(--color-grid-line) !important;
 }
 
 /* Force Light Theme text and standard icon colors during export */
@@ -221,6 +283,11 @@ body {
 #mat-grid-container.exporting .exporting-only img {
   height: 36px !important; /* Premium logo size at top center */
   width: auto !important;
+}
+
+/* 1:1 print export: drop the branding block so the board keeps generous page margins */
+#mat-grid-container.exporting.printing .exporting-only {
+  display: none !important;
 }
 
 @keyframes bounceShake {

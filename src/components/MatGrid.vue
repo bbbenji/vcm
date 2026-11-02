@@ -2,6 +2,8 @@
 import { ref, computed, nextTick, watch, defineAsyncComponent } from "vue";
 import { useMatStore } from "../stores/matStore";
 import { getPlacedIcon } from "../utils/icons";
+import { isPaleColor } from "../utils/color";
+import { TARGET_CELL_MM } from "../utils/pdfLayout";
 import InstructionBanner from "./InstructionBanner.vue";
 import { trackEvent } from "../plugins/analytics";
 
@@ -92,6 +94,27 @@ const getSparkStyle = (i: number) => {
     "--tx": `${destX}px`,
     "--ty": `${destY}px`,
     position: "absolute" as const,
+  };
+};
+
+/**
+ * Thickness of the centre lines on the 1:1 print, in millimetres of paper.
+ * Expressed below as a percentage of the grid so it survives every breakpoint:
+ * a fixed pixel width would print thinner or thicker depending on how wide the
+ * browser window happened to be when the capture was taken.
+ */
+const PRINT_SYM_LINE_MM = 0.9;
+
+const printSymLineSize = computed(
+  () => `${((PRINT_SYM_LINE_MM / TARGET_CELL_MM) / store.gridSize) * 100}%`,
+);
+
+// In dot mode a white or pale dot would vanish against the paper, so ring it.
+const cellFillStyle = (bg: string) => {
+  if (!store.colorDotMode || !isPaleColor(bg)) return { backgroundColor: bg };
+  return {
+    backgroundColor: bg,
+    border: "1px solid var(--color-dot-outline)",
   };
 };
 
@@ -286,8 +309,14 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
         </div>
 
         <!-- Top Axis Headers (Letters) -->
-        <div class="flex flex-row font-bold text-slate-500 dark:text-slate-400 select-none">
-          <div class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12"></div>
+        <div
+          v-if="store.showAxisTopLeft"
+          class="flex flex-row font-bold text-slate-500 dark:text-slate-400 select-none"
+        >
+          <div
+            v-if="store.showAxisTopLeft"
+            class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12"
+          ></div>
           <div
             class="flex justify-center items-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-xs sm:text-sm md:text-base lg:text-lg font-bold"
             v-for="col in store.gridSize"
@@ -295,12 +324,18 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
           >
             {{ alphabet[col - 1] }}
           </div>
-          <div class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12"></div>
+          <div
+            v-if="store.showAxisBottomRight"
+            class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12"
+          ></div>
         </div>
 
         <div class="flex flex-row">
           <!-- Left Axis (Numbers) -->
-          <div class="flex flex-col font-bold text-slate-500 dark:text-slate-400 select-none">
+          <div
+            v-if="store.showAxisTopLeft"
+            class="flex flex-col font-bold text-slate-500 dark:text-slate-400 select-none"
+          >
             <div
               class="flex justify-center items-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-xs sm:text-sm md:text-base lg:text-lg font-bold"
               v-for="row in store.gridSize"
@@ -321,6 +356,17 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
             @touchend="handleTouchEnd"
             @touchcancel="handleTouchEnd"
           >
+            <!-- Centre lines for the 1:1 print: centred on the middle boundary and
+                 sized relative to the grid, so they print at a constant width. -->
+            <div
+              class="print-sym-line print-sym-line-h"
+              :style="{ height: printSymLineSize }"
+            ></div>
+            <div
+              class="print-sym-line print-sym-line-v"
+              :style="{ width: printSymLineSize }"
+            ></div>
+
             <!-- SVG Trail Path Overlay -->
             <svg
               v-if="store.isSimulating && trailPathD"
@@ -467,8 +513,13 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                 <div
                   v-if="cell.bg"
                   :key="cell.bg"
-                  class="absolute inset-0 animate-pop-in pointer-events-none z-0"
-                  :style="{ backgroundColor: cell.bg }"
+                  class="absolute animate-pop-in pointer-events-none z-0"
+                  :class="
+                    store.colorDotMode
+                      ? 'left-1/2 top-1/2 w-[30%] h-[30%] -translate-x-1/2 -translate-y-1/2 rounded-full'
+                      : 'inset-0'
+                  "
+                  :style="cellFillStyle(cell.bg)"
                 ></div>
                 <component
                   v-if="cell.icon"
@@ -494,7 +545,10 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
           </div>
 
           <!-- Right Axis (Numbers) -->
-          <div class="flex flex-col font-bold text-slate-500 dark:text-slate-400 select-none">
+          <div
+            v-if="store.showAxisBottomRight"
+            class="flex flex-col font-bold text-slate-500 dark:text-slate-400 select-none"
+          >
             <div
               class="flex justify-center items-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-xs sm:text-sm md:text-base lg:text-lg font-bold"
               v-for="row in store.gridSize"
@@ -506,8 +560,14 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
         </div>
 
         <!-- Bottom Axis (Letters) -->
-        <div class="flex flex-row font-bold text-slate-500 dark:text-slate-400 select-none">
-          <div class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12"></div>
+        <div
+          v-if="store.showAxisBottomRight"
+          class="flex flex-row font-bold text-slate-500 dark:text-slate-400 select-none"
+        >
+          <div
+            v-if="store.showAxisTopLeft"
+            class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12"
+          ></div>
           <div
             class="flex justify-center items-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-xs sm:text-sm md:text-base lg:text-lg font-bold"
             v-for="col in store.gridSize"
@@ -515,7 +575,10 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
           >
             {{ alphabet[col - 1] }}
           </div>
-          <div class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12"></div>
+          <div
+            v-if="store.showAxisBottomRight"
+            class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12"
+          ></div>
         </div>
 
         <!-- Divider -->
@@ -524,7 +587,7 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
         <!-- Secondary Grid -->
         <div v-if="store.showSecondaryGrid" class="flex flex-row">
           <!-- Left Spacing to align with main grid -->
-          <div class="flex flex-col font-bold text-slate-500 select-none">
+          <div v-if="store.showAxisTopLeft" class="flex flex-col font-bold text-slate-500 select-none">
             <div
               class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12"
               v-for="row in 3"
@@ -575,8 +638,13 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
                 <div
                   v-if="cell.bg"
                   :key="cell.bg"
-                  class="absolute inset-0 animate-pop-in pointer-events-none z-0"
-                  :style="{ backgroundColor: cell.bg }"
+                  class="absolute animate-pop-in pointer-events-none z-0"
+                  :class="
+                    store.colorDotMode
+                      ? 'left-1/2 top-1/2 w-[30%] h-[30%] -translate-x-1/2 -translate-y-1/2 rounded-full'
+                      : 'inset-0'
+                  "
+                  :style="cellFillStyle(cell.bg)"
                 ></div>
                 <component
                   v-if="cell.icon"
@@ -595,7 +663,10 @@ const handleDrop = (e: DragEvent, row: number, col: number, isSecondary = false)
           </div>
 
           <!-- Right Spacing to align with main grid -->
-          <div class="flex flex-col font-bold text-slate-500 select-none">
+          <div
+            v-if="store.showAxisBottomRight"
+            class="flex flex-col font-bold text-slate-500 select-none"
+          >
             <div
               class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12"
               v-for="row in 3"

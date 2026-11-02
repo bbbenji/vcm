@@ -264,8 +264,27 @@ export const useMatStore = defineStore("mat", () => {
   const soundEnabled = ref<boolean>(readStorage("vcm_sound") === "true");
   const showSecondaryGrid = ref<boolean>(readStorage("vcm_show_secondary") !== "false");
 
+  // Board display options. These apply everywhere the board is drawn - screen,
+  // image export and the 1:1 print - so what you see is what gets printed.
+  const showAxisTopLeft = ref<boolean>(readStorage("vcm_axis_top_left") !== "false");
+  const showAxisBottomRight = ref<boolean>(readStorage("vcm_axis_bottom_right") !== "false");
+  /** Draw backgrounds as a small centre dot, leaving the cell free to colour in by hand. */
+  const colorDotMode = ref<boolean>(readStorage("vcm_color_dots") === "true");
+
   watch(showSecondaryGrid, (val) => {
     writeStorage("vcm_show_secondary", val ? "true" : "false");
+  });
+
+  watch(showAxisTopLeft, (val) => {
+    writeStorage("vcm_axis_top_left", val ? "true" : "false");
+  });
+
+  watch(showAxisBottomRight, (val) => {
+    writeStorage("vcm_axis_bottom_right", val ? "true" : "false");
+  });
+
+  watch(colorDotMode, (val) => {
+    writeStorage("vcm_color_dots", val ? "true" : "false");
   });
 
   const t = computed(() => translations[lang.value]);
@@ -1214,6 +1233,9 @@ export const useMatStore = defineStore("mat", () => {
     isDarkMode,
     soundEnabled,
     showSecondaryGrid,
+    showAxisTopLeft,
+    showAxisBottomRight,
+    colorDotMode,
     t,
     toggleLanguage,
     toggleTheme,
