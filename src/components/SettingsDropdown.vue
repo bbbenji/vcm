@@ -116,6 +116,93 @@ onUnmounted(() => {
         </span>
       </button>
 
+      <!-- Labels: top &amp; left Toggle Row -->
+      <button
+        @click="store.showAxisTopLeft = !store.showAxisTopLeft"
+        class="flex items-center justify-between w-full px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold transition-colors cursor-pointer text-left"
+      >
+        <span class="flex items-center gap-2.5">
+          <component :is="store.showAxisTopLeft ? Eye : EyeOff" :size="16" class="text-indigo-500" />
+          {{ store.lang === "pl" ? "Opis: góra i lewa" : "Labels: top &amp; left" }}
+        </span>
+        <span
+          class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border"
+          :class="
+            store.showAxisTopLeft
+              ? 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-250 dark:border-indigo-900/40 text-indigo-600 dark:text-indigo-400'
+              : 'bg-slate-100 dark:bg-slate-900 border-slate-250 dark:border-slate-700 text-slate-400 dark:text-slate-500'
+          "
+        >
+          {{
+            store.showAxisTopLeft
+              ? store.lang === "pl"
+                ? "WIDOCZNY"
+                : "SHOWN"
+              : store.lang === "pl"
+                ? "UKRYTY"
+                : "HIDDEN"
+          }}
+        </span>
+      </button>
+
+      <!-- Labels: bottom &amp; right Toggle Row -->
+      <button
+        @click="store.showAxisBottomRight = !store.showAxisBottomRight"
+        class="flex items-center justify-between w-full px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold transition-colors cursor-pointer text-left"
+      >
+        <span class="flex items-center gap-2.5">
+          <component :is="store.showAxisBottomRight ? Eye : EyeOff" :size="16" class="text-indigo-500" />
+          {{ store.lang === "pl" ? "Opis: dół i prawa" : "Labels: bottom &amp; right" }}
+        </span>
+        <span
+          class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border"
+          :class="
+            store.showAxisBottomRight
+              ? 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-250 dark:border-indigo-900/40 text-indigo-600 dark:text-indigo-400'
+              : 'bg-slate-100 dark:bg-slate-900 border-slate-250 dark:border-slate-700 text-slate-400 dark:text-slate-500'
+          "
+        >
+          {{
+            store.showAxisBottomRight
+              ? store.lang === "pl"
+                ? "WIDOCZNY"
+                : "SHOWN"
+              : store.lang === "pl"
+                ? "UKRYTY"
+                : "HIDDEN"
+          }}
+        </span>
+      </button>
+
+      <!-- Colour as dot Toggle Row -->
+      <button
+        @click="store.colorDotMode = !store.colorDotMode"
+        class="flex items-center justify-between w-full px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold transition-colors cursor-pointer text-left"
+      >
+        <span class="flex items-center gap-2.5">
+          <component :is="store.colorDotMode ? Eye : EyeOff" :size="16" class="text-indigo-500" />
+          {{ store.lang === "pl" ? "Kolor jako kropka" : "Colour as dot" }}
+        </span>
+        <span
+          class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border"
+          :class="
+            store.colorDotMode
+              ? 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-250 dark:border-indigo-900/40 text-indigo-600 dark:text-indigo-400'
+              : 'bg-slate-100 dark:bg-slate-900 border-slate-250 dark:border-slate-700 text-slate-400 dark:text-slate-500'
+          "
+        >
+          {{
+            store.colorDotMode
+              ? store.lang === "pl"
+                ? "KROPKA"
+                : "DOT"
+              : store.lang === "pl"
+                ? "PELNE"
+                : "FILL"
+          }}
+        </span>
+      </button>
+
       <!-- Theme Toggle Row -->
       <button
         @click="store.toggleTheme"

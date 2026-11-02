@@ -11,8 +11,10 @@ import {
   Image,
   FileText,
   FileCode,
+  Printer,
 } from "lucide-vue-next";
 import { trackEvent } from "../plugins/analytics";
+import { exportMatPng, exportMatPdf, printMatPdf } from "../utils/matPdf";
 
 const store = useMatStore();
 const showMenu = ref(false);
@@ -87,104 +89,37 @@ const importFile = async (event: Event) => {
 };
 
 // Export/Download Logic
+const baseFileName = () => store.t.title.toLowerCase().replace(/\s+/g, "-");
+
 const downloadImage = async () => {
-  const matEl = document.getElementById("mat-grid-container");
-  if (!matEl) return;
-  const isDark = document.documentElement.classList.contains("dark");
   try {
-    if (isDark) {
-      document.documentElement.classList.remove("dark");
-    }
-    matEl.classList.add("exporting");
-
-    // Force synchronous style/layout calculation and wait for repaint
-    void matEl.offsetHeight;
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-    const { toPng } = await import("html-to-image");
-    const dataUrl = await toPng(matEl, {
-      pixelRatio: 2,
-      backgroundColor: "#ffffff",
-      filter: (node) => {
-        if (
-          node instanceof HTMLElement &&
-          node.getAttribute("data-html2canvas-ignore") === "true"
-        ) {
-          return false;
-        }
-        return true;
-      },
-    });
-    const link = document.createElement("a");
-    link.download = `${store.t.title.toLowerCase().replace(/\s+/g, "-")}.png`;
-    link.href = dataUrl;
-    link.click();
+    await exportMatPng(`${baseFileName()}.png`);
     trackEvent("export_image");
   } catch (error) {
     console.error("Error downloading image", error);
-  } finally {
-    matEl.classList.remove("exporting");
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-    }
   }
 };
 
 const downloadPdf = async () => {
-  const matEl = document.getElementById("mat-grid-container");
-  if (!matEl) return;
-  const isDark = document.documentElement.classList.contains("dark");
   try {
-    if (isDark) {
-      document.documentElement.classList.remove("dark");
-    }
-    matEl.classList.add("exporting");
-
-    // Force synchronous style/layout calculation and wait for repaint
-    void matEl.offsetHeight;
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-    const [{ toPng }, { default: jsPDF }] = await Promise.all([
-      import("html-to-image"),
-      import("jspdf"),
-    ]);
-    const dataUrl = await toPng(matEl, {
-      pixelRatio: 2,
-      backgroundColor: "#ffffff",
-      filter: (node) => {
-        if (
-          node instanceof HTMLElement &&
-          node.getAttribute("data-html2canvas-ignore") === "true"
-        ) {
-          return false;
-        }
-        return true;
-      },
-    });
-
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
-
-    const imgProps = pdf.getImageProperties(dataUrl);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-
-    const margin = 10;
-    const printWidth = pdfWidth - margin * 2;
-    const printHeight = (imgProps.height * printWidth) / imgProps.width;
-
-    pdf.addImage(dataUrl, "PNG", margin, margin, printWidth, printHeight);
-    pdf.save(`${store.t.title.toLowerCase().replace(/\s+/g, "-")}.pdf`);
+    await exportMatPdf(`${baseFileName()}.pdf`);
     trackEvent("export_pdf");
   } catch (error) {
     console.error("Error downloading PDF", error);
-  } finally {
-    matEl.classList.remove("exporting");
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-    }
+  }
+};
+
+// Opens a 1:1 scale PDF (15mm cells, matching the 3D printed mat) in a new tab.
+// printMatPdf opens the tab only after the capture finishes - see its comment.
+const printActualSize = async () => {
+  try {
+    const outcome = await printMatPdf(`${baseFileName()}-1-1.pdf`, {
+      exact: store.t.printNoteExact,
+      scaled: store.t.printNoteScaled,
+    });
+    trackEvent("print_actual_size", { grid_size: store.gridSize, outcome });
+  } catch (error) {
+    console.error("Error preparing print", error);
   }
 };
 
@@ -207,6 +142,11 @@ const handleImageDownload = async () => {
 const handlePdfDownload = async () => {
   showMenu.value = false;
   await downloadPdf();
+};
+
+const handlePrint = async () => {
+  showMenu.value = false;
+  await printActualSize();
 };
 
 const handleCoordinatesDownload = () => {
@@ -339,6 +279,15 @@ const handleCoordinatesDownload = () => {
       >
         <FileText :size="16" class="text-emerald-500" />
         {{ store.t.downloadPdf }}
+      </button>
+
+      <!-- 1:1 Print (matches the 3D printed mat) -->
+      <button
+        @click="handlePrint"
+        class="flex items-center gap-2.5 mx-1 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold transition-colors cursor-pointer"
+      >
+        <Printer :size="16" class="text-rose-500" />
+        {{ store.t.printActualSize }}
       </button>
 
       <!-- TXT Coordinates -->
