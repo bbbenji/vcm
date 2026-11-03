@@ -18,9 +18,9 @@ const narrow10x10 = { containerWidthPx: 358, containerHeightPx: 460, cellWidthPx
 const small10x10 = { containerWidthPx: 418, containerHeightPx: 532, cellWidthPx: 32 };
 const desktop20x20 = { containerWidthPx: 1090, containerHeightPx: 1268, cellWidthPx: 48 };
 
-/** Bands the print flow reserves for the logo and ruler; kept in sync with matPdf.ts. */
-const PRINT_HEADER_MM = 18;
-const PRINT_FOOTER_MM = 24;
+/** Band the print flow reserves for the QR/branding strip; kept in sync with matPdf.ts. */
+const PRINT_HEADER_MM = 0;
+const PRINT_FOOTER_MM = 36;
 
 describe("computeMatPdfLayout, actual-size mode", () => {
   it("renders a cell at exactly 15mm on a desktop viewport", () => {
@@ -49,19 +49,23 @@ describe("computeMatPdfLayout, actual-size mode", () => {
     expect(layout.cellMm).toBeCloseTo(TARGET_CELL_MM, 10);
     expect(layout.x).toBeGreaterThanOrEqual(ACTUAL_SIZE_MIN_MARGIN_MM);
     // The board must clear the logo band above and the ruler band below.
-    expect(layout.y).toBeGreaterThanOrEqual(PRINT_HEADER_MM);
+    expect(layout.y).toBeGreaterThanOrEqual(ACTUAL_SIZE_MIN_MARGIN_MM);
     expect(layout.y + layout.heightMm).toBeLessThanOrEqual(A4_HEIGHT_MM - PRINT_FOOTER_MM);
   });
 
-  it("centres the board between the header and footer bands", () => {
+  it("centres the board between the reserved bands", () => {
     const layout = computeMatPdfLayout(
       { ...desktop10x10, headerMm: PRINT_HEADER_MM, footerMm: PRINT_FOOTER_MM },
       "actual-size",
     );
-    const topGap = layout.y - PRINT_HEADER_MM;
+    // A band smaller than the plain margin is widened to it, so the top reserve
+    // here is the margin rather than PRINT_HEADER_MM.
+    const topReserve = Math.max(PRINT_HEADER_MM, ACTUAL_SIZE_MIN_MARGIN_MM);
+    const topGap = layout.y - topReserve;
     const bottomGap = A4_HEIGHT_MM - PRINT_FOOTER_MM - (layout.y + layout.heightMm);
 
     expect(topGap).toBeCloseTo(bottomGap, 6);
+    expect(topGap).toBeGreaterThanOrEqual(0);
   });
 
   it("keeps the tallest board true to size with both bands reserved", () => {
