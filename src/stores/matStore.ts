@@ -3,6 +3,7 @@ import { ref, computed, watch } from "vue";
 import { templates } from "../utils/templates";
 import { playDraw, playStep, playSuccess, playCollision } from "../utils/audio";
 import { translations } from "../utils/i18n";
+import { encodeBoardState, decodeBoardState } from "../utils/stateCodec";
 import type { Language } from "../utils/i18n";
 
 export const GRID_SIZES = [10, 12, 14, 16, 18, 20] as const;
@@ -430,9 +431,7 @@ export const useMatStore = defineStore("mat", () => {
       window.history.replaceState(null, "", urlPath);
       return;
     }
-    const json = JSON.stringify(state);
-    const encoded = btoa(encodeURIComponent(json));
-    window.history.replaceState(null, "", `${urlPath}#state=${encoded}`);
+    window.history.replaceState(null, "", `${urlPath}#d=${encodeBoardState(state)}`);
   }
 
   // Create highly optimized debounced url sync for drag-drawing!
@@ -452,26 +451,41 @@ export const useMatStore = defineStore("mat", () => {
     });
   }
 
+  function applyUrlState(state: { s: number; m: unknown[]; sec: unknown[] }) {
+    initBoard(normalizeGridSize(state.s), false, false);
+    applyCompactCells(state.m, gridData.value);
+    applyCompactCells(state.sec, secondaryGridData.value);
+
+    const startCell = secondaryGridData.value[0]?.[0];
+    if (startCell) startCell.icon = START_ICON;
+
+    return true;
+  }
+
   function loadFromUrl() {
     if (typeof window === "undefined") return false;
 
     const hash = window.location.hash;
-    if (hash && hash.startsWith("#state=")) {
+    if (!hash) return false;
+
+    // Current format: compact binary, short enough to share and to put in a QR.
+    if (hash.startsWith("#d=")) {
       try {
-        const encoded = hash.substring(7);
-        const json = decodeURIComponent(atob(encoded));
+        const state = decodeBoardState(hash.substring(3));
+        if (state) return applyUrlState(state);
+      } catch (e) {
+        console.error("Failed to load state from URL", e);
+      }
+      return false;
+    }
+
+    // Legacy format, kept so links shared before the change still open.
+    if (hash.startsWith("#state=")) {
+      try {
+        const json = decodeURIComponent(atob(hash.substring(7)));
         const state = JSON.parse(json) as unknown;
-
         if (!isCompactState(state)) return false;
-
-        initBoard(state.s, false, false);
-        applyCompactCells(state.m, gridData.value);
-        applyCompactCells(state.sec, secondaryGridData.value);
-
-        const startCell = secondaryGridData.value[0]?.[0];
-        if (startCell) startCell.icon = START_ICON;
-
-        return true;
+        return applyUrlState(state);
       } catch (e) {
         console.error("Failed to load state from URL", e);
       }
