@@ -20,9 +20,18 @@ import { waitForRepaint } from "./waitForRepaint";
 const MAT_ELEMENT_ID = "mat-grid-container";
 const PIXEL_RATIO = 2;
 
-/** Site the QR code and link point at. */
+/** Fallback target, and the address shown in readable form on the page. */
 export const SITE_URL = "https://kodowanie.mamywydruki.pl/";
 const SITE_LABEL = "kodowanie.mamywydruki.pl";
+
+/**
+ * The QR carries the whole design, not just the site address, so scanning a
+ * printed sheet reopens that exact board. Error correction is kept at the
+ * lowest level on purpose: the payload is large, and spending the budget on
+ * bigger modules scans better off paper than spending it on redundancy. The
+ * densest built-in design needs 61 modules, which is ~0.46mm per module here.
+ */
+const QR_ERROR_CORRECTION = "L" as const;
 
 /**
  * Everything below the board sits in one strip: QR code, logo and link, plus
@@ -30,7 +39,7 @@ const SITE_LABEL = "kodowanie.mamywydruki.pl";
  * stacking rows leaves ~17mm of slack against the tallest board, so a 1:1 print
  * cannot be quietly demoted to a scaled one just to fit the branding in.
  */
-const FOOTER_MM = 30;
+const FOOTER_MM = 36;
 
 /**
  * Footer ink is positioned up from the bottom edge, not down from the reserved
@@ -39,7 +48,7 @@ const FOOTER_MM = 30;
  */
 const FOOTER_BOTTOM_MARGIN_MM = 8;
 
-const QR_SIZE_MM = 20;
+const QR_SIZE_MM = 28;
 const QR_GAP_MM = 5;
 /** Quiet zone required around a QR code, in modules. */
 const QR_QUIET_MODULES = 4;
@@ -71,7 +80,9 @@ export interface MatCapture {
 }
 
 export interface PdfCopy {
-  /** Invitation printed above the link, e.g. "Make your own at:". */
+  /** URL the QR code and link resolve to: the current design, so a scan reopens it. */
+  shareUrl: string;
+  /** Invitation printed above the link, e.g. "Scan to open this design:". */
   cta: string;
   /** Ruler note when a cell is exactly TARGET_CELL_MM; `{mm}` is substituted. */
   exact?: string;
@@ -259,10 +270,27 @@ function drawQrCode(
   x: number,
   y: number,
   size: number,
+  payload: string,
 ) {
-  const qr = qrcode(0, "M");
-  qr.addData(SITE_URL);
-  qr.make();
+  const build = (value: string) => {
+    const code = qrcode(0, QR_ERROR_CORRECTION);
+    code.addData(value);
+    code.make();
+    return code;
+  };
+
+  // A board dense enough to exceed QR capacity still gets a usable code, just
+  // one that opens the site rather than restoring the design.
+  let qr;
+  try {
+    qr = build(payload);
+  } catch {
+    try {
+      qr = build(SITE_URL);
+    } catch {
+      return;
+    }
+  }
 
   const modules = qr.getModuleCount();
   // The quiet zone is part of the symbol: without it scanners struggle.
@@ -315,22 +343,30 @@ async function drawFooter(
   const qrX = (A4_WIDTH_MM - groupWidth) / 2;
   const textX = qrX + QR_SIZE_MM + QR_GAP_MM;
 
-  drawQrCode(pdf, qrcode, qrX, top, QR_SIZE_MM);
+  drawQrCode(pdf, qrcode, qrX, top, QR_SIZE_MM, copy.shareUrl || SITE_URL);
+
+  // Logo, invitation and address stack as one block, centred against the QR
+  // rather than stretched to its full height.
+  const CTA_BELOW_LOGO_MM = 3.6;
+  const LABEL_BELOW_CTA_MM = 5;
+  const textBlockHeight = logoHeightMm + CTA_BELOW_LOGO_MM + LABEL_BELOW_CTA_MM + 1;
+  const textTop = top + (QR_SIZE_MM - textBlockHeight) / 2;
 
   if (logo) {
-    pdf.addImage(logo.dataUrl, "PNG", textX, top + 0.5, LOGO_WIDTH_MM, logoHeightMm);
+    pdf.addImage(logo.dataUrl, "PNG", textX, textTop, LOGO_WIDTH_MM, logoHeightMm);
   }
 
-  // "Make your own at:" above the address, so the QR has an obvious purpose.
+  // "Scan to open this design:" above the address, so the QR has an obvious purpose.
+  const ctaBaseline = textTop + logoHeightMm + CTA_BELOW_LOGO_MM;
   pdf.setFontSize(7);
-  pdf.text(copy.cta, textX, top + logoHeightMm + 4);
+  pdf.text(copy.cta, textX, ctaBaseline);
 
   // Visible link text, and a real PDF hyperlink over it.
-  const labelBaseline = bottom - 1;
+  const labelBaseline = ctaBaseline + LABEL_BELOW_CTA_MM;
   pdf.setFontSize(9);
   pdf.setFont("helvetica", "bold");
   pdf.setTextColor(79, 70, 229); // indigo-600, so it reads as a link
-  pdf.textWithLink(SITE_LABEL, textX, labelBaseline, { url: SITE_URL });
+  pdf.textWithLink(SITE_LABEL, textX, labelBaseline, { url: copy.shareUrl || SITE_URL });
   pdf.setFont("helvetica", "normal");
   pdf.setTextColor(100, 116, 139);
   pdf.setFontSize(8);
@@ -355,7 +391,8 @@ async function drawFooter(
   );
   const rulerCentre = rulerX + RULER_LENGTH_MM / 2;
   pdf.text(`${RULER_LENGTH_MM} mm`, rulerCentre, rulerY - 3.5, { align: "center" });
-  pdf.text(note, rulerCentre, labelBaseline, { align: "center" });
+  // Keep the note with its ruler rather than aligned to the address beside it.
+  pdf.text(note, rulerCentre, rulerY + 5.5, { align: "center" });
 }
 
 export type PrintOutcome = "opened" | "downloaded" | "unavailable";

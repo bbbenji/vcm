@@ -441,6 +441,23 @@ export const useMatStore = defineStore("mat", () => {
     };
   }
 
+  /**
+   * The current board as a shareable URL, built on demand. The address bar is
+   * only updated on a debounce, so reading location.href straight after drawing
+   * can be up to a frame behind; anything that embeds the link (the PDF QR
+   * code) needs the live value.
+   */
+  function getShareUrl() {
+    if (typeof window === "undefined") return "";
+
+    const state = getCompactState();
+    const base = `${window.location.origin}${window.location.pathname}${window.location.search}`;
+    if (state.m.length === 0 && state.sec.length === 0 && state.s === DEFAULT_GRID_SIZE) {
+      return base;
+    }
+    return `${base}#d=${encodeBoardState(state)}`;
+  }
+
   function syncToUrl() {
     if (typeof window === "undefined") return;
 
@@ -1266,6 +1283,7 @@ export const useMatStore = defineStore("mat", () => {
     clearCell,
     saveHistory,
     undo,
+    getShareUrl,
     getCoordinatesText,
     importCoordinatesText,
     loadTemplate,

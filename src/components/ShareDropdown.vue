@@ -101,6 +101,7 @@ const downloadImage = async () => {
 };
 
 const pdfCopy = () => ({
+  shareUrl: store.getShareUrl(),
   cta: store.t.printCta,
   exact: store.t.printNoteExact,
   scaled: store.t.printNoteScaled,
@@ -108,7 +109,10 @@ const pdfCopy = () => ({
 
 const downloadPdf = async () => {
   try {
-    await exportMatPdf(`${baseFileName()}.pdf`, { cta: store.t.printCta });
+    await exportMatPdf(`${baseFileName()}.pdf`, {
+      shareUrl: store.getShareUrl(),
+      cta: store.t.printCta,
+    });
     trackEvent("export_pdf");
   } catch (error) {
     console.error("Error downloading PDF", error);
