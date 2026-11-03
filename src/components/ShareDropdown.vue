@@ -100,9 +100,15 @@ const downloadImage = async () => {
   }
 };
 
+const pdfCopy = () => ({
+  cta: store.t.printCta,
+  exact: store.t.printNoteExact,
+  scaled: store.t.printNoteScaled,
+});
+
 const downloadPdf = async () => {
   try {
-    await exportMatPdf(`${baseFileName()}.pdf`);
+    await exportMatPdf(`${baseFileName()}.pdf`, { cta: store.t.printCta });
     trackEvent("export_pdf");
   } catch (error) {
     console.error("Error downloading PDF", error);
@@ -113,10 +119,7 @@ const downloadPdf = async () => {
 // printMatPdf opens the tab only after the capture finishes - see its comment.
 const printActualSize = async () => {
   try {
-    const outcome = await printMatPdf(`${baseFileName()}-1-1.pdf`, {
-      exact: store.t.printNoteExact,
-      scaled: store.t.printNoteScaled,
-    });
+    const outcome = await printMatPdf(`${baseFileName()}-1-1.pdf`, pdfCopy());
     trackEvent("print_actual_size", { grid_size: store.gridSize, outcome });
   } catch (error) {
     console.error("Error preparing print", error);

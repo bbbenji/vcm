@@ -20,11 +20,32 @@ import { waitForRepaint } from "./waitForRepaint";
 const MAT_ELEMENT_ID = "mat-grid-container";
 const PIXEL_RATIO = 2;
 
-/** Vertical space reserved above the board for the logo. */
-const HEADER_MM = 18;
-/** Vertical space reserved under the board for the calibration bar. */
-const FOOTER_MM = 24;
+/** Site the QR code and link point at. */
+export const SITE_URL = "https://kodowanie.mamywydruki.pl/";
+const SITE_LABEL = "kodowanie.mamywydruki.pl";
+
+/**
+ * Everything below the board sits in one strip: QR code, logo and link, plus
+ * the calibration ruler on prints. Keeping it to a single row rather than
+ * stacking rows leaves ~17mm of slack against the tallest board, so a 1:1 print
+ * cannot be quietly demoted to a scaled one just to fit the branding in.
+ */
+const FOOTER_MM = 30;
+
+/**
+ * Footer ink is positioned up from the bottom edge, not down from the reserved
+ * band, so the lowest text keeps a comfortable margin on printers whose
+ * unprintable area is larger than this one's ~4mm.
+ */
+const FOOTER_BOTTOM_MARGIN_MM = 8;
+
+const QR_SIZE_MM = 20;
+const QR_GAP_MM = 5;
+/** Quiet zone required around a QR code, in modules. */
+const QR_QUIET_MODULES = 4;
+
 const RULER_LENGTH_MM = 100;
+const RULER_GAP_MM = 9;
 
 /**
  * The logo is drawn straight into the PDF at a fixed physical size rather than
@@ -32,18 +53,8 @@ const RULER_LENGTH_MM = 100;
  * it would measure 39mm on a wide window and 66mm on a phone - enough to push
  * the board off A4 and silently demote the print to a scaled one.
  */
-const LOGO_WIDTH_MM = 36;
-const LOGO_TOP_MM = 7;
+const LOGO_WIDTH_MM = 26;
 const LOGO_TIMEOUT_MS = 5000;
-
-/**
- * Footer ink is positioned up from the bottom edge, not down from the reserved
- * band, so the lowest text keeps a comfortable margin on printers whose
- * unprintable area is larger than this one's ~4mm.
- */
-const NOTE_BASELINE_FROM_BOTTOM_MM = 12;
-const RULER_ABOVE_NOTE_MM = 6;
-const RULER_LABEL_ABOVE_MM = 3.5;
 
 /** Guards against html-to-image never settling (see captureMat). */
 const CAPTURE_TIMEOUT_MS = 20000;
@@ -59,11 +70,13 @@ export interface MatCapture {
   metrics: MatCaptureMetrics;
 }
 
-export interface PrintNotes {
-  /** Note shown when a cell is exactly TARGET_CELL_MM; `{mm}` is substituted. */
-  exact: string;
-  /** Note shown when the board had to be scaled down to fit A4; `{mm}` is substituted. */
-  scaled: string;
+export interface PdfCopy {
+  /** Invitation printed above the link, e.g. "Make your own at:". */
+  cta: string;
+  /** Ruler note when a cell is exactly TARGET_CELL_MM; `{mm}` is substituted. */
+  exact?: string;
+  /** Ruler note when the board had to be scaled to fit A4; `{mm}` is substituted. */
+  scaled?: string;
 }
 
 function readMetrics(element: HTMLElement): MatCaptureMetrics {
@@ -177,11 +190,15 @@ async function createPdf(
   return { pdf, layout };
 }
 
-export async function exportMatPdf(fileName: string): Promise<boolean> {
-  const capture = await captureMat();
+export async function exportMatPdf(fileName: string, copy: PdfCopy): Promise<boolean> {
+  // hideBranding drops the logo block from the capture; it is drawn into the
+  // footer strip below instead, alongside the QR code and link.
+  const capture = await captureMat({ hideBranding: true });
   if (!capture) return false;
 
-  const { pdf } = await createPdf(capture, "fit", 0, 0);
+  const logo = await loadLogo();
+  const { pdf, layout } = await createPdf(capture, "fit", 0, FOOTER_MM);
+  await drawFooter(pdf, layout, logo, copy);
   pdf.save(fileName);
   return true;
 }
@@ -231,50 +248,114 @@ async function loadLogo(): Promise<LogoBitmap | null> {
   }
 }
 
-function drawLogo(pdf: import("jspdf").jsPDF, logo: LogoBitmap) {
-  const heightMm = LOGO_WIDTH_MM / logo.ratio;
-  pdf.addImage(
-    logo.dataUrl,
-    "PNG",
-    (A4_WIDTH_MM - LOGO_WIDTH_MM) / 2,
-    LOGO_TOP_MM,
-    LOGO_WIDTH_MM,
-    heightMm,
-  );
+/** Draws the QR code as vector squares, so it stays crisp at any print size. */
+// `export =` means the module type IS the factory, while the ESM build this
+// resolves to at runtime exposes it as the default export.
+type QrFactory = typeof import("qrcode-generator");
+
+function drawQrCode(
+  pdf: import("jspdf").jsPDF,
+  qrcode: QrFactory,
+  x: number,
+  y: number,
+  size: number,
+) {
+  const qr = qrcode(0, "M");
+  qr.addData(SITE_URL);
+  qr.make();
+
+  const modules = qr.getModuleCount();
+  // The quiet zone is part of the symbol: without it scanners struggle.
+  const scale = size / (modules + QR_QUIET_MODULES * 2);
+  const originX = x + QR_QUIET_MODULES * scale;
+  const originY = y + QR_QUIET_MODULES * scale;
+
+  pdf.setFillColor(15, 23, 42); // slate-900
+  for (let row = 0; row < modules; row++) {
+    for (let col = 0; col < modules; col++) {
+      if (!qr.isDark(row, col)) continue;
+      // Overdraw by a hair so neighbouring modules meet with no seam.
+      pdf.rect(originX + col * scale, originY + row * scale, scale + 0.02, scale + 0.02, "F");
+    }
+  }
 }
 
-/** Draws a 100mm reference bar plus a short "do not scale" note. */
-function drawCalibrationFooter(
+/**
+ * Lays out the footer strip: QR code, logo over the site link, and - on prints -
+ * a 100mm calibration bar so a printer that silently rescales can be caught
+ * with a ruler. The whole strip is centred as one group.
+ */
+async function drawFooter(
   pdf: import("jspdf").jsPDF,
   layout: MatPdfLayout,
-  notes: PrintNotes,
+  logo: LogoBitmap | null,
+  copy: PdfCopy,
 ) {
-  const noteBaseline = A4_HEIGHT_MM - NOTE_BASELINE_FROM_BOTTOM_MM;
-  const baseline = noteBaseline - RULER_ABOVE_NOTE_MM;
-  const startX = (A4_WIDTH_MM - RULER_LENGTH_MM) / 2;
+  // Only needed when a PDF is actually produced, so it stays out of the chunk
+  // that loads with the share menu.
+  const { default: qrcode } = await import("qrcode-generator");
+  const bottom = A4_HEIGHT_MM - FOOTER_BOTTOM_MARGIN_MM;
+  const top = bottom - QR_SIZE_MM;
+  const withRuler = Boolean(copy.exact && copy.scaled);
 
-  pdf.setDrawColor(100, 116, 139); // slate-500
+  pdf.setTextColor(100, 116, 139); // slate-500
+
+  const logoHeightMm = logo ? LOGO_WIDTH_MM / logo.ratio : 0;
+  pdf.setFontSize(7);
+  const ctaWidth = pdf.getTextWidth(copy.cta);
+  pdf.setFontSize(9);
+  pdf.setFont("helvetica", "bold");
+  const labelWidth = pdf.getTextWidth(SITE_LABEL);
+  pdf.setFont("helvetica", "normal");
+  const textBlockWidth = Math.max(logo ? LOGO_WIDTH_MM : 0, ctaWidth, labelWidth);
+
+  let groupWidth = QR_SIZE_MM + QR_GAP_MM + textBlockWidth;
+  if (withRuler) groupWidth += RULER_GAP_MM + RULER_LENGTH_MM;
+
+  const qrX = (A4_WIDTH_MM - groupWidth) / 2;
+  const textX = qrX + QR_SIZE_MM + QR_GAP_MM;
+
+  drawQrCode(pdf, qrcode, qrX, top, QR_SIZE_MM);
+
+  if (logo) {
+    pdf.addImage(logo.dataUrl, "PNG", textX, top + 0.5, LOGO_WIDTH_MM, logoHeightMm);
+  }
+
+  // "Make your own at:" above the address, so the QR has an obvious purpose.
+  pdf.setFontSize(7);
+  pdf.text(copy.cta, textX, top + logoHeightMm + 4);
+
+  // Visible link text, and a real PDF hyperlink over it.
+  const labelBaseline = bottom - 1;
+  pdf.setFontSize(9);
+  pdf.setFont("helvetica", "bold");
+  pdf.setTextColor(79, 70, 229); // indigo-600, so it reads as a link
+  pdf.textWithLink(SITE_LABEL, textX, labelBaseline, { url: SITE_URL });
+  pdf.setFont("helvetica", "normal");
+  pdf.setTextColor(100, 116, 139);
+  pdf.setFontSize(8);
+
+  if (!copy.exact || !copy.scaled) return;
+
+  const rulerX = textX + textBlockWidth + RULER_GAP_MM;
+  const rulerY = top + QR_SIZE_MM / 2;
+
+  pdf.setDrawColor(100, 116, 139);
   pdf.setLineWidth(0.25);
-  pdf.line(startX, baseline, startX + RULER_LENGTH_MM, baseline);
-
+  pdf.line(rulerX, rulerY, rulerX + RULER_LENGTH_MM, rulerY);
   for (let offset = 0; offset <= RULER_LENGTH_MM; offset += 10) {
-    const isEnd = offset === 0 || offset === RULER_LENGTH_MM;
-    const tick = isEnd ? 2.4 : 1.2;
-    pdf.line(startX + offset, baseline - tick, startX + offset, baseline + tick);
+    const tick = offset === 0 || offset === RULER_LENGTH_MM ? 2.4 : 1.2;
+    pdf.line(rulerX + offset, rulerY - tick, rulerX + offset, rulerY + tick);
   }
 
   const cellMm = Math.round(layout.cellMm * 10) / 10;
-  const note = (layout.trueToSize ? notes.exact : notes.scaled).replace(
+  const note = (layout.trueToSize ? copy.exact : copy.scaled).replace(
     "{mm}",
     layout.trueToSize ? String(TARGET_CELL_MM) : cellMm.toFixed(1),
   );
-
-  pdf.setFontSize(8);
-  pdf.setTextColor(100, 116, 139);
-  pdf.text(`${RULER_LENGTH_MM} mm`, A4_WIDTH_MM / 2, baseline - RULER_LABEL_ABOVE_MM, {
-    align: "center",
-  });
-  pdf.text(note, A4_WIDTH_MM / 2, noteBaseline, { align: "center" });
+  const rulerCentre = rulerX + RULER_LENGTH_MM / 2;
+  pdf.text(`${RULER_LENGTH_MM} mm`, rulerCentre, rulerY - 3.5, { align: "center" });
+  pdf.text(note, rulerCentre, labelBaseline, { align: "center" });
 }
 
 export type PrintOutcome = "opened" | "downloaded" | "unavailable";
@@ -291,14 +372,13 @@ export type PrintOutcome = "opened" | "downloaded" | "unavailable";
  * live, which it normally is. If the popup is blocked anyway we save the file
  * instead, so the button always produces the PDF one way or the other.
  */
-export async function printMatPdf(fileName: string, notes: PrintNotes): Promise<PrintOutcome> {
+export async function printMatPdf(fileName: string, copy: PdfCopy): Promise<PrintOutcome> {
   const capture = await captureMat({ hideBranding: true });
   if (!capture) return "unavailable";
 
   const logo = await loadLogo();
-  const { pdf, layout } = await createPdf(capture, "actual-size", HEADER_MM, FOOTER_MM);
-  if (logo) drawLogo(pdf, logo);
-  drawCalibrationFooter(pdf, layout, notes);
+  const { pdf, layout } = await createPdf(capture, "actual-size", 0, FOOTER_MM);
+  await drawFooter(pdf, layout, logo, copy);
   // Best effort: the "javascript" variant uses the /Names tree instead of a second
   // /OpenAction key, which would make the catalog malformed. Viewers that block PDF
   // JavaScript (Chrome's built-in one does) simply show the file instead.
