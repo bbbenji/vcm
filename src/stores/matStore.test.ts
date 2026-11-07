@@ -802,6 +802,26 @@ describe("matStore simple mode", () => {
     expect(store.gridSize).toBe(10);
   });
 
+  // Switching into simple mode rebuilds the board at the tray's size, which
+  // discards a larger design. Guard that it stays recoverable.
+  it("keeps the discarded board undoable when it resizes to 10x10", () => {
+    const store = storeWithSimpleModeOff();
+    store.initBoard(18);
+    const cell = store.gridData[12]?.[12];
+    if (!cell) throw new Error("Expected an 18x18 grid");
+    cell.bg = "#ef4444";
+    store.history.splice(0);
+
+    store.setSimpleMode(true);
+
+    expect(store.gridSize).toBe(10);
+
+    store.undo();
+
+    expect(store.gridSize).toBe(18);
+    expect(store.gridData[12]?.[12]?.bg).toBe("#ef4444");
+  });
+
   it("leaves the grid size alone when turned off", () => {
     const store = storeWithSimpleModeOff();
     store.initBoard(18);

@@ -152,8 +152,12 @@ onUnmounted(() => {
       >
         <!-- Spacer to push items right when there's space -->
         <div class="flex-1 min-w-0"></div>
-        <!-- Grid Size Selection -->
-        <div class="flex items-center gap-1 md:gap-2 font-medium shrink-0">
+        <!-- Grid Size Selection - hidden in simple mode, where the board is
+             fixed to the Pixel Taca tray's 10x10 and no other size would fit -->
+        <div
+          v-if="!store.simpleMode"
+          class="flex items-center gap-1 md:gap-2 font-medium shrink-0"
+        >
         <label
           for="grid-size"
           class="hidden md:inline text-xs md:text-sm text-slate-500 dark:text-slate-400 font-semibold"
