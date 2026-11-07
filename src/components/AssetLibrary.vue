@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, defineAsyncComponent, nextTick } from "vue";
 import { useMatStore } from "../stores/matStore";
+import { isSimpleModeTab } from "../stores/matStore";
 import type { ToolType } from "../stores/matStore";
 import { getIcon } from "../utils/icons";
 import { templates } from "../utils/templates";
@@ -110,6 +111,14 @@ const categories = [
     items: [] as string[],
   },
 ];
+
+/**
+ * Simple mode keeps the drawer down to colours and saved mats; every other
+ * tab (and so its items and legend) drops out of the template below.
+ */
+const visibleCategories = computed(() =>
+  store.simpleMode ? categories.filter((cat) => isSimpleModeTab(cat.id)) : categories,
+);
 
 const taskCategories = [
   { id: "pixel_art" as const, titleKey: "cat_pixel_art" as const, icon: "Palette" },
@@ -639,7 +648,7 @@ const movementLegend: LegendEntry[] = [
         class="flex flex-row overflow-x-auto whitespace-nowrap p-2 gap-1 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 scrollbar-none"
       >
         <button
-          v-for="cat in categories"
+          v-for="cat in visibleCategories"
           :key="cat.id"
           class="flex flex-col items-center justify-center gap-1 p-1 md:p-2 rounded-lg text-slate-500 dark:text-slate-400 transition-colors hover:bg-slate-200/70 dark:hover:bg-slate-800/70 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer shrink-0 w-[74px] md:w-auto md:flex-1 sleek-focus"
           :class="{
@@ -688,7 +697,7 @@ const movementLegend: LegendEntry[] = [
         </button>
 
         <!-- Dynamic Category Items -->
-        <template v-for="cat in categories" :key="'grid-' + cat.id">
+        <template v-for="cat in visibleCategories" :key="'grid-' + cat.id">
           <template v-if="activeTab === cat.id">
             <button
               v-for="item in cat.items"

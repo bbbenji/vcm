@@ -1,6 +1,7 @@
+import { nextTick } from "vue";
 import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useMatStore } from "./matStore";
+import { isSimpleModeTab, useMatStore } from "./matStore";
 import { templates } from "../utils/templates";
 
 class MemoryStorage implements Storage {
@@ -660,5 +661,93 @@ describe("matStore custom templates", () => {
     expect(updated.instructions).toBe("New instr");
     expect(updated.size).toBe(16);
     expect(updated.main).toContainEqual([0, 0, "#ef4444", null, null]);
+  });
+});
+
+describe("matStore simple mode", () => {
+  beforeEach(() => {
+    installBrowserStubs();
+    setActivePinia(createPinia());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("defaults simpleMode to false", () => {
+    const store = useMatStore();
+    expect(store.simpleMode).toBe(false);
+  });
+
+  it("initializes simpleMode to true if vcm_simple_mode is set to true in localStorage", () => {
+    localStorage.setItem("vcm_simple_mode", "true");
+    const store = useMatStore();
+    expect(store.simpleMode).toBe(true);
+  });
+
+  it("persists simpleMode to localStorage when toggled on", async () => {
+    const store = useMatStore();
+
+    store.toggleSimpleMode();
+    await nextTick();
+
+    expect(store.simpleMode).toBe(true);
+    expect(localStorage.getItem("vcm_simple_mode")).toBe("true");
+  });
+
+  it("hides the coding section and the bottom-right labels when turned on", () => {
+    const store = useMatStore();
+    store.showSecondaryGrid = true;
+    store.showAxisTopLeft = false;
+    store.showAxisBottomRight = true;
+
+    store.toggleSimpleMode();
+
+    expect(store.showSecondaryGrid).toBe(false);
+    expect(store.showAxisBottomRight).toBe(false);
+    expect(store.showAxisTopLeft).toBe(true);
+  });
+
+  it("moves away from a tab that simple mode hides", () => {
+    const store = useMatStore();
+    store.activeTab = "abc";
+
+    store.toggleSimpleMode();
+
+    expect(store.activeTab).toBe("bg");
+  });
+
+  it("keeps the saved mats tab selected when turning simple mode on", () => {
+    const store = useMatStore();
+    store.activeTab = "my_mats";
+
+    store.toggleSimpleMode();
+
+    expect(store.activeTab).toBe("my_mats");
+  });
+
+  it("leaves the display flags untouched when turned back off", () => {
+    const store = useMatStore();
+
+    store.toggleSimpleMode();
+    store.showSecondaryGrid = true;
+    store.toggleSimpleMode();
+
+    expect(store.simpleMode).toBe(false);
+    expect(store.showSecondaryGrid).toBe(true);
+    expect(store.showAxisBottomRight).toBe(false);
+  });
+});
+
+describe("isSimpleModeTab", () => {
+  it("keeps the colours and saved mats tabs", () => {
+    expect(isSimpleModeTab("bg")).toBe(true);
+    expect(isSimpleModeTab("my_mats")).toBe(true);
+  });
+
+  it("drops the coding, text and template tabs", () => {
+    for (const tab of ["move", "num", "abc", "emoji", "veh", "ani", "tasks"]) {
+      expect(isSimpleModeTab(tab)).toBe(false);
+    }
   });
 });

@@ -8,6 +8,14 @@ import type { Language } from "../utils/i18n";
 
 export const GRID_SIZES = [10, 12, 14, 16, 18, 20] as const;
 
+/** Asset-drawer tabs that stay available in simple mode. */
+export const SIMPLE_MODE_TABS = ["bg", "my_mats"] as const;
+
+/** Whether the asset drawer shows this tab while simple mode is on. */
+export function isSimpleModeTab(tabId: string) {
+  return SIMPLE_MODE_TABS.some((tab) => tab === tabId);
+}
+
 export type ToolType = "background" | "icon" | "text" | "eraser" | "task";
 export type GridSize = (typeof GRID_SIZES)[number];
 
@@ -288,6 +296,17 @@ export const useMatStore = defineStore("mat", () => {
     writeStorage("vcm_color_dots", val ? "true" : "false");
   });
 
+  /**
+   * Simplified board: colours and saved mats only, no coding section.
+   * Switching it on presets the display flags above rather than locking them,
+   * so their settings rows still work for anyone who wants a piece back.
+   */
+  const simpleMode = ref<boolean>(readStorage("vcm_simple_mode") === "true");
+
+  watch(simpleMode, (val) => {
+    writeStorage("vcm_simple_mode", val ? "true" : "false");
+  });
+
   const t = computed(() => translations[lang.value]);
 
   const gridSize = ref<GridSize>(DEFAULT_GRID_SIZE);
@@ -302,6 +321,19 @@ export const useMatStore = defineStore("mat", () => {
   const activeTab = ref<string>("bg");
   const isCollapsed = ref<boolean>(false);
   const showSaveForm = ref<boolean>(false);
+
+  function toggleSimpleMode() {
+    simpleMode.value = !simpleMode.value;
+    if (!simpleMode.value) return;
+
+    showSecondaryGrid.value = false;
+    showAxisTopLeft.value = true;
+    showAxisBottomRight.value = false;
+
+    if (!isSimpleModeTab(activeTab.value)) {
+      activeTab.value = "bg";
+    }
+  }
 
   // Custom Templates states
   const customTemplates = ref<CustomTemplate[]>([]);
@@ -1267,6 +1299,8 @@ export const useMatStore = defineStore("mat", () => {
     showAxisTopLeft,
     showAxisBottomRight,
     colorDotMode,
+    simpleMode,
+    toggleSimpleMode,
     t,
     toggleLanguage,
     toggleTheme,

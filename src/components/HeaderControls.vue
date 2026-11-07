@@ -6,6 +6,7 @@ import { trackEvent } from "../plugins/analytics";
 
 const ShareDropdown = defineAsyncComponent(() => import("./ShareDropdown.vue"));
 const SettingsDropdown = defineAsyncComponent(() => import("./SettingsDropdown.vue"));
+const FullscreenToggle = defineAsyncComponent(() => import("./FullscreenToggle.vue"));
 const BaseDialog = defineAsyncComponent(() => import("./BaseDialog.vue"));
 const AiGeneratorDialog = defineAsyncComponent(() => import("./AiGeneratorDialog.vue"));
 
@@ -214,6 +215,9 @@ onUnmounted(() => {
 
       <!-- Divider -->
       <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 shrink-0"></div>
+
+      <!-- Fullscreen Toggle -->
+      <FullscreenToggle />
 
       <!-- Settings Dropdown -->
       <SettingsDropdown />
