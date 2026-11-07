@@ -300,6 +300,11 @@ export const useMatStore = defineStore("mat", () => {
   /** Draw backgrounds as a small centre dot, leaving the cell free to colour in by hand. */
   const colorDotMode = ref<boolean>(readFlag("vcm_color_dots", false));
 
+  /** Set once the first-run welcome has been answered, so it shows only once. */
+  const welcomeSeen = ref<boolean>(readFlag("vcm_welcome_seen", false));
+  /** Whether the welcome card is on screen right now. Set during init below. */
+  const welcomeOpen = ref<boolean>(false);
+
   watch(showSecondaryGrid, (val) => {
     writeStorage("vcm_show_secondary", val ? "true" : "false");
   });
@@ -320,6 +325,10 @@ export const useMatStore = defineStore("mat", () => {
     writeStorage("vcm_simple_mode", val ? "true" : "false");
   });
 
+  watch(welcomeSeen, (val) => {
+    writeStorage("vcm_welcome_seen", val ? "true" : "false");
+  });
+
   const t = computed(() => translations[lang.value]);
 
   const gridSize = ref<GridSize>(DEFAULT_GRID_SIZE);
@@ -335,17 +344,46 @@ export const useMatStore = defineStore("mat", () => {
   const isCollapsed = ref<boolean>(false);
   const showSaveForm = ref<boolean>(false);
 
-  function toggleSimpleMode() {
-    simpleMode.value = !simpleMode.value;
-    if (!simpleMode.value) return;
-
-    showSecondaryGrid.value = false;
+  /**
+   * Switch board mode outright. The preset runs both ways: a first-time visitor
+   * who picks the full mat still has every display flag at its simple default,
+   * so turning simple mode off has to put the coding section back or they get a
+   * full drawer above a board with nothing to code on.
+   */
+  function setSimpleMode(enabled: boolean) {
+    simpleMode.value = enabled;
     showAxisTopLeft.value = true;
-    showAxisBottomRight.value = false;
+    showSecondaryGrid.value = !enabled;
+    showAxisBottomRight.value = !enabled;
+
+    if (!enabled) return;
+
+    // Simple mode pairs with the Pixel Taca tray, which is 10x10 at a 15mm pitch.
+    if (gridSize.value !== DEFAULT_GRID_SIZE) {
+      initBoard(DEFAULT_GRID_SIZE);
+    }
 
     if (!isSimpleModeTab(activeTab.value)) {
       activeTab.value = "bg";
     }
+  }
+
+  function toggleSimpleMode() {
+    setSimpleMode(!simpleMode.value);
+  }
+
+  function dismissWelcome() {
+    welcomeSeen.value = true;
+    welcomeOpen.value = false;
+  }
+
+  /** Reopen the welcome from the settings menu, to re-read it or switch mode. */
+  function openWelcome() {
+    welcomeOpen.value = true;
+  }
+
+  function closeWelcome() {
+    welcomeOpen.value = false;
   }
 
   // Custom Templates states
@@ -1294,9 +1332,18 @@ export const useMatStore = defineStore("mat", () => {
   }
 
   // Initialize on store creation
-  if (!loadFromUrl()) {
+  const loadedFromUrl = ref<boolean>(loadFromUrl());
+  if (!loadedFromUrl.value) {
     initBoard(gridSize.value, false, false);
   }
+
+  /**
+   * Someone opening a shared link or scanning the QR off a printed mat wants the
+   * design, not an onboarding card over the top of it.
+   */
+  const shouldShowWelcome = computed(() => !welcomeSeen.value && !loadedFromUrl.value);
+
+  welcomeOpen.value = shouldShowWelcome.value;
 
   // Clear initial history state added by initBoard on load
   history.value = [];
@@ -1313,7 +1360,14 @@ export const useMatStore = defineStore("mat", () => {
     showAxisBottomRight,
     colorDotMode,
     simpleMode,
+    setSimpleMode,
     toggleSimpleMode,
+    welcomeSeen,
+    shouldShowWelcome,
+    welcomeOpen,
+    dismissWelcome,
+    openWelcome,
+    closeWelcome,
     t,
     toggleLanguage,
     toggleTheme,

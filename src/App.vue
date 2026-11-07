@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { defineAsyncComponent } from 'vue'
 import HeaderControls from './components/HeaderControls.vue'
 import MatGrid from './components/MatGrid.vue'
 import AssetLibrary from './components/AssetLibrary.vue'
 import { useMatStore } from './stores/matStore'
+
+const WelcomeDialog = defineAsyncComponent(() => import('./components/WelcomeDialog.vue'))
 
 const store = useMatStore()
 </script>
@@ -20,5 +23,7 @@ const store = useMatStore()
       </main>
       <AssetLibrary />
     </div>
+
+    <WelcomeDialog v-if="store.welcomeOpen" @close="store.closeWelcome" />
   </div>
 </template>

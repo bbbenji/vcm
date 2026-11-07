@@ -2,6 +2,7 @@ import { nextTick } from "vue";
 import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { isSimpleModeTab, useMatStore } from "./matStore";
+import { encodeBoardState } from "../utils/stateCodec";
 import { templates } from "../utils/templates";
 
 class MemoryStorage implements Storage {
@@ -767,15 +768,47 @@ describe("matStore simple mode", () => {
     expect(store.activeTab).toBe("my_mats");
   });
 
-  it("leaves the display flags untouched when turned back off", () => {
+  it("brings the coding section and all the labels back when turned off", () => {
     const store = useMatStore();
 
-    store.showSecondaryGrid = true;
     store.toggleSimpleMode();
 
     expect(store.simpleMode).toBe(false);
     expect(store.showSecondaryGrid).toBe(true);
-    expect(store.showAxisBottomRight).toBe(false);
+    expect(store.showAxisTopLeft).toBe(true);
+    expect(store.showAxisBottomRight).toBe(true);
+  });
+
+  it("sets a mode outright rather than flipping whatever is there", () => {
+    const store = useMatStore();
+
+    store.setSimpleMode(true);
+
+    expect(store.simpleMode).toBe(true);
+    expect(store.showSecondaryGrid).toBe(false);
+
+    store.setSimpleMode(false);
+
+    expect(store.simpleMode).toBe(false);
+    expect(store.showSecondaryGrid).toBe(true);
+  });
+
+  it("switches the board to the tray's 10x10 grid when turned on", () => {
+    const store = storeWithSimpleModeOff();
+    store.initBoard(18);
+
+    store.setSimpleMode(true);
+
+    expect(store.gridSize).toBe(10);
+  });
+
+  it("leaves the grid size alone when turned off", () => {
+    const store = storeWithSimpleModeOff();
+    store.initBoard(18);
+
+    store.setSimpleMode(false);
+
+    expect(store.gridSize).toBe(18);
   });
 });
 
@@ -789,5 +822,83 @@ describe("isSimpleModeTab", () => {
     for (const tab of ["move", "num", "abc", "emoji", "veh", "ani", "tasks"]) {
       expect(isSimpleModeTab(tab)).toBe(false);
     }
+  });
+});
+
+describe("matStore welcome dialog", () => {
+  beforeEach(() => {
+    installBrowserStubs();
+    setActivePinia(createPinia());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("shows the welcome on a first visit", () => {
+    const store = useMatStore();
+    expect(store.welcomeSeen).toBe(false);
+    expect(store.shouldShowWelcome).toBe(true);
+  });
+
+  it("does not show the welcome again once it has been dismissed", () => {
+    localStorage.setItem("vcm_welcome_seen", "true");
+    const store = useMatStore();
+    expect(store.shouldShowWelcome).toBe(false);
+  });
+
+  it("persists the welcome as seen when dismissed", async () => {
+    const store = useMatStore();
+
+    store.dismissWelcome();
+    await nextTick();
+
+    expect(store.welcomeSeen).toBe(true);
+    expect(store.shouldShowWelcome).toBe(false);
+    expect(localStorage.getItem("vcm_welcome_seen")).toBe("true");
+  });
+
+  it("opens on a first visit and closes for good once answered", async () => {
+    const store = useMatStore();
+    expect(store.welcomeOpen).toBe(true);
+
+    store.dismissWelcome();
+    await nextTick();
+
+    expect(store.welcomeOpen).toBe(false);
+  });
+
+  it("starts closed when it has been seen before", () => {
+    localStorage.setItem("vcm_welcome_seen", "true");
+    const store = useMatStore();
+    expect(store.welcomeOpen).toBe(false);
+  });
+
+  it("reopens on request even after it has been seen", () => {
+    localStorage.setItem("vcm_welcome_seen", "true");
+    const store = useMatStore();
+
+    store.openWelcome();
+
+    expect(store.welcomeOpen).toBe(true);
+
+    store.closeWelcome();
+
+    expect(store.welcomeOpen).toBe(false);
+    expect(store.welcomeSeen).toBe(true);
+  });
+
+  it("stays out of the way of a board opened from a shared link", () => {
+    vi.unstubAllGlobals();
+    const hash = `#d=${encodeBoardState({ s: 10, m: [[2, 2, "#ef4444", null, null]], sec: [] })}`;
+    installBrowserStubs(hash);
+    setActivePinia(createPinia());
+
+    const store = useMatStore();
+
+    expect(store.gridData[2]?.[2]?.bg).toBe("#ef4444");
+    expect(store.welcomeSeen).toBe(false);
+    expect(store.shouldShowWelcome).toBe(false);
+    expect(store.welcomeOpen).toBe(false);
   });
 });

@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { useMatStore } from "../stores/matStore";
 import { showCookiePreferences } from "../plugins/analytics";
-import { Sun, Moon, Volume2, VolumeX, Languages, Settings, Eye, EyeOff, Cookie, Baby } from "lucide-vue-next";
+import { Sun, Moon, Volume2, VolumeX, Languages, Settings, Eye, EyeOff, Cookie, Baby, GraduationCap } from "lucide-vue-next";
 
 const store = useMatStore();
 const showSettingsMenu = ref(false);
@@ -248,6 +248,17 @@ onUnmounted(() => {
           }}
         </span>
       </button>
+      <!-- Introduction Row - reopens the welcome card to re-read or switch mode -->
+      <button
+        @click="store.openWelcome(); showSettingsMenu = false;"
+        class="flex items-center justify-between w-full px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold transition-colors cursor-pointer text-left border-t border-slate-50 dark:border-slate-700/30"
+      >
+        <span class="flex items-center gap-2.5">
+          <GraduationCap :size="16" class="text-emerald-500" />
+          {{ store.t.introduction }}
+        </span>
+      </button>
+
       <!-- Cookie Consent Row -->
       <button
         @click="showCookiePreferences(); showSettingsMenu = false;"
