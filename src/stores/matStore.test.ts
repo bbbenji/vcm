@@ -534,9 +534,35 @@ describe("matStore layout settings", () => {
     vi.unstubAllGlobals();
   });
 
-  it("defaults showSecondaryGrid to true", () => {
+  it("defaults showSecondaryGrid to false, following simple mode", () => {
+    const store = useMatStore();
+    expect(store.showSecondaryGrid).toBe(false);
+  });
+
+  it("defaults showSecondaryGrid to true once simple mode is switched off", () => {
+    localStorage.setItem("vcm_simple_mode", "false");
     const store = useMatStore();
     expect(store.showSecondaryGrid).toBe(true);
+  });
+
+  it("honours a stored showSecondaryGrid over the simple mode default", () => {
+    localStorage.setItem("vcm_show_secondary", "true");
+    const store = useMatStore();
+    expect(store.simpleMode).toBe(true);
+    expect(store.showSecondaryGrid).toBe(true);
+  });
+
+  it("defaults the axis labels to top and left only", () => {
+    const store = useMatStore();
+    expect(store.showAxisTopLeft).toBe(true);
+    expect(store.showAxisBottomRight).toBe(false);
+  });
+
+  it("defaults the axis labels to all four edges once simple mode is switched off", () => {
+    localStorage.setItem("vcm_simple_mode", "false");
+    const store = useMatStore();
+    expect(store.showAxisTopLeft).toBe(true);
+    expect(store.showAxisBottomRight).toBe(true);
   });
 
   it("initializes showSecondaryGrid to false if vcm_show_secondary is set to false in localStorage", () => {
@@ -674,19 +700,34 @@ describe("matStore simple mode", () => {
     vi.unstubAllGlobals();
   });
 
-  it("defaults simpleMode to false", () => {
-    const store = useMatStore();
-    expect(store.simpleMode).toBe(false);
-  });
+  /** A store with simple mode already switched off, ready to be toggled on. */
+  function storeWithSimpleModeOff() {
+    localStorage.setItem("vcm_simple_mode", "false");
+    return useMatStore();
+  }
 
-  it("initializes simpleMode to true if vcm_simple_mode is set to true in localStorage", () => {
-    localStorage.setItem("vcm_simple_mode", "true");
+  it("defaults simpleMode to true", () => {
     const store = useMatStore();
     expect(store.simpleMode).toBe(true);
   });
 
-  it("persists simpleMode to localStorage when toggled on", async () => {
+  it("initializes simpleMode to false if vcm_simple_mode is set to false in localStorage", () => {
+    const store = storeWithSimpleModeOff();
+    expect(store.simpleMode).toBe(false);
+  });
+
+  it("persists simpleMode to localStorage when toggled off", async () => {
     const store = useMatStore();
+
+    store.toggleSimpleMode();
+    await nextTick();
+
+    expect(store.simpleMode).toBe(false);
+    expect(localStorage.getItem("vcm_simple_mode")).toBe("false");
+  });
+
+  it("persists simpleMode to localStorage when toggled back on", async () => {
+    const store = storeWithSimpleModeOff();
 
     store.toggleSimpleMode();
     await nextTick();
@@ -696,7 +737,7 @@ describe("matStore simple mode", () => {
   });
 
   it("hides the coding section and the bottom-right labels when turned on", () => {
-    const store = useMatStore();
+    const store = storeWithSimpleModeOff();
     store.showSecondaryGrid = true;
     store.showAxisTopLeft = false;
     store.showAxisBottomRight = true;
@@ -709,7 +750,7 @@ describe("matStore simple mode", () => {
   });
 
   it("moves away from a tab that simple mode hides", () => {
-    const store = useMatStore();
+    const store = storeWithSimpleModeOff();
     store.activeTab = "abc";
 
     store.toggleSimpleMode();
@@ -718,7 +759,7 @@ describe("matStore simple mode", () => {
   });
 
   it("keeps the saved mats tab selected when turning simple mode on", () => {
-    const store = useMatStore();
+    const store = storeWithSimpleModeOff();
     store.activeTab = "my_mats";
 
     store.toggleSimpleMode();
@@ -729,7 +770,6 @@ describe("matStore simple mode", () => {
   it("leaves the display flags untouched when turned back off", () => {
     const store = useMatStore();
 
-    store.toggleSimpleMode();
     store.showSecondaryGrid = true;
     store.toggleSimpleMode();
 

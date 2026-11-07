@@ -79,6 +79,15 @@ const MAX_GRID_SIZE = 20;
 const START_ICON = "Play";
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+/**
+ * Read a persisted boolean. An unset flag falls back, which lets the display
+ * options default off simple mode instead of each hard-coding its own answer.
+ */
+function readFlag(key: string, fallback: boolean) {
+  const stored = readStorage(key);
+  return stored === null ? fallback : stored === "true";
+}
+
 function isGridSize(value: unknown): value is GridSize {
   return typeof value === "number" && GRID_SIZES.includes(value as GridSize);
 }
@@ -271,14 +280,25 @@ export const useMatStore = defineStore("mat", () => {
   const lang = ref<Language>((readStorage("vcm_lang") as Language) || "pl");
   const isDarkMode = ref<boolean>(readStorage("vcm_theme") === "dark");
   const soundEnabled = ref<boolean>(readStorage("vcm_sound") === "true");
-  const showSecondaryGrid = ref<boolean>(readStorage("vcm_show_secondary") !== "false");
+
+  /**
+   * Simplified board: colours and saved mats only, no coding section. On out of
+   * the box, so the board a first-time visitor meets is the simple one.
+   *
+   * Switching it on presets the display flags below rather than locking them,
+   * so their settings rows still work for anyone who wants a piece back; an
+   * unset flag follows this default for the same reason.
+   */
+  const simpleMode = ref<boolean>(readFlag("vcm_simple_mode", true));
+
+  const showSecondaryGrid = ref<boolean>(readFlag("vcm_show_secondary", !simpleMode.value));
 
   // Board display options. These apply everywhere the board is drawn - screen,
   // image export and the 1:1 print - so what you see is what gets printed.
-  const showAxisTopLeft = ref<boolean>(readStorage("vcm_axis_top_left") !== "false");
-  const showAxisBottomRight = ref<boolean>(readStorage("vcm_axis_bottom_right") !== "false");
+  const showAxisTopLeft = ref<boolean>(readFlag("vcm_axis_top_left", true));
+  const showAxisBottomRight = ref<boolean>(readFlag("vcm_axis_bottom_right", !simpleMode.value));
   /** Draw backgrounds as a small centre dot, leaving the cell free to colour in by hand. */
-  const colorDotMode = ref<boolean>(readStorage("vcm_color_dots") === "true");
+  const colorDotMode = ref<boolean>(readFlag("vcm_color_dots", false));
 
   watch(showSecondaryGrid, (val) => {
     writeStorage("vcm_show_secondary", val ? "true" : "false");
@@ -295,13 +315,6 @@ export const useMatStore = defineStore("mat", () => {
   watch(colorDotMode, (val) => {
     writeStorage("vcm_color_dots", val ? "true" : "false");
   });
-
-  /**
-   * Simplified board: colours and saved mats only, no coding section.
-   * Switching it on presets the display flags above rather than locking them,
-   * so their settings rows still work for anyone who wants a piece back.
-   */
-  const simpleMode = ref<boolean>(readStorage("vcm_simple_mode") === "true");
 
   watch(simpleMode, (val) => {
     writeStorage("vcm_simple_mode", val ? "true" : "false");
