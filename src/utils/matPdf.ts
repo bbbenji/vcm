@@ -21,8 +21,8 @@ const MAT_ELEMENT_ID = "mat-grid-container";
 const PIXEL_RATIO = 2;
 
 /** Fallback target, and the address shown in readable form on the page. */
-export const SITE_URL = "https://kodowanie.mamywydruki.pl/";
-const SITE_LABEL = "kodowanie.mamywydruki.pl";
+export const SITE_URL = "https://pixel.mamywydruki.pl/";
+const SITE_LABEL = "pixel.mamywydruki.pl";
 
 /**
  * The QR carries the whole design, not just the site address, so scanning a

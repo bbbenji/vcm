@@ -13,4 +13,4 @@ It allows users to generate interactive grids with various digital assets (like 
 
 ## Links
 
-- [Wirtualna Mata Application](https://kodowanie.mamywydruki.pl/): The main interactive application interface.
+- [Wirtualna Mata Application](https://pixel.mamywydruki.pl/): The main interactive application interface.

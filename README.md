@@ -24,7 +24,7 @@ bun run check
 
 ## GitHub Pages
 
-This repository deploys to GitHub Pages with the site served from the domain root (custom domain `kodowanie.mamywydruki.pl`), so the build uses the default base path `/`.
+This repository deploys to GitHub Pages with the site served from the domain root (custom domain `pixel.mamywydruki.pl`), so the build uses the default base path `/`.
 
 1. In GitHub, open Settings -> Pages.
 2. Set Build and deployment -> Source to GitHub Actions.
