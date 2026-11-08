@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { Trash2 } from "lucide-vue-next";
 
-defineProps<{
+const props = defineProps<{
   tpl: {
     id: string;
     size: number;
@@ -9,6 +10,7 @@ defineProps<{
     desc?: string;
     type?: string;
     createdAt?: number;
+    main?: [number, number, string | null, string | null, string | null][];
   };
   isCustom: boolean;
   getTemplateName: (tpl: { id: string; name?: string; desc?: string }) => string;
@@ -22,6 +24,27 @@ defineEmits<{
   (e: "load"): void;
   (e: "delete", id: string): void;
 }>();
+
+/**
+ * The board's colours as a flat row-major list, for the swatch preview. Icons
+ * and text are left out - a thumbnail is about recognising the picture, and the
+ * designs this matters for are painted in colour alone.
+ */
+const preview = computed(() => {
+  const size = props.tpl.size;
+  const cells: (string | null)[] = Array.from({ length: size * size }, () => null);
+
+  for (const [row, col, bg] of props.tpl.main ?? []) {
+    if (row >= 0 && row < size && col >= 0 && col < size) {
+      cells[row * size + col] = bg;
+    }
+  }
+
+  return cells;
+});
+
+/** A board with no colours at all - a coordinate task - has nothing to show. */
+const hasPreview = computed(() => preview.value.some((bg) => bg));
 </script>
 
 <template>
@@ -29,6 +52,22 @@ defineEmits<{
     @click="$emit('load')"
     class="flex flex-col text-left p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 hover:bg-slate-100 dark:hover:bg-slate-950/90 hover:border-slate-350 dark:hover:border-slate-700/80 transition-all cursor-pointer shadow-sm select-none relative group"
   >
+    <div class="flex items-start gap-3 w-full">
+    <!-- Colour preview of the board -->
+    <div
+      v-if="hasPreview"
+      class="grid shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+      :style="{ gridTemplateColumns: `repeat(${tpl.size}, minmax(0, 1fr))` }"
+      aria-hidden="true"
+    >
+      <span
+        v-for="(bg, i) in preview"
+        :key="i"
+        :style="bg ? { backgroundColor: bg } : undefined"
+      ></span>
+    </div>
+
+    <div class="flex flex-col min-w-0 flex-1">
     <!-- Title and badges row -->
     <div class="flex justify-between items-start gap-2 w-full">
       <div class="flex flex-col gap-1 min-w-0">
@@ -92,5 +131,7 @@ defineEmits<{
     >
       {{ loadLabel }} <span v-if="!isCustom">({{ tpl.size }}x{{ tpl.size }})</span> &rarr;
     </span>
+    </div>
+    </div>
   </div>
 </template>

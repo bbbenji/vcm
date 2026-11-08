@@ -9,7 +9,7 @@ import type { Language } from "../utils/i18n";
 export const GRID_SIZES = [10, 12, 14, 16, 18, 20] as const;
 
 /** Asset-drawer tabs that stay available in simple mode. */
-export const SIMPLE_MODE_TABS = ["bg", "my_mats"] as const;
+export const SIMPLE_MODE_TABS = ["bg", "tasks", "my_mats"] as const;
 
 /** Whether the asset drawer shows this tab while simple mode is on. */
 export function isSimpleModeTab(tabId: string) {

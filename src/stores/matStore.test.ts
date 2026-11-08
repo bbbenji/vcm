@@ -833,13 +833,14 @@ describe("matStore simple mode", () => {
 });
 
 describe("isSimpleModeTab", () => {
-  it("keeps the colours and saved mats tabs", () => {
+  it("keeps the colours, designs and saved mats tabs", () => {
     expect(isSimpleModeTab("bg")).toBe(true);
+    expect(isSimpleModeTab("tasks")).toBe(true);
     expect(isSimpleModeTab("my_mats")).toBe(true);
   });
 
-  it("drops the coding, text and template tabs", () => {
-    for (const tab of ["move", "num", "abc", "emoji", "veh", "ani", "tasks"]) {
+  it("drops the coding and text tabs", () => {
+    for (const tab of ["move", "num", "abc", "emoji", "veh", "ani"]) {
       expect(isSimpleModeTab(tab)).toBe(false);
     }
   });

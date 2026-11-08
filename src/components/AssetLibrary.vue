@@ -4,7 +4,7 @@ import { useMatStore } from "../stores/matStore";
 import { isSimpleModeTab } from "../stores/matStore";
 import type { ToolType } from "../stores/matStore";
 import { getIcon } from "../utils/icons";
-import { templates } from "../utils/templates";
+import { templates, trayDesigns } from "../utils/templates";
 import {
   emoji_people,
   emoji_activity,
@@ -119,6 +119,20 @@ const categories = [
 const visibleCategories = computed(() =>
   store.simpleMode ? categories.filter((cat) => isSimpleModeTab(cat.id)) : categories,
 );
+
+/**
+ * Simple mode offers only what can be copied onto the tray, as one flat list:
+ * the algorithm and symmetry tasks need movement icons or the coding section,
+ * so their categories have nothing to show.
+ */
+const designCategories = computed(() =>
+  store.simpleMode
+    ? [{ id: "tray" as const, titleKey: "cat_tray" as const, icon: "Palette" }]
+    : taskCategories,
+);
+
+const designsIn = (categoryId: string) =>
+  categoryId === "tray" ? trayDesigns : templates.filter((t) => t.category === categoryId);
 
 const taskCategories = [
   { id: "pixel_art" as const, titleKey: "cat_pixel_art" as const, icon: "Palette" },
@@ -910,18 +924,18 @@ const movementLegend: LegendEntry[] = [
         <!-- Predefined and instructional templates lists grouped by Category -->
         <template v-if="activeTab === 'tasks'">
           <div class="flex flex-col gap-5 col-span-full pb-6">
-            <div v-for="cat in taskCategories" :key="cat.id" class="flex flex-col gap-2.5">
+            <div v-for="cat in designCategories" :key="cat.id" class="flex flex-col gap-2.5">
               <!-- Category Header -->
               <CategoryHeader
                 :icon="cat.icon"
                 :title="String(store.t[cat.titleKey as keyof typeof store.t])"
-                :count="templates.filter((t) => t.category === cat.id).length"
+                :count="designsIn(cat.id).length"
               />
 
               <!-- List of Templates in Category -->
               <div class="flex flex-col gap-3">
                 <TemplateCard
-                  v-for="tpl in templates.filter((t) => t.category === cat.id)"
+                  v-for="tpl in designsIn(cat.id)"
                   :key="tpl.id"
                   :tpl="tpl"
                   :is-custom="false"

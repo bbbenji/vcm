@@ -11,6 +11,14 @@ import { castle } from './templates/castle'
 import { island_maze } from './templates/island_maze'
 import { shield_symmetry } from './templates/shield_symmetry'
 import { digital_robot } from './templates/digital_robot'
+import { fish } from './templates/fish'
+import { cat } from './templates/cat'
+import { tree } from './templates/tree'
+import { star } from './templates/star'
+import { ladybug } from './templates/ladybug'
+import { mushroom } from './templates/mushroom'
+import { sailboat } from './templates/sailboat'
+import { rainbow } from './templates/rainbow'
 import { space_labyrinth } from './templates/space_labyrinth'
 
 export interface Template {
@@ -24,12 +32,39 @@ export interface Template {
   secondarySolution?: [number, number, string | null, string | null, string | null][]
 }
 
+/**
+ * Whether a design can be reproduced on the Pixel Taca tray: a 16.5cm product
+ * with 10x10 fields of 15mm, so only a 10x10 board fits, and only colours can
+ * be laid down in coloured water or loose material. Derived rather than listed
+ * by hand, so a design added later is offered only if it really fits.
+ */
+export function isTrayDesign(t: Template) {
+  return (
+    t.size === 10 &&
+    t.type === 'premade' &&
+    t.category === 'pixel_art' &&
+    t.secondary.length === 0 &&
+    t.main.length > 0 &&
+    t.main.every(([, , bg, icon, text]) => Boolean(bg) && icon === null && text === null)
+  )
+}
+
 export const templates: Template[] = [
-  // Pixel Art & Patterns
+  // Pixel Art & Patterns - the 10x10 ones fit the Pixel Taca tray
   heart,
+  fish,
+  cat,
+  tree,
+  star,
+  ladybug,
+  mushroom,
+  sailboat,
+  rainbow,
   rocket,
   flower,
   house,
+
+  // Pixel art too big for the tray
   castle,
   digital_robot,
 
@@ -44,3 +79,6 @@ export const templates: Template[] = [
   butterfly_symmetry,
   shield_symmetry,
 ]
+
+/** The shipped designs that can be copied onto the tray. */
+export const trayDesigns: Template[] = templates.filter(isTrayDesign)
